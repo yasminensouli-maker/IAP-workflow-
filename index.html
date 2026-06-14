@@ -1,0 +1,3274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IAP Funding Workflow</title>
+<style>
+/* ── RESET & BASE ─────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+@font-face {
+  font-family: 'Amazon Ember';
+  src: local('Amazon Ember'), local('AmazonEmber');
+}
+:root{
+  --ink:#0a0a0a;
+  --ink2:#444;
+  --ink3:#777;
+  --border:#d8d8d8;
+  --border2:#eee;
+  --bg:#f5f4f0;
+  --white:#ffffff;
+  --panel:#fefefe;
+  --intel:#0068b5;
+  --intel-dark:#004f8c;
+  --intel-light:#e8f2fb;
+  --aws:#f90;
+  --aws-dark:#c47400;
+  --green:#1a7f37;
+  --green-light:#e6f4ea;
+  --red:#c0392b;
+  --red-light:#fdecea;
+  --yellow-light:#fffbea;
+  --radius:6px;
+  --shadow:0 1px 4px rgba(0,0,0,.08);
+  --shadow-md:0 4px 16px rgba(0,0,0,.10);
+  font-size:14px;
+}
+
+body{
+  font-family:'Amazon Ember','Helvetica Neue',Arial,sans-serif;
+  background:var(--bg);
+  color:var(--ink);
+  min-height:100vh;
+  line-height:1.55;
+}
+
+/* ── LOGIN SCREEN ─────────────────────────────────────────── */
+#login-screen{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:100vh;
+  background:linear-gradient(135deg,#003a6e 0%,#0068b5 60%,#0090d4 100%);
+}
+.login-box{
+  background:var(--white);
+  border-radius:12px;
+  padding:48px 40px 40px;
+  width:380px;
+  box-shadow:0 20px 60px rgba(0,0,0,.25);
+  text-align:center;
+}
+.login-logo{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  margin-bottom:28px;
+}
+.login-logo .l-intel{
+  background:var(--intel);
+  color:#fff;
+  font-family:'Arial',sans-serif;
+  font-weight:700;
+  font-size:13px;
+  padding:5px 10px;
+  border-radius:3px;
+  letter-spacing:.5px;
+}
+.login-logo .l-x{color:var(--ink3);font-size:11px}
+.login-logo .l-aws{
+  color:var(--aws-dark);
+  font-family:'Arial',sans-serif;
+  font-weight:900;
+  font-size:16px;
+  letter-spacing:-1px;
+}
+.login-box h1{
+  font-size:1.15rem;
+  font-weight:normal;
+  color:var(--ink);
+  margin-bottom:6px;
+  letter-spacing:-.2px;
+}
+.login-box p{
+  font-size:.8rem;
+  color:var(--ink3);
+  margin-bottom:28px;
+}
+.login-form label{
+  display:block;
+  text-align:left;
+  font-size:.72rem;
+  color:var(--ink2);
+  font-family:'Arial',sans-serif;
+  margin-bottom:4px;
+  margin-top:14px;
+  font-weight:600;
+  letter-spacing:.3px;
+  text-transform:uppercase;
+}
+.login-form input{
+  width:100%;
+  padding:9px 12px;
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  font-size:.88rem;
+  font-family:'Amazon Ember','Helvetica Neue',Arial,sans-serif;
+  color:var(--ink);
+  outline:none;
+  transition:border-color .15s;
+}
+.login-form input:focus{border-color:var(--intel)}
+.login-error{
+  background:var(--red-light);
+  color:var(--red);
+  font-size:.75rem;
+  padding:8px 10px;
+  border-radius:var(--radius);
+  margin-top:10px;
+  display:none;
+  text-align:left;
+}
+.btn-login{
+  width:100%;
+  margin-top:20px;
+  padding:11px;
+  background:var(--intel);
+  color:#fff;
+  border:none;
+  border-radius:var(--radius);
+  font-size:.9rem;
+  font-family:'Arial',sans-serif;
+  font-weight:600;
+  cursor:pointer;
+  transition:background .15s;
+}
+.btn-login:hover{background:var(--intel-dark)}
+.login-tiers{
+  margin-top:24px;
+  font-size:.7rem;
+  color:var(--ink3);
+  font-family:'Arial',sans-serif;
+  border-top:1px solid var(--border2);
+  padding-top:16px;
+}
+.tier-badge{
+  display:inline-block;
+  padding:2px 7px;
+  border-radius:10px;
+  font-size:.65rem;
+  font-weight:700;
+  margin-right:4px;
+}
+.tier-intel{background:#e8f2fb;color:var(--intel)}
+.tier-aws{background:#fff3e0;color:var(--aws-dark)}
+.tier-admin{background:#e6f4ea;color:var(--green)}
+
+/* ── MAIN APP ─────────────────────────────────────────────── */
+#app{display:none}
+.app-header{
+  background:var(--intel);
+  color:#fff;
+  padding:0 24px;
+  height:52px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  position:sticky;
+  top:0;
+  z-index:100;
+  box-shadow:0 2px 8px rgba(0,0,0,.15);
+}
+.app-header-left{
+  display:flex;
+  align-items:center;
+  gap:16px;
+}
+.app-header-logo{
+  font-family:'Arial',sans-serif;
+  font-size:.75rem;
+  font-weight:700;
+  letter-spacing:.8px;
+  opacity:.9;
+}
+.app-header-title{
+  font-size:.82rem;
+  opacity:.85;
+  border-left:1px solid rgba(255,255,255,.3);
+  padding-left:16px;
+  letter-spacing:.2px;
+}
+.app-header-right{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  font-size:.75rem;
+  font-family:'Arial',sans-serif;
+}
+.user-pill{
+  background:rgba(255,255,255,.15);
+  border-radius:20px;
+  padding:4px 12px;
+  font-size:.72rem;
+}
+.btn-logout{
+  background:rgba(255,255,255,.2);
+  border:1px solid rgba(255,255,255,.3);
+  color:#fff;
+  border-radius:var(--radius);
+  padding:4px 10px;
+  font-size:.72rem;
+  cursor:pointer;
+  font-family:'Arial',sans-serif;
+  transition:background .15s;
+}
+.btn-logout:hover{background:rgba(255,255,255,.3)}
+
+/* ── LAYOUT ───────────────────────────────────────────────── */
+.app-body{
+  display:grid;
+  grid-template-columns:220px 1fr;
+  min-height:calc(100vh - 52px);
+}
+.sidebar{
+  background:var(--white);
+  border-right:1px solid var(--border);
+  padding:20px 0;
+  position:sticky;
+  top:52px;
+  height:calc(100vh - 52px);
+  overflow-y:auto;
+}
+.sidebar-section{
+  padding:0 16px 16px;
+  border-bottom:1px solid var(--border2);
+  margin-bottom:8px;
+}
+.sidebar-section:last-child{border-bottom:none}
+.sidebar-label{
+  font-family:'Arial',sans-serif;
+  font-size:.6rem;
+  font-weight:700;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  color:var(--ink3);
+  margin-bottom:10px;
+}
+.nav-item{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:7px 8px;
+  border-radius:var(--radius);
+  cursor:pointer;
+  font-size:.78rem;
+  color:var(--ink2);
+  font-family:'Arial',sans-serif;
+  transition:all .12s;
+  margin-bottom:2px;
+  border:none;
+  background:none;
+  width:100%;
+  text-align:left;
+}
+.nav-item:hover{background:var(--border2);color:var(--ink)}
+.nav-item.active{background:var(--intel-light);color:var(--intel);font-weight:600}
+.nav-item .step-num{
+  width:20px;
+  height:20px;
+  border-radius:50%;
+  background:var(--border2);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:.6rem;
+  font-weight:700;
+  flex-shrink:0;
+  transition:all .12s;
+}
+.nav-item.active .step-num{background:var(--intel);color:#fff}
+.nav-item.done .step-num{background:var(--green);color:#fff}
+.nav-item.done{color:var(--green)}
+
+.tenets{padding:0 16px}
+.tenet-item{
+  font-size:.7rem;
+  color:var(--ink2);
+  padding:5px 0;
+  border-bottom:1px solid var(--border2);
+  line-height:1.45;
+}
+.tenet-item:last-child{border-bottom:none}
+.tenet-item strong{color:var(--ink);display:block;margin-bottom:1px}
+
+/* ── MAIN CONTENT ─────────────────────────────────────────── */
+.main-content{
+  padding:28px 32px;
+  max-width:900px;
+}
+
+.step-panel{display:none}
+.step-panel.active{display:block}
+
+.step-header{
+  margin-bottom:22px;
+  padding-bottom:16px;
+  border-bottom:2px solid var(--border2);
+}
+.step-badge{
+  font-family:'Arial',sans-serif;
+  font-size:.6rem;
+  font-weight:700;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  color:var(--intel);
+  margin-bottom:4px;
+}
+.step-title{
+  font-size:1.3rem;
+  font-weight:normal;
+  letter-spacing:-.3px;
+  margin-bottom:4px;
+}
+.step-desc{
+  font-size:.78rem;
+  color:var(--ink2);
+  font-family:'Arial',sans-serif;
+  max-width:600px;
+  line-height:1.5;
+}
+
+/* ── FORM ELEMENTS ────────────────────────────────────────── */
+.form-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px 20px;
+}
+.form-grid.three{grid-template-columns:1fr 1fr 1fr}
+.form-grid.full{grid-template-columns:1fr}
+.f-group{display:flex;flex-direction:column;gap:4px}
+.f-group.span2{grid-column:span 2}
+.f-group.span3{grid-column:span 3}
+label{
+  font-family:'Arial',sans-serif;
+  font-size:.7rem;
+  font-weight:700;
+  color:var(--ink2);
+  letter-spacing:.2px;
+  text-transform:uppercase;
+}
+label .req{color:var(--red);margin-left:2px}
+input[type="text"],input[type="email"],input[type="number"],
+input[type="date"],select,textarea{
+  padding:8px 10px;
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  font-size:.83rem;
+  font-family:'Amazon Ember','Helvetica Neue',Arial,sans-serif;
+  color:var(--ink);
+  background:var(--white);
+  outline:none;
+  transition:border-color .15s,box-shadow .15s;
+  width:100%;
+}
+input:focus,select:focus,textarea:focus{
+  border-color:var(--intel);
+  box-shadow:0 0 0 3px rgba(0,104,181,.08);
+}
+textarea{resize:vertical;min-height:72px}
+.hint{font-size:.68rem;color:var(--ink3);font-family:'Arial',sans-serif;margin-top:2px}
+.field-valid{border-color:var(--green)!important}
+.field-invalid{border-color:var(--red)!important}
+
+/* ── ALERTS ───────────────────────────────────────────────── */
+.alert{
+  padding:10px 14px;
+  border-radius:var(--radius);
+  font-size:.78rem;
+  font-family:'Arial',sans-serif;
+  margin-bottom:16px;
+  line-height:1.5;
+}
+.alert strong{font-weight:700}
+.alert-info{background:var(--intel-light);color:var(--intel-dark);border-left:3px solid var(--intel)}
+.alert-success{background:var(--green-light);color:var(--green);border-left:3px solid var(--green)}
+.alert-warn{background:var(--yellow-light);color:#7a5c00;border-left:3px solid var(--aws)}
+
+/* ── SECTION CARDS ────────────────────────────────────────── */
+.section-card{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:18px 20px;
+  margin-bottom:16px;
+  box-shadow:var(--shadow);
+}
+.section-card-title{
+  font-family:'Arial',sans-serif;
+  font-size:.72rem;
+  font-weight:700;
+  letter-spacing:.8px;
+  text-transform:uppercase;
+  color:var(--ink2);
+  margin-bottom:14px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.section-card-title::after{
+  content:'';
+  flex:1;
+  height:1px;
+  background:var(--border2);
+}
+
+/* ── BUTTONS ──────────────────────────────────────────────── */
+.btn{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:9px 18px;
+  border-radius:var(--radius);
+  font-family:'Arial',sans-serif;
+  font-size:.78rem;
+  font-weight:600;
+  cursor:pointer;
+  border:none;
+  transition:all .12s;
+  letter-spacing:.2px;
+}
+.btn-primary{background:var(--intel);color:#fff}
+.btn-primary:hover{background:var(--intel-dark)}
+.btn-secondary{background:var(--white);color:var(--ink);border:1px solid var(--border)}
+.btn-secondary:hover{background:var(--border2)}
+.btn-success{background:var(--green);color:#fff}
+.btn-success:hover{background:#155d2b}
+.btn-danger{background:var(--red);color:#fff}
+.btn-danger:hover{background:#922b21}
+.btn-sm{padding:5px 10px;font-size:.72rem}
+.btn-aws{background:var(--aws);color:var(--ink);font-weight:700}
+.btn-aws:hover{background:var(--aws-dark);color:#fff}
+
+.btn-row{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  margin-top:20px;
+  padding-top:16px;
+  border-top:1px solid var(--border2);
+}
+
+/* ── CALCULATOR ───────────────────────────────────────────── */
+.calc-methodology{
+  background:var(--intel-light);
+  border:1px solid #b3d4ef;
+  border-radius:var(--radius);
+  padding:12px 16px;
+  font-size:.75rem;
+  font-family:'Arial',sans-serif;
+  color:var(--intel-dark);
+  margin-bottom:18px;
+  line-height:1.6;
+}
+.calc-methodology strong{font-weight:700}
+
+.fleet-container{margin-bottom:16px}
+.fleet-row{
+  background:var(--white);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:16px;
+  margin-bottom:10px;
+  box-shadow:var(--shadow);
+}
+.fleet-row-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:12px;
+}
+.fleet-row-title{
+  font-family:'Arial',sans-serif;
+  font-size:.72rem;
+  font-weight:700;
+  color:var(--intel);
+  letter-spacing:.5px;
+  text-transform:uppercase;
+}
+.fleet-type-toggle{
+  display:flex;
+  gap:4px;
+}
+.type-btn{
+  padding:3px 10px;
+  border-radius:4px;
+  font-size:.68rem;
+  font-family:'Arial',sans-serif;
+  font-weight:700;
+  cursor:pointer;
+  border:1px solid var(--border);
+  background:var(--white);
+  color:var(--ink2);
+  transition:all .12s;
+  letter-spacing:.3px;
+}
+.type-btn.active-nn{background:var(--intel);color:#fff;border-color:var(--intel)}
+.type-btn.active-mod{background:var(--aws);color:var(--ink);border-color:var(--aws-dark)}
+
+.fleet-fields{
+  display:grid;
+  grid-template-columns:2fr 1.5fr 1.5fr 1.2fr 1.2fr auto;
+  gap:10px;
+  align-items:end;
+}
+.fleet-fields label{font-size:.65rem}
+.fleet-fields input,.fleet-fields select{font-size:.8rem;padding:7px 8px}
+
+.fleet-result{
+  margin-top:12px;
+  padding:10px 14px;
+  background:var(--green-light);
+  border-radius:var(--radius);
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:8px;
+  font-family:'Arial',sans-serif;
+  font-size:.72rem;
+}
+.fleet-result-item label{
+  font-size:.6rem;
+  color:var(--ink3);
+  display:block;
+  margin-bottom:1px;
+  text-transform:uppercase;
+}
+.fleet-result-item .val{
+  font-size:.88rem;
+  font-weight:700;
+  color:var(--green);
+}
+.fleet-result-item .val.zero{color:var(--ink3)}
+
+.calc-totals{
+  background:var(--ink);
+  color:#fff;
+  border-radius:8px;
+  padding:16px 20px;
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:12px;
+  margin-top:6px;
+  font-family:'Arial',sans-serif;
+}
+.calc-total-item label{
+  font-size:.6rem;
+  opacity:.6;
+  letter-spacing:.5px;
+  text-transform:uppercase;
+  color:#fff;
+  display:block;
+  margin-bottom:3px;
+  font-weight:400;
+}
+.calc-total-item .val{
+  font-size:1.1rem;
+  font-weight:700;
+  color:#fff;
+}
+.calc-total-item .val.highlight{color:var(--aws)}
+
+/* Cost Explorer panel */
+.ce-panel{
+  background:linear-gradient(135deg,#0a1929 0%,#0d2d52 100%);
+  border-radius:8px;
+  padding:18px 20px;
+  margin-top:14px;
+  color:#fff;
+  font-family:'Arial',sans-serif;
+}
+.ce-panel h4{
+  font-size:.7rem;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  opacity:.7;
+  margin-bottom:12px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.ce-panel h4::before{
+  content:'◈';
+  color:var(--aws);
+  font-size:.9rem;
+}
+.ce-bars{display:flex;flex-direction:column;gap:8px}
+.ce-bar-row{display:flex;align-items:center;gap:10px;font-size:.72rem}
+.ce-bar-label{width:100px;opacity:.7;flex-shrink:0;font-size:.67rem;text-align:right}
+.ce-bar-track{flex:1;background:rgba(255,255,255,.08);border-radius:4px;height:22px;overflow:hidden;position:relative}
+.ce-bar-fill{height:100%;border-radius:4px;transition:width .4s ease;display:flex;align-items:center;padding-left:8px;font-size:.7rem;font-weight:700}
+.ce-bar-fill.list{background:rgba(255,255,255,.2);color:rgba(255,255,255,.8)}
+.ce-bar-fill.actual{background:var(--intel);color:#fff}
+.ce-bar-fill.rebate{background:var(--aws);color:var(--ink)}
+.ce-bar-val{width:80px;text-align:right;opacity:.9;font-size:.72rem;flex-shrink:0}
+
+/* Sales Play Tags */
+.sales-play-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.play-tag{
+  padding:3px 10px;
+  border-radius:12px;
+  font-size:.68rem;
+  font-family:'Arial',sans-serif;
+  font-weight:600;
+  background:var(--intel-light);
+  color:var(--intel);
+  border:1px solid #b3d4ef;
+}
+.play-tag.mod{background:var(--yellow-light);color:#7a5c00;border-color:#f0d080}
+.play-tag.inactive{background:var(--border2);color:var(--ink3);border-color:var(--border);text-decoration:line-through;opacity:.5}
+
+/* ── STEP 4: SALES PLAY ───────────────────────────────────── */
+.play-matrix{width:100%;border-collapse:collapse;font-size:.75rem}
+.play-matrix th{
+  background:var(--intel);
+  color:#fff;
+  font-family:'Arial',sans-serif;
+  font-size:.65rem;
+  font-weight:700;
+  padding:8px 10px;
+  text-align:left;
+  letter-spacing:.3px;
+}
+.play-matrix td{
+  padding:8px 10px;
+  border-bottom:1px solid var(--border2);
+  vertical-align:middle;
+  font-family:'Arial',sans-serif;
+  font-size:.73rem;
+  color:var(--ink2);
+}
+.play-matrix tr:hover td{background:var(--border2)}
+.play-check{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  cursor:pointer;
+  user-select:none;
+}
+.play-check input[type="checkbox"]{
+  width:14px;
+  height:14px;
+  cursor:pointer;
+  accent-color:var(--intel);
+}
+.eligible-badge{
+  display:inline-block;
+  padding:2px 7px;
+  border-radius:10px;
+  font-size:.62rem;
+  font-weight:700;
+}
+.badge-yes{background:var(--green-light);color:var(--green)}
+.badge-check{background:var(--yellow-light);color:#7a5c00}
+.badge-no{background:var(--red-light);color:var(--red)}
+
+/* ── SOW ──────────────────────────────────────────────────── */
+.sow-document{
+  background:var(--white);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:32px 40px;
+  box-shadow:var(--shadow-md);
+  font-family:'Amazon Ember','Helvetica Neue',Arial,sans-serif;
+  font-size:.85rem;
+  line-height:1.65;
+  position:relative;
+}
+.sow-watermark{
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%) rotate(-35deg);
+  font-size:4rem;
+  font-family:'Arial',sans-serif;
+  font-weight:900;
+  color:rgba(0,104,181,.06);
+  letter-spacing:8px;
+  pointer-events:none;
+  z-index:0;
+  white-space:nowrap;
+}
+.sow-inner{position:relative;z-index:1}
+.sow-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  margin-bottom:24px;
+  padding-bottom:16px;
+  border-bottom:2px solid var(--ink);
+}
+.sow-logos{display:flex;align-items:center;gap:12px}
+.sow-logo-intel{
+  background:var(--intel);
+  color:#fff;
+  font-family:'Arial',sans-serif;
+  font-weight:700;
+  font-size:11px;
+  padding:5px 10px;
+  border-radius:2px;
+  letter-spacing:.5px;
+}
+.sow-logo-aws{
+  color:var(--aws-dark);
+  font-family:'Arial',sans-serif;
+  font-weight:900;
+  font-size:15px;
+  letter-spacing:-1px;
+}
+.sow-meta{text-align:right;font-size:.72rem;font-family:'Arial',sans-serif;color:var(--ink2)}
+.sow-title-block{margin-bottom:20px}
+.sow-doc-title{
+  font-size:1.1rem;
+  font-weight:normal;
+  letter-spacing:-.2px;
+  margin-bottom:4px;
+}
+.sow-doc-sub{font-size:.75rem;color:var(--ink2);font-family:'Arial',sans-serif}
+.sow-table{width:100%;border-collapse:collapse;margin:12px 0;font-size:.78rem}
+.sow-table th{
+  background:var(--ink);
+  color:#fff;
+  padding:8px 10px;
+  text-align:left;
+  font-family:'Arial',sans-serif;
+  font-size:.68rem;
+  font-weight:700;
+  letter-spacing:.3px;
+}
+.sow-table td{
+  padding:8px 10px;
+  border-bottom:1px solid var(--border2);
+  font-family:'Arial',sans-serif;
+  font-size:.75rem;
+  color:var(--ink2);
+}
+.sow-table tr:hover td{background:#fafafa}
+.sow-section-head{
+  font-family:'Arial',sans-serif;
+  font-size:.7rem;
+  font-weight:700;
+  letter-spacing:.8px;
+  text-transform:uppercase;
+  color:var(--intel);
+  margin:20px 0 8px;
+  padding-bottom:4px;
+  border-bottom:1px solid var(--border);
+}
+.sow-p{font-size:.78rem;color:var(--ink2);margin-bottom:8px;line-height:1.65;font-family:'Arial',sans-serif}
+.sow-highlight-box{
+  background:var(--intel-light);
+  border:1px solid #b3d4ef;
+  border-radius:var(--radius);
+  padding:12px 16px;
+  margin:12px 0;
+  font-family:'Arial',sans-serif;
+  font-size:.75rem;
+  color:var(--intel-dark);
+}
+.tcc-chain{
+  background:var(--yellow-light);
+  border:1px solid #f0d080;
+  border-radius:var(--radius);
+  padding:12px 16px;
+  margin:12px 0;
+  font-family:'Arial',sans-serif;
+  font-size:.75rem;
+  color:#5a4200;
+}
+.tcc-chain .chain-flow{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-top:6px;
+  font-weight:700;
+  font-size:.8rem;
+}
+.chain-node{
+  background:var(--white);
+  border:1px solid #f0d080;
+  border-radius:var(--radius);
+  padding:4px 10px;
+}
+.chain-arrow{color:#c47400;font-size:.9rem}
+
+/* ── PIPELINE DASHBOARD ───────────────────────────────────── */
+.pipeline-cards{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:12px;
+  margin-bottom:20px;
+}
+.pipe-card{
+  background:var(--white);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:16px;
+  box-shadow:var(--shadow);
+  text-align:center;
+}
+.pipe-card .pipe-val{
+  font-size:1.6rem;
+  font-weight:700;
+  color:var(--intel);
+  margin-bottom:2px;
+}
+.pipe-card .pipe-label{
+  font-size:.65rem;
+  font-family:'Arial',sans-serif;
+  color:var(--ink3);
+  text-transform:uppercase;
+  letter-spacing:.5px;
+}
+.deals-table{width:100%;border-collapse:collapse;font-size:.75rem}
+.approval-card{
+  background:var(--white);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:20px 24px;
+  margin-bottom:14px;
+  box-shadow:var(--shadow);
+}
+.approval-card-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  margin-bottom:12px;
+  padding-bottom:12px;
+  border-bottom:1px solid var(--border2);
+}
+.approval-card-title{
+  font-size:.95rem;
+  font-weight:600;
+  color:var(--ink);
+  margin-bottom:3px;
+}
+.approval-card-meta{
+  font-size:.72rem;
+  color:var(--ink3);
+  font-family:'Arial',sans-serif;
+}
+.approval-actions{
+  display:flex;
+  gap:8px;
+  margin-top:14px;
+  padding-top:12px;
+  border-top:1px solid var(--border2);
+}
+.approval-stage{
+  display:inline-block;
+  padding:3px 10px;
+  border-radius:12px;
+  font-size:.65rem;
+  font-family:'Arial',sans-serif;
+  font-weight:700;
+}
+.stage-core{background:var(--intel-light);color:var(--intel)}
+.stage-intel{background:var(--yellow-light);color:#7a5c00}
+.stage-tcc{background:var(--green-light);color:var(--green)}
+.stage-approved{background:var(--green-light);color:var(--green)}
+.approval-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;font-size:.75rem;font-family:'Arial',sans-serif}
+.approval-grid-item label{font-size:.62rem;color:var(--ink3);display:block;text-transform:uppercase;letter-spacing:.3px;margin-bottom:2px}
+.approval-grid-item .val{color:var(--ink);font-weight:600}
+
+.deals-table th{
+  background:var(--bg);
+  font-family:'Arial',sans-serif;
+  font-size:.65rem;
+  font-weight:700;
+  padding:8px 10px;
+  text-align:left;
+  letter-spacing:.3px;
+  text-transform:uppercase;
+  color:var(--ink2);
+  border-bottom:2px solid var(--border);
+}
+.deals-table td{
+  padding:8px 10px;
+  border-bottom:1px solid var(--border2);
+  font-family:'Arial',sans-serif;
+  color:var(--ink2);
+}
+.deals-table tr:hover td{background:var(--intel-light)}
+.status-pill{
+  display:inline-block;
+  padding:2px 8px;
+  border-radius:10px;
+  font-size:.62rem;
+  font-weight:700;
+  font-family:'Arial',sans-serif;
+}
+.s-draft{background:#eee;color:#555}
+.s-submitted{background:var(--intel-light);color:var(--intel)}
+.s-approved{background:var(--green-light);color:var(--green)}
+.s-paid{background:#e8f5e9;color:#1b5e20}
+
+/* ── PRINT ────────────────────────────────────────────────── */
+@media print{
+  #login-screen,#app>.app-header,.app-body>.sidebar,.btn-row,
+  .btn,#step1,#step2,#step3,#step4,#step5{display:none!important}
+  #step6.active,.sow-document{display:block!important}
+  .app-body{display:block}
+  .main-content{padding:0}
+  body{background:#fff}
+}
+
+/* ── UTILITIES ────────────────────────────────────────────── */
+.mt8{margin-top:8px}
+.mt16{margin-top:16px}
+.mt20{margin-top:20px}
+.mb8{margin-bottom:8px}
+.text-right{text-align:right}
+.text-center{text-align:center}
+.mono{font-family:'Courier New',monospace;font-size:.8rem}
+.green{color:var(--green)}
+.intel-blue{color:var(--intel)}
+hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
+</style>
+
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════
+     LOGIN SCREEN
+══════════════════════════════════════════════ -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <span class="l-intel">intel</span>
+      <span class="l-x">×</span>
+      <span class="l-aws">aws</span>
+    </div>
+    <h1>IAP Funding Workflow</h1>
+    <p>Intel Acceleration Program · Restricted Access</p>
+    <div class="login-form">
+      <label>Email Address</label>
+      <input type="email" id="login-email" placeholder="you@intel.com" autocomplete="email">
+      <label>Access Code</label>
+      <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password">
+      <div class="login-error" id="login-error">Incorrect email or access code. Contact yasmine@cloudzero.ca for access.</div>
+      <button class="btn-login" onclick="doLogin()">Sign In</button>
+    </div>
+    <div class="login-tiers">
+      <div style="margin-bottom:6px">Access tiers:</div>
+      <span class="tier-badge tier-intel">AWS Specialist</span> Submit &amp; view own deals<br style="margin-bottom:4px">
+      <span class="tier-badge tier-aws">AWS/CZ</span> Field — view all, approve<br style="margin-bottom:4px">
+      <span class="tier-badge tier-admin">Admin</span> CloudZero — full access, pipeline, export
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     MAIN APP
+══════════════════════════════════════════════ -->
+<div id="app">
+
+  <!-- HEADER -->
+  <header class="app-header">
+    <div class="app-header-left">
+      <div class="app-header-logo">INTEL × AWS</div>
+      <div class="app-header-title">IAP Funding Workflow</div>
+    </div>
+    <div class="app-header-right">
+      <span class="user-pill" id="user-pill">—</span>
+      <button class="btn-logout" onclick="doLogout()">Sign Out</button>
+    </div>
+  </header>
+
+  <div class="app-body">
+
+    <!-- SIDEBAR -->
+    <nav class="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-label">Workflow Steps</div>
+        <button class="nav-item active" id="nav1" onclick="goStep(1)">
+          <span class="step-num" id="snum1">1</span>Deal Information
+        </button>
+        <button class="nav-item" id="nav2" onclick="goStep(2)">
+          <span class="step-num" id="snum2">2</span>Customer Profile
+        </button>
+        <button class="nav-item" id="nav3" onclick="goStep(3)">
+          <span class="step-num" id="snum3">3</span>IAP Calculator
+        </button>
+        
+        <button class="nav-item" id="nav5" onclick="goStep(5)">
+          <span class="step-num" id="snum5">5</span>ACE / SFDC
+        </button>
+        <button class="nav-item" id="nav6" onclick="goStep(6)">
+          <span class="step-num" id="snum6">6</span>Generate SOW
+        </button>
+        <button class="nav-item" id="nav7" onclick="goStep(7)" style="display:none">
+          <span class="step-num" id="snum7">★</span>Pipeline
+        </button>
+        <button class="nav-item" id="nav-approval" onclick="goStep(8)" style="display:none">
+          <span class="step-num">✓</span>Approval Queue
+        </button>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-label">Operating Tenets</div>
+        <div class="tenets">
+          <div class="tenet-item"><strong>ACE First</strong>Every opportunity must be in ACE before funding is confirmed. Cost Explorer baseline required before start date.</div>
+          <div class="tenet-item"><strong>Actual Spend</strong>Rebate applies to post-discount EC2 ARR, never list price.</div>
+          <div class="tenet-item"><strong>TCC Channel</strong>Intel funds TCC · The Channel Company disburses to partner or customer. AWS does not participate in payment.</div>
+          <div class="tenet-item"><strong>POP Required</strong>Proof of Performance due before claim date or rolls to next cycle.</div>
+          <div class="tenet-item"><strong>Intel Xeon 6</strong>Eligible instances must be Intel-optimized. Trainium and Graviton workloads are excluded.</div>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-label">Approval Flow</div>
+        <div class="tenets">
+          <div class="tenet-item"><strong>1 · Submit</strong>Deal submitted through this tool with Cost Explorer baseline.</div>
+          <div class="tenet-item"><strong>2 · APO Core</strong>Yasmine Nsouli / Jeanine Reidel review and validate.</div>
+          <div class="tenet-item"><strong>3 · Intel Leadership</strong>Akanksha Bilani approves funding.</div>
+          <div class="tenet-item"><strong>4 · TCC / IPIC</strong>TCC inputs into IPIC and generates the SOW.</div>
+        </div>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Payment Flow</div>
+        <div class="tenets">
+          <div class="tenet-item"><strong>1 · Baseline</strong>Customer provides Cost Explorer at onset — net new or modernization.</div>
+          <div class="tenet-item"><strong>2 · WNE Set</strong>Calculator number becomes the Not to Exceed.</div>
+          <div class="tenet-item"><strong>3 · Roadmap</strong>Migration roadmap created, checklist signed.</div>
+          <div class="tenet-item"><strong>4 · Migrate</strong>Customer executes between start and end dates.</div>
+          <div class="tenet-item"><strong>5 · Final POP</strong>Cost Explorer at ≥75% completion → TCC pays.</div>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-label">Actions</div>
+        <button class="btn btn-secondary btn-sm" style="width:100%;margin-bottom:6px" onclick="saveDraft()">💾 Save Draft</button>
+        <button class="btn btn-secondary btn-sm" style="width:100%;margin-bottom:6px" onclick="loadDraft()">📂 Load Draft</button>
+        <button class="btn btn-secondary btn-sm" style="width:100%" onclick="clearAll()">🗑 Clear</button>
+      </div>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+
+      <!-- ── STEP 1: DEAL INFORMATION ── -->
+      <div class="step-panel active" id="step1">
+        <div class="step-header">
+          <div class="step-badge">Step 01</div>
+          <div class="step-title">Deal Information</div>
+          <div class="step-desc">Capture the deal metadata needed to route the opportunity through the IAP co-sell motion. All fields feed the SOW and ACE submission.</div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-card-title">Deal Team</div>
+          <div class="alert alert-info" style="margin-bottom:14px">Add all people involved in originating this deal. At least one submitter is required.</div>
+
+          <div id="deal-team-rows">
+            <!-- injected by JS -->
+          </div>
+          <button class="btn btn-secondary btn-sm mt8" onclick="addTeamMember()">+ Add Person</button>
+        </div>
+
+        <div class="section-card">
+          <div class="section-card-title">Deal Origination</div>
+          <div class="form-grid">
+            <div class="f-group">
+              <label>How was this deal originated? <span class="req">*</span></label>
+              <select id="deal-origin">
+                <option value="">— Select —</option>
+                <option>Intel telemetry / instance data</option>
+                <option>AWS Cost Explorer signal</option>
+                <option>AWS referral</option>
+                <option>Intel seller outreach</option>
+                <option>Customer inbound request</option>
+                <option>Partner referral</option>
+                <option>Co-sell motion</option>
+                <option>Customer activation</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="f-group">
+              <label>Origination Notes</label>
+              <input type="text" id="deal-origin-notes" placeholder="e.g. Intel telemetry flagged 200 m5 instances eligible for m8i migration">
+            </div>
+            <div class="f-group">
+              <label>GTM Region <span class="req">*</span></label>
+              <select id="fh-region" onchange="updateCountries()">
+                <option value="">— Select Region —</option>
+                <option>Americas - NAMER</option>
+                <option>Americas - LATAM</option>
+                <option>EMEA - Western Europe</option>
+                <option>EMEA - Central &amp; Eastern Europe</option>
+                <option>EMEA - MEA</option>
+                <option>APJ - APAC</option>
+                <option>APJ - Japan</option>
+              </select>
+            </div>
+            <div class="f-group">
+              <label>Country <span class="req">*</span></label>
+              <select id="fh-country">
+                <option value="">— Select Country —</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-card-title">Deal Metadata</div>
+          <div class="form-grid three">
+            <div class="f-group">
+              <label>Deal Date <span class="req">*</span></label>
+              <input type="date" id="deal-date">
+            </div>
+            <div class="f-group">
+              <label>Migration Start Date <span class="req">*</span></label>
+              <input type="date" id="mig-start">
+            </div>
+            <div class="f-group">
+              <label>Migration End Date <span class="req">*</span></label>
+              <input type="date" id="deal-close">
+              <span class="hint">Final claim = end date + 30 days</span>
+            </div>
+            <div class="f-group">
+              <label>AWS Segment <span class="req">*</span></label>
+              <select id="deal-segment">
+                <option value="">— Segment —</option>
+                <option>CSD</option>
+                <option>ENT</option>
+                <option>ISV</option>
+                <option>SMB</option>
+                <option>STRAT</option>
+                <option>SUP</option>
+              </select>
+            </div>
+            <div class="f-group">
+              <label>IAP Program Type <span class="req">*</span></label>
+              <select id="deal-program">
+                <option value="">— Select —</option>
+                <option value="migrate">Program 1 · Migrate — Net New (4.5% ARR)</option>
+                <option value="optimize">Program 2 · Optimize — Right-size (1% ARR)</option>
+                <option value="mixed">Mixed — rate set per fleet</option>
+              </select>
+            </div>
+            <div class="f-group">
+              <label>Payment Cadence</label>
+              <select id="deal-cadence">
+                <option>Quarterly</option>
+                <option>Semi-Annual</option>
+                <option>Annual</option>
+              </select>
+            </div>
+            <div class="f-group">
+              <label>Deal Status</label>
+              <select id="deal-status">
+                <option>Draft</option>
+                <option>Pending IPIC Activity</option>
+                <option>Onboarding w/ TCC</option>
+                <option>IPIC Activity Created</option>
+                <option>IPIC Claim Submitted</option>
+                <option>Discovery</option>
+                <option>Paid by TCC</option>
+              </select>
+            </div>
+            <div class="f-group">
+              <label>IPIC Activity #</label>
+              <input type="text" id="ipic-num" placeholder="e.g. 00338178" class="mono">
+            </div>
+            <div class="f-group">
+              <label>Activity Type</label>
+              <select id="activity-type">
+                <option value="">— Select —</option>
+                <option>Migration</option>
+                <option>Proof of Concept</option>
+                <option>Incentive</option>
+                <option>Third Party Event</option>
+                <option>Joint Event</option>
+                <option>Training/Meeting</option>
+                <option>Social Post</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="f-group">
+              <label>Claim Quarter</label>
+              <select id="claim-quarter">
+                <option value="">— Quarter —</option>
+                <option>Q1</option><option>Q2</option>
+                <option>Q3</option><option>Q4</option>
+              </select>
+            </div>
+            <div class="f-group">
+              <label>Intel Budget Year</label>
+              <select id="intel-budget-year">
+                <option>2026</option><option>2027</option><option>2025</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="goStep(2)">Continue → Customer Profile</button>
+          <button class="btn btn-secondary" onclick="saveDraft()">Save Draft</button>
+          <button class="btn btn-aws" onclick="exportIPIC()">⬇ Export IPIC / Smartsheet Row</button>
+        </div>
+      </div>
+
+      <!-- ── STEP 2: CUSTOMER PROFILE ── -->
+      <div class="step-panel" id="step2">
+        <div class="step-header">
+          <div class="step-badge">Step 02</div>
+          <div class="step-title">Customer Profile</div>
+          <div class="step-desc">Document the end customer and AWS account context. This feeds the SOW, ACE submission, and the benefit calculation baseline.</div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-card-title">End Customer</div>
+          <div class="form-grid">
+            <div class="f-group">
+              <label>Customer Legal Name <span class="req">*</span></label>
+              <input type="text" id="cust-name" placeholder="e.g. Acme Corporation Ltd.">
+            </div>
+            <div class="f-group">
+              <label>AWS Account ID</label>
+              <input type="text" id="cust-acct" placeholder="12-digit account ID" maxlength="12"
+                oninput="validateAcct(this)">
+              <span class="hint">Used to verify EC2 spend in Cost Explorer</span>
+            </div>
+            <div class="f-group span2">
+              <label>Customer Industry</label>
+              <select id="cust-industry">
+                <option value="">— Select Industry —</option>
+                <option>Financial Services</option>
+                <option>Healthcare &amp; Life Sciences</option>
+                <option>Manufacturing</option>
+                <option>Media &amp; Entertainment</option>
+                <option>Retail &amp; CPG</option>
+                <option>Technology / ISV</option>
+                <option>Telecommunications</option>
+                <option>Energy &amp; Utilities</option>
+                <option>Public Sector / Government</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="f-group span2">
+              <label>Workload Description</label>
+              <textarea id="cust-workload" placeholder="Describe the Intel-eligible workload(s) — e.g. SAP on EC2, GenAI inference on C8i instances..."></textarea>
+            </div>
+            <div class="f-group span2">
+              <label>Workload Selection (check all that apply)</label>
+              <div id="workload-checks" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px">
+                <label style="display:flex;align-items:center;gap:4px;font-size:.75rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer"><input type="checkbox" value="Database/Data Platforms" style="accent-color:var(--intel)"> Database / Data Platforms</label>
+                <label style="display:flex;align-items:center;gap:4px;font-size:.75rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer"><input type="checkbox" value="GenAI"> GenAI</label>
+                <label style="display:flex;align-items:center;gap:4px;font-size:.75rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer"><input type="checkbox" value="SAP"> SAP</label>
+                <label style="display:flex;align-items:center;gap:4px;font-size:.75rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer"><input type="checkbox" value="Accelerated Compute"> Accelerated Compute</label>
+                <label style="display:flex;align-items:center;gap:4px;font-size:.75rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer"><input type="checkbox" value="Mainframe"> Mainframe</label>
+                <label style="display:flex;align-items:center;gap:4px;font-size:.75rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer"><input type="checkbox" value="VMware"> VMware</label>
+                <label style="display:flex;align-items:center;gap:4px;font-size:.75rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer"><input type="checkbox" value="SQL"> SQL</label>
+                <label style="display:flex;align-items:center;gap:4px;font-size:.75rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer"><input type="checkbox" value="Epic Health Records"> Epic Health Records</label>
+                <label style="display:flex;align-items:center;gap:4px;font-size:.75rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer"><input type="checkbox" value="Other"> Other</label>
+              </div>
+            </div>
+            <div class="f-group">
+              <label>Primary AWS Region</label>
+              <select id="cust-awsregion">
+                <option value="">— AWS Region —</option>
+                <option>us-east-1 (N. Virginia)</option>
+                <option>us-east-2 (Ohio)</option>
+                <option>us-west-1 (N. California)</option>
+                <option>us-west-2 (Oregon)</option>
+                <option>ca-central-1 (Canada Central)</option>
+                <option>ca-west-1 (Calgary)</option>
+                <option>mx-central-1 (Mexico)</option>
+                <option>sa-east-1 (São Paulo)</option>
+                <option>eu-west-1 (Ireland)</option>
+                <option>eu-west-2 (London)</option>
+                <option>eu-west-3 (Paris)</option>
+                <option>eu-central-1 (Frankfurt)</option>
+                <option>eu-central-2 (Zurich)</option>
+                <option>eu-north-1 (Stockholm)</option>
+                <option>eu-south-1 (Milan)</option>
+                <option>eu-south-2 (Spain)</option>
+                <option>il-central-1 (Tel Aviv)</option>
+                <option>me-south-1 (Bahrain)</option>
+                <option>me-central-1 (UAE)</option>
+                <option>af-south-1 (Cape Town)</option>
+                <option>ap-south-1 (Mumbai)</option>
+                <option>ap-south-2 (Hyderabad)</option>
+                <option>ap-southeast-1 (Singapore)</option>
+                <option>ap-southeast-2 (Sydney)</option>
+                <option>ap-southeast-3 (Jakarta)</option>
+                <option>ap-southeast-4 (Melbourne)</option>
+                <option>ap-southeast-5 (Malaysia)</option>
+                <option>ap-southeast-7 (Thailand)</option>
+                <option>ap-northeast-1 (Tokyo)</option>
+                <option>ap-northeast-2 (Seoul)</option>
+                <option>ap-northeast-3 (Osaka)</option>
+                <option>ap-east-1 (Hong Kong)</option>
+                <option>ap-east-2 (Taipei)</option>
+                <option>Other / Multi-Region</option>
+              </select>
+            </div>
+            <div class="f-group">
+              <label>Benefit Recipient</label>
+              <select id="cust-recipient">
+                <option>Customer (end customer receives benefit)</option>
+                <option>Partner (SI or ISV receives benefit)</option>
+                <option>Split (customer + partner)</option>
+              </select>
+              <span class="hint">Determines TCC disbursement target</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-card-title">Partner Context (if applicable)</div>
+          <div class="form-grid">
+            <div class="f-group">
+              <label>SI / ISV Partner Name</label>
+              <input type="text" id="partner-name" placeholder="e.g. Capgemini Canada">
+            </div>
+            <div class="f-group">
+              <label>Partner Type</label>
+              <select id="partner-tier">
+                <option value="">— Type —</option>
+                <option>SI (Systems Integrator)</option>
+                <option>GSI (Global SI)</option>
+                <option>ISV</option>
+                <option>MSP</option>
+                <option>Reseller / VAR</option>
+                <option>Distributor</option>
+                <option>Consulting Partner</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="f-group span2">
+              <label>Partner Role in Deal</label>
+              <textarea id="partner-role" style="min-height:54px" placeholder="e.g. Systems integrator managing the migration. Will receive 50% of rebate as performance incentive."></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-secondary" onclick="goStep(1)">← Back</button>
+          <button class="btn btn-primary" onclick="goStep(3)">Continue → IAP Calculator</button>
+        </div>
+      </div>
+
+      <!-- ── STEP 3: IAP CALCULATOR ── -->
+      <div class="step-panel" id="step3">
+        <div class="step-header">
+          <div class="step-badge">Step 03</div>
+          <div class="step-title">IAP Funding Calculator</div>
+          <div class="step-desc">Add one or more EC2 instance fleets. The 4.5% rebate applies to actual post-discount annual spend. Each fleet can be Net New or Modernization.</div>
+        </div>
+
+        <div class="calc-methodology">
+          <strong>Payment:</strong> Milestone-based, tied to migration roadmap sign-off and Cost Explorer confirmation. <strong>Maximum duration: 12 months.</strong> Rate per fleet: Migrate 4.5% · Optimize 1% (NTE $250k). Not to Exceed set from list price; actual payout from Cost Explorer. Stackable with MAP, VMware SPI, Greenfield SPI, PoC funding.
+        </div>
+
+        <div class="section-card" style="margin-bottom:16px">
+          <div class="section-card-title">Step 1 — Establish Baseline</div>
+          <div class="alert alert-warn" style="margin-bottom:14px">
+            <strong>AWS cannot share customer data with Intel or any third party.</strong> This must be sent directly by the customer. Choose one method below to establish the baseline spend.
+          </div>
+
+          <div class="alert alert-info" style="margin-bottom:14px">
+            <strong>How the customer finds Cost Explorer:</strong> AWS Console → top-right account menu → Billing and Cost Management → Cost Explorer → set Service to EC2 → Group by Instance Type → set date range (last 3–12 months) → export CSV or take a screenshot. Filter to Intel instance families in scope. The customer sends this directly to The Channel Company and Intel. AWS cannot facilitate this transfer.
+          </div>
+          <!-- Method toggle -->
+          <div style="display:flex;gap:0;margin-bottom:16px;border:1px solid var(--border);border-radius:6px;overflow:hidden">
+            <button id="method-btn-1" onclick="setBaselineMethod(1)"
+              style="flex:1;padding:10px;font-family:Arial,sans-serif;font-size:.75rem;font-weight:700;border:none;background:var(--intel);color:#fff;cursor:pointer;border-right:1px solid rgba(255,255,255,.2)">
+              📊 Cost Explorer Upload
+            </button>
+            <button id="method-btn-2" onclick="setBaselineMethod(2)"
+              style="flex:1;padding:10px;font-family:Arial,sans-serif;font-size:.75rem;font-weight:700;border:none;background:var(--bg);color:var(--ink2);cursor:pointer;border-right:1px solid var(--border)">
+              🧮 Fleet Builder
+            </button>
+            <button id="method-btn-3" onclick="setBaselineMethod(3)"
+              style="flex:1;padding:10px;font-family:Arial,sans-serif;font-size:.75rem;font-weight:700;border:none;background:var(--bg);color:var(--ink2);cursor:pointer">
+              🔗 AWS Pricing Calculator
+            </button>
+          </div>
+
+          <!-- Method 1: Cost Explorer Upload -->
+          <div id="baseline-method-1">
+            <div class="form-grid">
+              <div class="f-group">
+                <label>Upload Cost Explorer Export</label>
+                <input type="file" id="ce-upload" accept=".csv,.png,.jpg,.jpeg,.pdf,.xlsx"
+                  onchange="handleCEUpload(this)" style="font-size:.75rem;padding:6px">
+                <span class="hint">CSV, screenshot, or PDF. Provided by the customer directly to The Channel Company / Intel.</span>
+              </div>
+              <div class="f-group">
+                <label>Baseline Status</label>
+                <div id="ce-status" style="font-size:.78rem;color:var(--ink3);padding:8px 0">No file attached</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Method 2: Fleet Builder (already below, just label) -->
+          <div id="baseline-method-2" style="display:none">
+            <div class="alert alert-info">Use the fleet rows below to build the ARR from instance count × per-instance cost. The total auto-populates the WNE.</div>
+          </div>
+
+          <!-- Method 3: AWS Pricing Calculator -->
+          <div id="baseline-method-3" style="display:none">
+            <div class="form-grid">
+              <div class="f-group">
+                <label>AWS Pricing Calculator</label>
+                <a href="https://calculator.aws" target="_blank"
+                  class="btn btn-aws btn-sm" style="display:inline-flex;text-decoration:none;margin-top:4px">
+                  🔗 Open AWS Pricing Calculator
+                </a>
+                <span class="hint">Build your estimate, copy the share link, and paste it below.</span>
+              </div>
+              <div class="f-group">
+                <label>Pricing Calculator Share Link</label>
+                <input type="text" id="pricing-calc-link" placeholder="https://calculator.aws/pricing/2/homescreen?...">
+                <span class="hint">This link is attached to the SOW as pricing evidence.</span>
+              </div>
+              <div class="f-group">
+                <label>Estimated Annual Cost from Calculator ($)</label>
+                <input type="number" id="pricing-calc-arr" placeholder="Annual total from calculator"
+                  oninput="syncCalcARR()" min="0" step="1000">
+                <span class="hint">Enter the annual total — feeds the WNE calculation.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="fleet-container" id="fleet-container">
+          <!-- Fleet rows injected by JS -->
+        </div>
+
+        <button class="btn btn-secondary btn-sm" onclick="addFleet()">+ Add Fleet</button>
+
+        <!-- Running Totals -->
+        <div class="calc-totals mt16" id="calc-totals" style="grid-template-columns:repeat(5,1fr)">
+          <div class="calc-total-item">
+            <label>Total List Price ARR</label>
+            <div class="val" id="tot-list">$0</div>
+          </div>
+          <div class="calc-total-item">
+            <label>Effective Discount</label>
+            <div class="val" id="tot-disc">0%</div>
+          </div>
+          <div class="calc-total-item">
+            <label>Actual Spend ARR</label>
+            <div class="val" id="tot-actual">$0</div>
+          </div>
+          <div class="calc-total-item">
+            <label>Total WNE (Not to Exceed)</label>
+            <div class="val" id="tot-nte">$0</div>
+          </div>
+          <div class="calc-total-item">
+            <label>Est. Payout at POP</label>
+            <div class="val highlight" id="tot-rebate">$0</div>
+          </div>
+        </div>
+
+        <!-- Cost Explorer Panel -->
+        <div class="ce-panel mt16" id="ce-panel">
+          <h4>AWS Cost Explorer View</h4>
+          <div class="ce-bars" id="ce-bars">
+            <div style="font-size:.72rem;opacity:.5;font-family:Arial,sans-serif">Add a fleet above to see the savings breakdown.</div>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-secondary" onclick="goStep(2)">← Back</button>
+          <button class="btn btn-primary" onclick="goStep(5)">Continue → ACE / SFDC</button>
+        </div>
+      </div>
+
+      <!-- ── STEP 4: SALES PLAY ── -->
+      <div class="step-panel" id="step4">
+        <div class="step-header">
+          <div class="step-badge">Step 04</div>
+          <div class="step-title">Sales Play Selection</div>
+          <div class="step-desc">Select the sales motions that apply to this deal. Eligibility is pre-mapped based on fleet type and program selection above.</div>
+        </div>
+
+        <div class="alert alert-info">
+          <strong>Auto-Eligibility:</strong> Plays marked <span class="eligible-badge badge-yes">Eligible</span> based on your fleet and program inputs. Confirm and add context before submitting.
+        </div>
+
+        <div class="section-card">
+          <table class="play-matrix">
+            <thead>
+              <tr>
+                <th style="width:32px"></th>
+                <th>Sales Play</th>
+                <th>Eligibility</th>
+                <th>Program</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody id="play-tbody">
+              <!-- Injected by JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <div class="section-card">
+          <div class="section-card-title">Selected Plays</div>
+          <div class="sales-play-tags" id="selected-plays-display">
+            <span style="font-size:.72rem;color:var(--ink3);font-family:'Arial',sans-serif">No plays selected yet.</span>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-secondary" onclick="goStep(3)">← Back</button>
+          <button class="btn btn-primary" onclick="goStep(5)">Continue → ACE / SFDC</button>
+        </div>
+      </div>
+
+      <!-- ── STEP 5: ACE / SFDC ── -->
+      <div class="step-panel" id="step5">
+        <div class="step-header">
+          <div class="step-badge">Step 05</div>
+          <div class="step-title">ACE &amp; SFDC Opportunity IDs</div>
+          <div class="step-desc">Every IAP deal requires a valid ACE co-sell opportunity before funding is confirmed. Capture both IDs here — they appear in the SOW and are used to verify Launched status.</div>
+        </div>
+
+        <div class="alert alert-warn">
+          <strong>Requirement:</strong> The ACE opportunity must be in co-sell status before submitting this SOW. If no ACE ID exists yet, create the opportunity in AWS Partner Central before proceeding.
+        </div>
+        <div class="alert alert-info" id="intel-ace-reminder" style="display:none">
+          <strong>Intel Submitters:</strong> Before proceeding, confirm this deal has been submitted via ACE. Intel-originated deals must have an active ACE co-sell opportunity. If you do not have an ACE ID, work with your AWS counterpart to create one before submitting this form.
+        </div>
+
+        <div class="section-card">
+          <div class="section-card-title">Opportunity IDs</div>
+          <div class="form-grid">
+            <div class="f-group">
+              <label>ACE Opportunity ID <span class="req">*</span></label>
+              <input type="text" id="ace-id" placeholder="O-XXXXXXXXXX"
+                oninput="validateACE(this)" class="mono">
+              <span class="hint" id="ace-hint">Format: O- followed by alphanumeric (e.g. O-AB12345678)</span>
+            </div>
+            <div class="f-group">
+              <label>SFDC / CRM Opportunity ID</label>
+              <input type="text" id="sfdc-id" placeholder="0060X000XXXXXXXXXX" class="mono">
+              <span class="hint">Salesforce 18-char opportunity ID</span>
+            </div>
+            <div class="f-group span2">
+              <label>ACE Co-Sell Stage</label>
+              <select id="ace-stage">
+                <option>Prospect</option>
+                <option>Qualified</option>
+                <option>Technical Validation</option>
+                <option>Business Validation</option>
+                <option>Committed</option>
+                <option>Launched</option>
+                <option>Closed Lost</option>
+              </select>
+            </div>
+            <div class="f-group">
+              <label>Campaign Code</label>
+              <input type="text" id="campaign-code" placeholder="e.g. IAP-2026-Q3-NAMER" class="mono">
+              <span class="hint">Intel campaign code if applicable</span>
+            </div>
+            <div class="f-group span2">
+              <label>AWS AE / PDM Notes</label>
+              <textarea id="ace-notes" placeholder="Any relevant context — e.g. migration timeline, exec sponsor, competitive context..."></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-card-title">ACE Co-Sell Summary (Copy for ACE)</div>
+          <div id="ace-summary-box" style="background:var(--bg);border-radius:var(--radius);padding:14px 16px;font-family:'Courier New',monospace;font-size:.72rem;line-height:1.7;white-space:pre-wrap;min-height:80px;color:var(--ink2)">
+            Fill in the steps above to generate the ACE co-sell summary.
+          </div>
+          <button class="btn btn-secondary btn-sm mt8" onclick="copyACESummary()">📋 Copy Summary</button>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-secondary" onclick="goStep(4)">← Back</button>
+          <button class="btn btn-primary" onclick="goStep(6)">Generate SOW →</button>
+        </div>
+      </div>
+
+      <!-- ── STEP 6: SOW ── -->
+      <div class="step-panel" id="step6">
+        <div class="step-header">
+          <div class="step-badge">Step 06</div>
+          <div class="step-title">Statement of Work</div>
+          <div class="step-desc">Review and generate the SOW. Payment flows through The Channel Company. Download or print from this page.</div>
+        </div>
+
+        <div class="alert alert-info" style="margin-bottom:14px">
+          <strong>Payment:</strong> This SOW is executed between The Channel Company and the benefit recipient. Cost Explorer is provided by the customer directly to Intel and The Channel Company — AWS does not share data and does not appear as a party to the payment.
+        </div>
+
+        <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+          <button class="btn btn-primary" onclick="generateSOW()">⚡ Generate SOW</button>
+          <button class="btn btn-secondary" onclick="downloadSOWWord()">📄 Save as Word</button>
+          <button class="btn btn-secondary" onclick="window.print()">🖨 Print / Save PDF</button>
+          <button class="btn btn-secondary" onclick="copySOWText()">📋 Copy Text</button>
+        </div>
+
+        <div class="sow-document" id="sow-document">
+          <div class="sow-watermark">CONFIDENTIAL</div>
+          <div class="sow-inner" id="sow-inner">
+            <div style="text-align:center;padding:40px;color:var(--ink3);font-family:'Arial',sans-serif;font-size:.8rem">
+              Click <strong>Generate SOW</strong> to populate this document.
+            </div>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-secondary" onclick="goStep(5)">← Back</button>
+          <button class="btn btn-success" onclick="submitDeal()">✓ Submit to Core</button>
+          <button class="btn btn-aws" onclick="exportIPIC()">⬇ Export IPIC Row</button>
+          <button class="btn btn-secondary" onclick="downloadSOWWord()">📄 Download SOW as Word</button>
+          <button class="btn btn-secondary" onclick="downloadRoadmapWord()">📋 Download Roadmap as Word</button>
+        </div>
+      </div>
+
+      <!-- ── STEP 7: PIPELINE (Admin only) ── -->
+      <div class="step-panel" id="step7">
+        <div class="step-header">
+          <div class="step-badge">Admin View</div>
+          <div class="step-title">Pipeline Dashboard</div>
+          <div class="step-desc">All deals submitted through the IAP workflow tool. Visible to CloudZero Admin and AWS field only.</div>
+        </div>
+
+        <div class="pipeline-cards" id="pipe-summary">
+          <!-- Injected by JS -->
+        </div>
+
+        <div class="section-card">
+          <div class="section-card-title">All Deals</div>
+        <button class="btn btn-aws btn-sm" onclick="downloadDealsCSV()" style="margin-bottom:12px">⬇ Download Deals (Excel)</button>
+          <table class="deals-table">
+            <thead>
+              <tr>
+                <th>Customer</th>
+                <th>Submitter</th>
+                <th>Segment</th>
+                <th>Program</th>
+                <th>Benefit Est.</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="pipeline-tbody">
+              <!-- Injected by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── STEP 8: APPROVAL QUEUE ── -->
+      <div class="step-panel" id="step8">
+        <div class="step-header">
+          <div class="step-badge" id="approval-badge">Approval Queue</div>
+          <div class="step-title" id="approval-title">Deals Pending Your Approval</div>
+          <div class="step-desc" id="approval-desc">Review and approve or request changes on submitted deals.</div>
+        </div>
+        <div id="approval-queue-content">
+          <!-- Injected by renderApprovalQueue() -->
+        </div>
+      </div>
+
+    </main>
+  </div><!-- /app-body -->
+</div><!-- /app -->
+
+<!-- ══════════════════════════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════════════════════════ -->
+<script>
+'use strict';
+
+/* ── AUTH ───────────────────────────────────────────────────── */
+// In production this will be replaced by Cognito. Right now it
+// uses a local lookup so the tool is functional without backend.
+const USERS = {
+  // Tier 1 — AWS Specialists / Intel submitters
+  'sarah.chen@intel.com':       { pass:'IAP2026',  tier:'intel',   name:'Sarah Chen',      label:'AWS Specialist' },
+  'funded.head@intel.com':      { pass:'IAP2026',  tier:'intel',   name:'Intel User',      label:'AWS Specialist' },
+  // Tier 2 — AWS / CloudZero field
+  'field@amazon.com':           { pass:'CZFIELD',  tier:'aws',     name:'AWS Field',       label:'AWS Field' },
+  'pdm@amazon.com':             { pass:'CZFIELD',  tier:'aws',     name:'AWS PDM',         label:'AWS PDM' },
+  // APO Core approvers
+  'yasmine@cloudzero.ca':       { pass:'CZ@dmin1', tier:'admin',   name:'Yasmine',         label:'CloudZero Admin',  approver:'core' },
+  'hisham@cloudzero.ca':        { pass:'CZ@dmin1', tier:'admin',   name:'Hisham',          label:'CloudZero Admin',  approver:'core' },
+  'reidelj@amazon.com':         { pass:'Core2026', tier:'core',    name:'Jeanine Reidel',  label:'APO Core',         approver:'core' },
+  // Intel approvers
+  'akanksha.r.bilani@intel.com':{ pass:'Intel2026',tier:'intel_approver', name:'Akanksha Bilani', label:'Intel Leadership', approver:'intel' },
+  'brendon.roosken@intel.com':  { pass:'Intel2026',tier:'intel_approver', name:'Brendon Roosken', label:'Intel Leadership', approver:'intel' },
+  'deep.grewal@intel.com':      { pass:'Intel2026',tier:'intel_approver', name:'Deep Grewal',     label:'Intel Leadership', approver:'intel' },
+  // TCC
+  'jacobx.barksdale@intel.com': { pass:'TCC2026',  tier:'tcc',     name:'Jacob Barksdale', label:'The Channel Company', approver:'tcc' },
+};
+
+let currentUser = null;
+
+function doLogin(){
+  const email = (document.getElementById('login-email').value||'').trim().toLowerCase();
+  const pass  = (document.getElementById('login-pass').value||'').trim();
+  const err   = document.getElementById('login-error');
+  const u = USERS[email];
+  if(!u || u.pass !== pass){
+    err.style.display='block';
+    return;
+  }
+  err.style.display='none';
+  currentUser = {...u, email};
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').style.display='block';
+  document.getElementById('user-pill').textContent = currentUser.name + ' · ' + currentUser.label;
+
+  // Show Pipeline for admin/aws; show Approval Queue for approvers
+  if(currentUser.tier==='admin' || currentUser.tier==='aws'){
+    document.getElementById('nav7').style.display='flex';
+  }
+  if(currentUser.approver){
+    document.getElementById('nav-approval').style.display='flex';
+  }
+
+  // Pre-fill first team member if intel/specialist tier
+  if(currentUser.tier==='intel'){
+    document.getElementById('nav7').style.display='none';
+  }
+
+  initApp();
+}
+
+function doLogout(){
+  currentUser=null;
+  document.getElementById('app').style.display='none';
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('login-email').value='';
+  document.getElementById('login-pass').value='';
+}
+
+
+/* ── NAVIGATION ─────────────────────────────────────────────── */
+let currentStep = 1;
+const TOTAL_STEPS = 7;
+
+function goStep(n){
+  document.querySelectorAll('.step-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+  // Show Intel ACE reminder on step 5 if Intel seller is on the team
+  if(n===5){
+    const team=getTeamData();
+    const hasIntel=team.some(t=>t.role==='intel-seller'||t.role==='intel-specialist');
+    const rem=document.getElementById('intel-ace-reminder');
+    if(rem) rem.style.display=hasIntel?'block':'none';
+  }
+  const panel = document.getElementById('step'+n);
+  if(panel) panel.classList.add('active');
+  const nav = document.getElementById('nav'+n);
+  if(nav) nav.classList.add('active');
+  currentStep=n;
+  window.scrollTo(0,0);
+
+  if(n===4) renderPlays();
+  if(n===5) renderACESummary();
+  if(n===6) generateSOW();
+  if(n===7) renderPipeline();
+  if(n===8) renderApprovalQueue();
+}
+
+/* ── COUNTRY LISTS ───────────────────────────────────────────── */
+const COUNTRIES = {
+  'Americas - NAMER':['Canada','United States','Mexico'],
+  'Americas - LATAM':['Brazil','Argentina','Chile','Colombia','Peru','Ecuador','Uruguay','Paraguay','Bolivia','Venezuela','Costa Rica','Panama','Guatemala','Honduras','El Salvador','Nicaragua','Dominican Republic','Puerto Rico'],
+  'EMEA - Western Europe':['United Kingdom','Germany','France','Netherlands','Sweden','Norway','Denmark','Finland','Switzerland','Austria','Belgium','Ireland','Spain','Portugal','Italy','Luxembourg'],
+  'EMEA - Central & Eastern Europe':['Poland','Czech Republic','Hungary','Romania','Bulgaria','Slovakia','Slovenia','Croatia','Serbia','Ukraine','Turkey','Greece','Cyprus'],
+  'EMEA - MEA':['Israel','UAE','Saudi Arabia','Qatar','Kuwait','Bahrain','Oman','South Africa','Egypt','Nigeria','Kenya','Morocco'],
+  'APJ - APAC':['Australia','New Zealand','Singapore','India','South Korea','China','Hong Kong','Taiwan','Indonesia','Malaysia','Thailand','Philippines','Vietnam'],
+  'APJ - Japan':['Japan']
+};
+
+function updateCountries(){
+  const region = document.getElementById('fh-region').value;
+  const sel = document.getElementById('fh-country');
+  sel.innerHTML='<option value="">— Select Country —</option>';
+  if(COUNTRIES[region]){
+    COUNTRIES[region].forEach(c=>{
+      const o=document.createElement('option');
+      o.value=c; o.textContent=c;
+      sel.appendChild(o);
+    });
+  }
+}
+
+/* ── CALCULATOR ─────────────────────────────────────────────── */
+// Intel-eligible EC2 instance families with display names
+const INSTANCE_FAMILIES = [
+  // Gen 8 — Intel Xeon 6 (latest)
+  {val:'m8i',    label:'m8i — General Purpose (Intel Xeon 6, Gen 8)'},
+  {val:'c8i',    label:'c8i — Compute Optimized (Intel Xeon 6, Gen 8)'},
+  {val:'r8i',    label:'r8i — Memory Optimized (Intel Xeon 6, Gen 8)'},
+  // Gen 7 — Intel Xeon Scalable 4th Gen
+  {val:'m7i',    label:'m7i — General Purpose (Intel Xeon Scalable, Gen 7)'},
+  {val:'c7i',    label:'c7i — Compute Optimized (Intel Xeon Scalable, Gen 7)'},
+  {val:'r7i',    label:'r7i — Memory Optimized (Intel Xeon Scalable, Gen 7)'},
+  {val:'m7i-flex',label:'m7i-flex — General Purpose Flex (Gen 7)'},
+  // Gen 6 — Intel Xeon Scalable 3rd Gen
+  {val:'m6i',    label:'m6i — General Purpose (Intel Xeon Scalable, Gen 6)'},
+  {val:'c6i',    label:'c6i — Compute Optimized (Intel Xeon Scalable, Gen 6)'},
+  {val:'r6i',    label:'r6i — Memory Optimized (Intel Xeon Scalable, Gen 6)'},
+  {val:'c6in',   label:'c6in — Compute Optimized + Network (Gen 6)'},
+  {val:'m6in',   label:'m6in — General Purpose + Network (Gen 6)'},
+  {val:'r6in',   label:'r6in — Memory Optimized + Network (Gen 6)'},
+  // Memory Intensive
+  {val:'x2idn',  label:'x2idn — Memory Intensive (Intel Xeon)'},
+  {val:'x2iedn', label:'x2iedn — Memory Intensive NVMe (Intel Xeon)'},
+  // Gen 5
+  {val:'m5',     label:'m5 — General Purpose (Intel Xeon Platinum, Gen 5)'},
+  {val:'c5',     label:'c5 — Compute Optimized (Intel Xeon Platinum, Gen 5)'},
+  {val:'r5',     label:'r5 — Memory Optimized (Intel Xeon Platinum, Gen 5)'},
+  {val:'other-intel', label:'Other Intel-Eligible (specify in notes)'},
+];
+
+// Discount models with their typical discount rate for post-discount calculation
+const DISCOUNT_MODELS = [
+  {val:'od',    label:'On-Demand (no discount)',                    disc:0},
+  {val:'sp1',   label:'Savings Plan — 1yr No Upfront',              disc:0.28},
+  {val:'sp1au', label:'Savings Plan — 1yr All Upfront',             disc:0.33},
+  {val:'sp3',   label:'Savings Plan — 3yr No Upfront',              disc:0.42},
+  {val:'sp3au', label:'Savings Plan — 3yr All Upfront',             disc:0.50},
+  {val:'ri1',   label:'Reserved Instance — 1yr No Upfront',         disc:0.30},
+  {val:'ri1au', label:'Reserved Instance — 1yr All Upfront',        disc:0.36},
+  {val:'ri3',   label:'Reserved Instance — 3yr No Upfront',         disc:0.45},
+  {val:'ri3au', label:'Reserved Instance — 3yr All Upfront',        disc:0.55},
+  {val:'private',label:'Private Pricing (cannot share details)',     disc:null},
+  {val:'custom', label:'Custom / Negotiated Discount',               disc:null},
+];
+
+let fleetCount = 0;
+let fleets = []; // array of fleet data
+
+function addFleet(){
+  fleetCount++;
+  const id = fleetCount;
+  fleets.push({id, type:'nn', instance:'', discount:'od', listARR:0, customDisc:0});
+
+  const container = document.getElementById('fleet-container');
+  const div = document.createElement('div');
+  div.className='fleet-row';
+  div.id='fleet-'+id;
+
+  const instOptions = INSTANCE_FAMILIES.map(f=>
+    `<option value="${f.val}">${f.label}</option>`).join('');
+  const discOptions = DISCOUNT_MODELS.map(d=>
+    `<option value="${d.val}">${d.label}</option>`).join('');
+
+  div.innerHTML = `
+    <div class="fleet-row-header">
+      <div class="fleet-row-title">Fleet ${id}</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="fleet-type-toggle">
+          <button class="type-btn active-nn" id="btn-nn-${id}" onclick="setFleetType(${id},'nn')">Migrate 4.5%</button>
+          <button class="type-btn" id="btn-mod-${id}" onclick="setFleetType(${id},'mod')">Optimize 1%</button>
+        </div>
+        ${id>1?`<button class="btn btn-danger btn-sm" onclick="removeFleet(${id})">Remove</button>`:''}
+      </div>
+    </div>
+    <div class="fleet-fields" style="grid-template-columns:1.8fr 1fr 1.1fr 1.2fr 1.2fr auto">
+      <div class="f-group">
+        <label>Target Instance Family</label>
+        <select id="f${id}-inst" onchange="calcFleet(${id})" style="font-size:.75rem">
+          <option value="">— Select —</option>
+          ${instOptions}
+        </select>
+      </div>
+      <div class="f-group">
+        <label>Instance Count</label>
+        <input type="number" id="f${id}-count" placeholder="# instances"
+          min="1" oninput="autoARR(${id})">
+      </div>
+      <div class="f-group">
+        <label>Annual List $/Instance</label>
+        <input type="number" id="f${id}-perinst" placeholder="e.g. 25000"
+          min="0" step="100" oninput="autoARR(${id})">
+        <span class="hint" style="font-size:.6rem">Count × this = ARR</span>
+      </div>
+      <div class="f-group">
+        <label>Annual List ARR ($)</label>
+        <input type="number" id="f${id}-list" placeholder="auto or manual"
+          oninput="calcFleet(${id})" min="0" step="1000">
+      </div>
+      <div class="f-group">
+        <label>Discount Model</label>
+        <select id="f${id}-disc" onchange="handleDiscountChange(${id})" style="font-size:.75rem">
+          ${discOptions}
+        </select>
+      </div>
+      <div style="padding-bottom:1px">
+        <button class="btn btn-secondary btn-sm" onclick="calcFleet(${id})">↺</button>
+      </div>
+    </div>
+    <div class="f-group" id="f${id}-custom-wrap" style="display:none;margin-top:8px;max-width:220px">
+      <label>Custom Discount %</label>
+      <input type="number" id="f${id}-customdisc" placeholder="e.g. 25"
+        min="0" max="80" oninput="calcFleet(${id})">
+    </div>
+    <div id="f${id}-migration-wrap" style="display:none;margin-top:8px">
+      <div class="form-grid" style="grid-template-columns:1fr 1fr">
+        <div class="f-group">
+          <label>Migrating From (instance/platform)</label>
+          <input type="text" id="f${id}-from" placeholder="e.g. m5.4xlarge, on-prem, VMware">
+        </div>
+        <div class="f-group">
+          <label>Migrating To</label>
+          <input type="text" id="f${id}-to" placeholder="e.g. m8i.4xlarge">
+        </div>
+      </div>
+    </div>
+    <div class="fleet-result" id="f${id}-result" style="display:none;grid-template-columns:repeat(5,1fr)">
+      <div class="fleet-result-item">
+        <label>List Price ARR</label>
+        <div class="val zero" id="f${id}-r-list">$0</div>
+      </div>
+      <div class="fleet-result-item">
+        <label>Discount Applied</label>
+        <div class="val zero" id="f${id}-r-disc">0%</div>
+      </div>
+      <div class="fleet-result-item">
+        <label>Actual Spend ARR</label>
+        <div class="val zero" id="f${id}-r-actual">$0</div>
+      </div>
+      <div class="fleet-result-item">
+        <label>Not to Exceed (Not to Exceed)</label>
+        <div class="val zero" id="f${id}-r-nte">$0</div>
+      </div>
+      <div class="fleet-result-item">
+        <label>Est. Payout at POP</label>
+        <div class="val" id="f${id}-r-rebate">$0</div>
+      </div>
+    </div>`;
+  container.appendChild(div);
+}
+
+function removeFleet(id){
+  const div=document.getElementById('fleet-'+id);
+  if(div) div.remove();
+  fleets=fleets.filter(f=>f.id!==id);
+  updateTotals();
+  renderCEPanel();
+}
+
+function setFleetType(id, type){
+  const fleet=fleets.find(f=>f.id===id);
+  if(fleet) fleet.type=type;
+  document.getElementById('btn-nn-'+id).className='type-btn'+(type==='nn'?' active-nn':'');
+  document.getElementById('btn-mod-'+id).className='type-btn'+(type==='mod'?' active-mod':'');
+  // From → To fields visible on Optimize (existing workloads)
+  const migWrap=document.getElementById('f'+id+'-migration-wrap');
+  if(migWrap) migWrap.style.display=(type==='up'||type==='mod')?'block':'none';
+  calcFleet(id);
+}
+
+let ceFileName = '';
+let baselineMethod = 1;
+
+function setBaselineMethod(n){
+  baselineMethod=n;
+  [1,2,3].forEach(i=>{
+    const panel=document.getElementById('baseline-method-'+i);
+    const btn=document.getElementById('method-btn-'+i);
+    if(panel) panel.style.display=i===n?'block':'none';
+    if(btn){
+      btn.style.background=i===n?'var(--intel)':'var(--bg)';
+      btn.style.color=i===n?'#fff':'var(--ink2)';
+    }
+  });
+}
+
+function syncCalcARR(){
+  // If method 3, push calc ARR into first fleet list field
+  const val=document.getElementById('pricing-calc-arr');
+  if(!val||!val.value) return;
+  const firstList=document.getElementById('f1-list');
+  if(firstList&&!firstList.value){
+    firstList.value=val.value;
+    if(typeof calcFleet==='function') calcFleet(1);
+  }
+}
+function handleCEUpload(input){
+  const file = input.files && input.files[0];
+  const status = document.getElementById('ce-status');
+  if(!file){ status.textContent='No file attached'; ceFileName=''; return; }
+  ceFileName = file.name;
+  status.innerHTML = '<span style="color:var(--green);font-weight:600">✓ '+file.name+'</span><br><span style="font-size:.68rem">Attached as baseline evidence</span>';
+  // Push to S3 if backend connected
+  apiUploadFile(file).then(r=>{
+    if(r && r.uploaded){
+      status.innerHTML += '<br><span style="font-size:.68rem;color:var(--green)">☁ Stored securely in S3</span>';
+    }
+  });
+  // If CSV, try to parse a total
+  if(file.name.toLowerCase().endsWith('.csv')){
+    const reader = new FileReader();
+    reader.onload = function(e){
+      try{
+        const lines = e.target.result.split('\n');
+        let total = 0;
+        lines.forEach(line=>{
+          const parts = line.split(',');
+          parts.forEach(p=>{
+            const n = parseFloat(p.replace(/[$"]/g,''));
+            if(!isNaN(n) && n > 1000) total = Math.max(total, n);
+          });
+        });
+        if(total > 0){
+          status.innerHTML += '<br><span style="font-size:.68rem;color:var(--intel)">Largest value detected: $'+Math.round(total).toLocaleString()+' — verify against fleet inputs</span>';
+        }
+      }catch(err){}
+    };
+    reader.readAsText(file);
+  }
+}
+
+function autoARR(id){
+  const count=parseFloat((document.getElementById('f'+id+'-count')||{}).value)||0;
+  const per=parseFloat((document.getElementById('f'+id+'-perinst')||{}).value)||0;
+  if(count>0&&per>0){
+    document.getElementById('f'+id+'-list').value=Math.round(count*per);
+  }
+  calcFleet(id);
+}
+
+function handleDiscountChange(id){
+  const sel=document.getElementById('f'+id+'-disc');
+  const wrap=document.getElementById('f'+id+'-custom-wrap');
+  wrap.style.display=sel.value==='custom'?'block':'none';
+  calcFleet(id);
+}
+
+function calcFleet(id){
+  const fleet=fleets.find(f=>f.id===id);
+  if(!fleet) return;
+
+  const listVal = parseFloat(document.getElementById('f'+id+'-list').value)||0;
+  const discSel = document.getElementById('f'+id+'-disc').value;
+  const discModel = DISCOUNT_MODELS.find(d=>d.val===discSel);
+
+  let discRate = discModel ? discModel.disc : 0;
+  if(discSel==='custom'){
+    discRate=(parseFloat(document.getElementById('f'+id+'-customdisc').value)||0)/100;
+  }
+
+  const actualARR = listVal * (1 - discRate);
+  // Per-fleet rates: Migrate 4.5% | Optimize 1% NTE $250k
+  const rebateRate = fleet.type==='mod' ? 0.01 : 0.045;
+  let rebate = actualARR * rebateRate;
+  let nteCap = listVal * rebateRate; // Not to Exceed from list price
+  if(fleet.type==='mod' && nteCap > 250000) nteCap = 250000;
+  fleet.nteCap = nteCap;
+  if(rebate > nteCap) rebate = nteCap;
+
+  fleet.listARR=listVal;
+  fleet.actualARR=actualARR;
+  fleet.discRate=discRate;
+  fleet.rebate=rebate;
+  fleet.instance=document.getElementById('f'+id+'-inst').value;
+
+  // Update row display
+  const result=document.getElementById('f'+id+'-result');
+  if(listVal>0){
+    result.style.display='grid';
+    document.getElementById('f'+id+'-r-list').textContent=fmt(listVal);
+    document.getElementById('f'+id+'-r-disc').textContent=pct(discRate);
+    document.getElementById('f'+id+'-r-actual').textContent=fmt(actualARR);
+    document.getElementById('f'+id+'-r-nte').textContent=fmt(nteCap);
+    const rebEl=document.getElementById('f'+id+'-r-rebate');
+    rebEl.textContent=fmt(rebate);
+    rebEl.className='val'+(rebate>0?'':' zero');
+  } else {
+    result.style.display='none';
+  }
+
+  updateTotals();
+  renderCEPanel();
+}
+
+function updateTotals(){
+  const totList=fleets.reduce((s,f)=>s+(f.listARR||0),0);
+  const totActual=fleets.reduce((s,f)=>s+(f.actualARR||0),0);
+  const totRebate=fleets.reduce((s,f)=>s+(f.rebate||0),0);
+  const totNTE=fleets.reduce((s,f)=>s+(f.nteCap||0),0);
+  const effDisc=totList>0?(totList-totActual)/totList:0;
+
+  document.getElementById('tot-list').textContent=fmt(totList);
+  document.getElementById('tot-actual').textContent=fmt(totActual);
+  document.getElementById('tot-disc').textContent=pct(effDisc);
+  document.getElementById('tot-nte').textContent=fmt(totNTE);
+  document.getElementById('tot-rebate').textContent=fmt(totRebate);
+}
+
+function renderCEPanel(){
+  const totList=fleets.reduce((s,f)=>s+(f.listARR||0),0);
+  const totActual=fleets.reduce((s,f)=>s+(f.actualARR||0),0);
+  const totRebate=fleets.reduce((s,f)=>s+(f.rebate||0),0);
+  const bars=document.getElementById('ce-bars');
+
+  if(totList===0){
+    bars.innerHTML='<div style="font-size:.72rem;opacity:.5;font-family:Arial,sans-serif">Add a fleet above to see the savings breakdown.</div>';
+    return;
+  }
+
+  const maxVal=totList;
+  const listPct=100;
+  const actualPct=(totActual/maxVal*100).toFixed(1);
+  const rebatePct=(totRebate/maxVal*100).toFixed(1);
+  const savings=totList-totActual;
+
+  bars.innerHTML=`
+    <div class="ce-bar-row">
+      <div class="ce-bar-label">List Price</div>
+      <div class="ce-bar-track"><div class="ce-bar-fill list" style="width:${listPct}%">${fmt(totList)}</div></div>
+      <div class="ce-bar-val">${fmt(totList)}</div>
+    </div>
+    <div class="ce-bar-row">
+      <div class="ce-bar-label">Actual Spend</div>
+      <div class="ce-bar-track"><div class="ce-bar-fill actual" style="width:${actualPct}%">${fmt(totActual)}</div></div>
+      <div class="ce-bar-val">${fmt(totActual)}</div>
+    </div>
+    <div class="ce-bar-row">
+      <div class="ce-bar-label">IAP Rebate</div>
+      <div class="ce-bar-track"><div class="ce-bar-fill rebate" style="width:${Math.max(rebatePct,2)}%">${fmt(totRebate)}</div></div>
+      <div class="ce-bar-val">${fmt(totRebate)}</div>
+    </div>
+    <div style="margin-top:10px;padding-top:8px;border-top:1px solid rgba(255,255,255,.1);display:flex;gap:24px;font-size:.7rem;font-family:Arial,sans-serif">
+      <div><span style="opacity:.6">Customer saves</span> <strong style="color:var(--aws)">${fmt(savings)}/yr</strong> vs list</div>
+      <div><span style="opacity:.6">IAP benefit adds</span> <strong style="color:var(--aws)">${fmt(totRebate)}/yr</strong> back</div>
+      <div><span style="opacity:.6">Combined benefit</span> <strong style="color:#7fffb2">${fmt(savings+totRebate)}/yr</strong></div>
+    </div>`;
+}
+
+/* ── SALES PLAYS ─────────────────────────────────────────────── */
+const PLAYS = [
+  {id:'p-netnew',  name:'Net New Instance Deployment',  prog:'p1',    nn:true,  mod:false, desc:'New EC2 capacity on Intel instances — primary migration motion.'},
+  {id:'p-mod',     name:'Modernization / Rightsizing',  prog:'p2',    nn:false, mod:true,  desc:'Move existing non-Intel or on-prem workloads to Intel EC2 instances.'},
+  {id:'p-sap',     name:'SAP on EC2',                   prog:'p1/p2', nn:true,  mod:true,  desc:'SAP HANA or S/4HANA on m8i, r8i, or x2idn.'},
+  {id:'p-vmware',  name:'VMware Transformation',        prog:'p1',    nn:true,  mod:true,  desc:'VMware exit to Intel-based AWS without refactoring — incl. Nutanix NC2 on Intel bare metal and Outposts.'},
+  {id:'p-ai',      name:'AI/ML Inference (CPU)',        prog:'p1/p2', nn:true,  mod:true,  desc:'LLM inference or ML serving with Intel AMX — no GPU dependency.'},
+  {id:'p-genai',   name:'GenAI — CPU Inference',        prog:'p1',    nn:true,  mod:false, desc:'RAG, vector DB, and enterprise assistants on c8i/m8i.'},
+  {id:'p-data',    name:'Data Analytics / Spark',       prog:'p1/p2', nn:true,  mod:true,  desc:'EMR, Glue, or self-managed Spark on Intel instances.'},
+  {id:'p-map',     name:'MAP + IAP Stacking',           prog:'p1',    nn:false, mod:true,  desc:'Migration Acceleration Program + IAP on the same workload.'},
+];
+
+let selectedPlays = new Set();
+
+function renderPlays(){
+  const prog = (document.getElementById('deal-program')||{}).value||'';
+  const hasNN = fleets.some(f=>(f.type==='nn'||f.type==='up') && f.listARR>0);
+  const hasMod= fleets.some(f=>(f.type==='mod'||f.type==='up') && f.listARR>0);
+  const tbody=document.getElementById('play-tbody');
+  tbody.innerHTML='';
+
+  PLAYS.forEach(play=>{
+    // All plays eligible — selection is the deal team's call
+    const eligible='yes';
+    const badgeClass='badge-yes';
+    const badgeText='Eligible';
+
+    const checked = selectedPlays.has(play.id)?'checked':'';
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td><input type="checkbox" id="chk-${play.id}" ${checked}
+        onchange="togglePlay('${play.id}')"></td>
+      <td><label for="chk-${play.id}" style="cursor:pointer;font-weight:600;color:var(--ink)">${play.name}</label><br>
+          <span style="font-size:.68rem;color:var(--ink3)">${play.desc}</span></td>
+      <td><span class="eligible-badge ${badgeClass}">${badgeText}</span></td>
+      <td style="font-size:.68rem;color:var(--ink3)">${play.prog}</td>
+      <td><input type="text" placeholder="Optional notes..." style="font-size:.72rem;padding:4px 6px;width:120px" id="note-${play.id}"></td>`;
+    tbody.appendChild(tr);
+  });
+  renderPlayTags();
+}
+
+function togglePlay(id){
+  if(selectedPlays.has(id)) selectedPlays.delete(id);
+  else selectedPlays.add(id);
+  renderPlayTags();
+}
+
+function renderPlayTags(){
+  const container=document.getElementById('selected-plays-display');
+  if(selectedPlays.size===0){
+    container.innerHTML='<span style="font-size:.72rem;color:var(--ink3);font-family:\'Arial\',sans-serif">No plays selected yet.</span>';
+    return;
+  }
+  container.innerHTML='';
+  selectedPlays.forEach(id=>{
+    const play=PLAYS.find(p=>p.id===id);
+    if(!play) return;
+    const tag=document.createElement('span');
+    tag.className='play-tag'+(play.mod&&!play.nn?' mod':'');
+    tag.textContent=play.name;
+    container.appendChild(tag);
+  });
+}
+
+/* ── ACE SUMMARY ─────────────────────────────────────────────── */
+function renderACESummary(){
+  const cust = v('cust-name')||'[Customer TBD]';
+  const prog = document.getElementById('deal-program');
+  const progLabel = prog && prog.selectedOptions[0] ? prog.selectedOptions[0].text : 'Program 1';
+  const totRebate = fleets.reduce((s,f)=>s+(f.rebate||0),0);
+  const totActual  = fleets.reduce((s,f)=>s+(f.actualARR||0),0);
+  const aceID  = v('ace-id')||'[ACE ID pending]';
+  const stage  = v('ace-stage')||'Prospect';
+  const lead = getTeamData()[0]||{};
+  const fhName = lead.name||'[Submitter]';
+  const fhEmailS = lead.email||'[email]';
+  const region = v('fh-region')||'[Region]';
+  const plays  = [...selectedPlays].map(id=>PLAYS.find(p=>p.id===id)?.name||'').filter(Boolean).join(', ')||'[Select plays in Step 4]';
+
+  const summary =
+`IAP CO-SELL OPPORTUNITY SUMMARY
+================================
+Customer:        ${cust}
+Program:         ${progLabel}
+Submitter:       ${fhName} (${fhEmailS})
+GTM Region:      ${region}
+AWS Segment:     ${v('deal-segment')||'[Segment]'}
+ACE Opp ID:      ${aceID}
+ACE Stage:       ${stage}
+Sales Plays:     ${plays}
+
+FINANCIAL SUMMARY
+-----------------
+Total EC2 ARR (actual spend): ${fmt(totActual)}
+IAP Benefit Estimate:          ${fmt(totRebate)}
+Benefit Recipient:             ${v('cust-recipient')||'[Recipient]'}
+Payment via:                  TCC (Intel→TCC→Recipient)
+
+WORKLOAD
+--------
+${v('cust-workload')||'[Describe workload in Step 2]'}
+
+AWS Account ID: ${v('cust-acct')||'[Pending]'}
+Primary Region: ${v('cust-awsregion')||'[Pending]'}`;
+
+  document.getElementById('ace-summary-box').textContent=summary;
+}
+
+function copyACESummary(){
+  const text=document.getElementById('ace-summary-box').textContent;
+  navigator.clipboard.writeText(text).then(()=>alert('ACE summary copied to clipboard.'));
+}
+
+/* ── ACE ID VALIDATION ───────────────────────────────────────── */
+function validateACE(el){
+  const val=el.value.trim();
+  const hint=document.getElementById('ace-hint');
+  if(val===''){
+    el.className='mono';
+    hint.textContent='Format: O- followed by alphanumeric (e.g. O-AB12345678)';
+    hint.style.color='';
+    return;
+  }
+  const valid=/^O-[A-Z0-9]{8,12}$/i.test(val);
+  el.className='mono '+(valid?'field-valid':'field-invalid');
+  hint.textContent=valid?'✓ Valid ACE ID format':'Format must be O- followed by 8–12 alphanumeric characters';
+  hint.style.color=valid?'var(--green)':'var(--red)';
+}
+
+function validateAcct(el){
+  const val=el.value.replace(/\D/g,'');
+  el.value=val;
+  el.className=val.length===12?'field-valid':val.length>0?'field-invalid':'';
+}
+
+/* ── SOW GENERATION ──────────────────────────────────────────── */
+function generateSOW(){
+  const custName   = v('cust-name')     || '[Customer Name]';
+  const teamLead   = getTeamData()[0]||{};
+  const fhName     = teamLead.name||'[Submitter Name]';
+  const fhEmail    = teamLead.email||'[Submitter Email]';
+  const segment    = v('deal-segment')  || '[Segment]';
+  const region     = v('fh-region')     || '[Region]';
+  const country    = v('fh-country')    || '[Country]';
+  const dealDate   = v('deal-date')     || today();
+  const closeDate  = v('deal-close')    || '[TBD]';
+  const migStart   = v('mig-start')     || '[TBD]';
+  const aceID      = v('ace-id')        || '[ACE ID Pending]';
+  const tccName    = 'Jacob Barksdale';
+  const tccEmail   = 'jbarksdale@thechannelcompany.com';
+  const ipicNum    = v('ipic-num')          || '[Pending]';
+  const actType    = v('activity-type')     || '[Activity Type]';
+  const claimQtr   = v('claim-quarter')     || '[Quarter]';
+  const sfdcID     = v('sfdc-id')       || '[N/A]';
+  const aceStage   = v('ace-stage')     || 'Prospect';
+  const workload   = v('cust-workload') || '[Workload description pending]';
+  const recipient  = v('cust-recipient')|| 'Customer';
+  const partner    = v('partner-name')  || 'N/A';
+  const cadence    = v('deal-cadence')  || 'Quarterly';
+  const awsRegion  = v('cust-awsregion')|| '[AWS Region]';
+  const acctID     = v('cust-acct')     || '[Pending]';
+  const progEl     = document.getElementById('deal-program');
+  const progLabel  = progEl && progEl.selectedOptions[0] ? progEl.selectedOptions[0].text : 'Program 1';
+  const rebateRate = '4.5% / 1%'; // per fleet — see table
+
+  const totList   = fleets.reduce((s,f)=>s+(f.listARR||0),0);
+  const totActual = fleets.reduce((s,f)=>s+(f.actualARR||0),0);
+  const totRebate = fleets.reduce((s,f)=>s+(f.rebate||0),0);
+  const totNTE    = fleets.reduce((s,f)=>s+(f.nteCap||0),0);
+  const origin    = v('deal-origin')||'[Not specified]';
+  const originNotes = v('deal-origin-notes')||'';
+
+  // Build team rows for SOW parties table
+  const team = getTeamData();
+  // AWS cannot appear on the SOW — show role and contact only, no AWS-specific labels
+  const teamRowsHTML = team.length>0
+    ? team.map(t=>{
+        const roleSOW = t.role==='aws-account'?'Account Team':
+                        t.role==='intel-specialist'?'Intel Specialist':
+                        t.role==='intel-seller'?'Intel Seller':t.roleLabel;
+        return `<tr><td>${roleSOW}</td><td>${t.name||'—'}</td><td>${t.email}</td></tr>`;
+      }).join('')
+    : '<tr><td>Deal Team</td><td colspan="2">[No team members added]</td></tr>';
+
+  // Fleet table rows
+  let fleetRows='';
+  fleets.forEach((fleet,i)=>{
+    if(!fleet.listARR) return;
+    const instEl=document.getElementById('f'+fleet.id+'-inst');
+    const instLabel=instEl&&instEl.selectedOptions[0]?instEl.selectedOptions[0].text:'[Instance]';
+    const fromEl=document.getElementById('f'+fleet.id+'-from');
+    const toEl=document.getElementById('f'+fleet.id+'-to');
+    const fromVal=fromEl?fromEl.value:'';
+    const toVal=toEl?toEl.value:'';
+    const fromTo=fromVal?' ('+fromVal+' → '+(toVal||instLabel)+')':'';
+    const motionLabel=fleet.type==='mod'?'Optimize'+fromTo:'Migrate / Net New';
+    const countEl=document.getElementById('f'+fleet.id+'-count');
+    const count=countEl&&countEl.value?countEl.value:'—';
+    const rateLabel=fleet.type==='mod'?'1% (NTE $250k)':'4.5%';
+    fleetRows+=`<tr>
+      <td>${i+1}</td>
+      <td style="font-family:monospace;font-size:.72rem">${instLabel}</td>
+      <td>${motionLabel}</td>
+      <td>${count}</td>
+      <td>${fmt(fleet.listARR)}</td>
+      <td>${fmt(fleet.actualARR||0)}</td>
+      <td>${rateLabel}</td>
+      <td>${fmt(fleet.nteCap||0)}</td>
+      <td>${fmt(fleet.rebate||0)}</td>
+    </tr>`;
+  });
+  if(!fleetRows) fleetRows=`<tr><td colspan="9" style="text-align:center;color:#aaa">No fleets added — return to Step 3</td></tr>`;
+
+  // POP schedule based on cadence
+  const popRows = generatePOPSchedule(cadence);
+
+  // Selected plays list
+  const playsText = [...selectedPlays].map(id=>PLAYS.find(p=>p.id===id)?.name||'').filter(Boolean);
+
+  const html=`
+<div class="sow-header">
+  <div class="sow-logos">
+    <div style="font-family:Arial,sans-serif;font-weight:700;font-size:14px;letter-spacing:.5px">THE CHANNEL COMPANY</div>
+  </div>
+  <div class="sow-meta">
+    <div style="font-weight:700;color:var(--ink)">STATEMENT OF WORK</div>
+    <div>Date: ${dealDate}</div>
+    <div>ACE ID: ${aceID}</div>
+    <div>Version: 1.0 · CONFIDENTIAL</div>
+  </div>
+</div>
+
+<div class="sow-title-block">
+  <div class="sow-doc-title">IAP Co-Sell Statement of Work — ${custName}</div>
+  <div class="sow-doc-sub">${progLabel} · ${segment} · ${region} · ${country}</div>
+</div>
+
+<div class="sow-section-head">1. Parties</div>
+<table class="sow-table">
+  <thead><tr><th>Role</th><th>Entity</th><th>Contact / Detail</th></tr></thead>
+  <tbody>
+    ${teamRowsHTML}
+    <tr><td>Disbursing Entity</td><td>The Channel Company</td><td>Jacob Barksdale · jbarksdale@thechannelcompany.com</td></tr>
+    <tr><td>Benefit Recipient</td><td>${custName}</td><td>${acctID!=='[Pending]'?'AWS Account: '+acctID:''}</td></tr>
+    ${partner!=='N/A'?`<tr><td>SI/ISV Partner</td><td>${partner}</td><td>See partner agreement</td></tr>`:''}
+  </tbody>
+</table>
+
+<div class="sow-section-head">2. Program Overview</div>
+<p class="sow-p">This Statement of Work documents the terms under which ${custName} will receive an IAP co-sell benefit funded by Intel and disbursed through The Channel Company. The benefit is calculated as ${rebateRate} of the customer's actual annual EC2 spend on Intel-eligible instance families, measured post-discount (not at list price). This engagement falls under <strong>${progLabel}</strong>.</p>
+<p class="sow-p">ACE Opportunity ID: <strong>${aceID}</strong> &nbsp;|&nbsp; SFDC ID: <strong>${sfdcID}</strong> &nbsp;|&nbsp; ACE Stage: <strong>${aceStage}</strong> &nbsp;|&nbsp; IPIC Activity #: <strong>${ipicNum}</strong></p>
+<p class="sow-p">Activity Type: <strong>${actType}</strong> &nbsp;|&nbsp; Claim Quarter: <strong>${claimQtr}</strong>${v('campaign-code')?' &nbsp;|&nbsp; Campaign Code: <strong>'+v('campaign-code')+'</strong>':''}</p>
+<p class="sow-p">Migration Start Date: <strong>${migStart}</strong> &nbsp;|&nbsp; Migration End Date: <strong>${closeDate}</strong> &nbsp;|&nbsp; Final Claim Date: <strong>${fmt30DaysAfter(closeDate)}</strong></p>
+<p class="sow-p">The total calculated amount of <strong>${fmt(totNTE)}</strong> is the Not to Exceed Amount. Actual disbursement is calculated from the customer's final Cost Explorer at no less than 75% migration completion, and cannot exceed the WNE. Payment schedule can be customized by agreement; the standard quarterly calendar applies unless stated otherwise.</p>
+
+<div class="sow-section-head">3. Workload &amp; Instance Scope</div>
+<p class="sow-p">${workload}</p>
+<p class="sow-p">Primary AWS Region: <strong>${awsRegion}</strong>. The eligible instance families listed below are confirmed Intel-optimized. Trainium (trn*), Graviton (m7g, c7g, r7g, etc.), and non-Intel GPU instances are excluded from benefit calculation.</p>
+
+<table class="sow-table">
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Instance (Target)</th>
+      <th>Motion</th>
+      <th>Count</th>
+      <th>List ARR</th>
+      <th>Actual Spend ARR</th>
+      <th>Rate</th>
+      <th>Not to Exceed</th>
+      <th>Est. Payout at POP</th>
+    </tr>
+  </thead>
+  <tbody>${fleetRows}</tbody>
+  <tfoot>
+    <tr style="background:var(--ink);color:#fff;font-family:Arial,sans-serif;font-size:.72rem;font-weight:700">
+      <td colspan="5">TOTAL</td>
+      <td>${fmt(totActual)}</td>
+      <td>—</td>
+      <td>${fmt(totNTE)}</td>
+      <td>${fmt(totRebate)}</td>
+    </tr>
+  </tfoot>
+</table>
+
+<div class="sow-highlight-box">
+  <strong>Benefit basis:</strong> NTE of ${fmt(totNTE)} is calculated from list price and represents Intel's maximum commitment. Actual payout of est. ${fmt(totRebate)} is calculated from Cost Explorer post-discount spend at POP time. The ${fmt(totList - totActual)} discount from list price is excluded from the benefit base.
+</div>
+
+<div class="sow-section-head">3b. Reimbursement Agreement</div>
+<table class="sow-table">
+  <thead>
+    <tr>
+      <th>Start Date</th><th>End Date</th><th>Final Claim Date</th><th>Rate</th>
+      <th>NTE Amount</th><th>ACE Opportunity</th><th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>${dealDate}</td>
+      <td>${closeDate}</td>
+      <td>${fmt30DaysAfter(closeDate)}</td>
+      <td>${totRebate>0?(fleets.some(f=>f.type==='nn'&&f.listARR)&&fleets.some(f=>f.type==='mod'&&f.listARR)?'Mixed (4.5% / 1%)':fleets.some(f=>f.type==='mod'&&f.listARR)?'1%':'4.5%'):'—'}</td>
+      <td>${fmt(totNTE)}</td>
+      <td>${aceID}</td>
+      <td>IAP Co-Sell · Intel Xeon migration/modernization on AWS EC2</td>
+    </tr>
+  </tbody>
+</table>
+<p class="sow-p" style="font-size:.7rem">Final Claim Date = 30 days after End Date. End date extension requests must be submitted in writing to The Channel Company prior to the end date. All reimbursements are paid on discounted AWS costs (Cost Explorer actual), not list price.</p>
+
+<div class="sow-section-head">3c. Deal Origination</div>
+<p class="sow-p"><strong>Source:</strong> ${origin}${originNotes?' — '+originNotes:''}</p>
+
+
+
+<div class="sow-section-head">5. Payment Process</div>
+<p class="sow-p">The Channel Company disburses to the rebate recipient — ${custName} or designated partner — per the schedule below. Payment cadence: <strong>${cadence}</strong>. AWS does not participate in, have visibility into, or process any payment under this SOW. Intel does not share AWS customer spend data with any third party; rebate amounts are calculated from Intel-verified records and the ACE Launched status.</p>
+
+<table class="sow-table">
+  <thead>
+    <tr>
+      <th>Submit Claim / POP By</th>
+      <th>Payment Processing Week</th>
+      <th>Payment Net</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>July 1, 2026</td><td>Aug 17–21, 2026</td><td>Net 30</td></tr>
+    <tr><td>Oct 1, 2026</td><td>Nov 16–20, 2026</td><td>Net 30</td></tr>
+    <tr><td>Jan 1, 2027</td><td>Feb 15–19, 2027</td><td>Net 30</td></tr>
+    <tr><td>April 1, 2027</td><td>May 17–21, 2027</td><td>Net 30</td></tr>
+    <tr><td>July 1, 2027</td><td>Aug 16–20, 2027</td><td>Net 30</td></tr>
+    <tr><td>Oct 1, 2027</td><td>Nov 15–19, 2027</td><td>Net 30</td></tr>
+  </tbody>
+</table>
+<p class="sow-p" style="font-size:.7rem">All POP must be submitted by EOD on the claim date. Submissions after the deadline roll to the next cycle. Payments are issued once Intel pays The Channel Company. Any delay from Intel causes a corresponding delay in payment to the partner or customer. Payment Processing Week is when The Channel Company pays the partner or customer.</p>
+
+<div class="sow-section-head">6. Cost Explorer Prerequisite</div>
+<p class="sow-p"><strong>Cost Explorer data must be provided prior to work starting.</strong> This is not a POP item — it is a prerequisite to activating the reimbursement. The customer provides Cost Explorer filtered by the eligible instance families directly to Intel and The Channel Company before the start date is confirmed. AWS does not share this data. This establishes the baseline actual spend against which POP is measured.</p>
+
+<div class="sow-section-head">7. Proof of Performance Requirements</div>
+<p class="sow-p">Project Completion and/or Consumption confirmation is required to receive payment. Submit all of the following to the The Channel Company invoice contact by EOD on the applicable claim date:</p>
+<div class="sow-highlight-box" style="margin-bottom:12px"><strong>Invoice Contact:</strong> ${tccName} · ${tccEmail}<br><span style="font-size:.72rem">Single contact only. Invoices sent to multiple addresses will not be processed.</span></div>
+<table class="sow-table">
+  <thead><tr><th>Document</th><th>Source</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td>Cost Explorer Export</td><td>AWS Cost Explorer</td><td>Filtered by instance type within agreed start and end dates. Must show Intel-eligible instances only.</td></tr>
+    <tr><td>Instance Type Verification</td><td>EC2 Console or CUR</td><td>Confirms Intel-eligible instances — Graviton and Trainium excluded</td></tr>
+    <tr><td>Signed POP Attestation</td><td>The Channel Company template</td><td>Signed by AWS Specialist and rebate recipient</td></tr>
+  </tbody>
+</table>
+
+<div class="sow-section-head">7. Terms &amp; Conditions</div>
+<p class="sow-p">This SOW is subject to Intel IAP Program terms and The Channel Company disbursement terms. Benefits are non-transferable. This document is CONFIDENTIAL and is not for distribution beyond the named parties.</p>
+
+<div style="margin-top:32px;padding-top:16px;border-top:1px solid var(--border);display:grid;grid-template-columns:1fr 1fr;gap:24px">
+  <div>
+    <div style="font-family:Arial,sans-serif;font-size:.65rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--ink2);margin-bottom:16px">SUBMITTING SPECIALIST</div>
+    <div style="border-bottom:1px solid var(--ink);margin-bottom:4px;height:32px"></div>
+    <div style="font-size:.72rem;font-family:Arial,sans-serif;color:var(--ink2)">${fhName} · ${fhEmail}</div>
+  </div>
+  <div>
+    <div style="font-family:Arial,sans-serif;font-size:.65rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--ink2);margin-bottom:16px">REBATE RECIPIENT</div>
+    <div style="border-bottom:1px solid var(--ink);margin-bottom:4px;height:32px"></div>
+    <div style="font-size:.72rem;font-family:Arial,sans-serif;color:var(--ink2)">${custName} · Authorized Signatory</div>
+  </div>
+</div>`;
+
+  document.getElementById('sow-inner').innerHTML=html;
+}
+
+function generatePOPSchedule(cadence){
+  const now=new Date();
+  const rows=[];
+  const periods = cadence==='Quarterly'?4:cadence==='Semi-Annual'?2:1;
+  for(let i=0;i<periods;i++){
+    const claimDate=new Date(now);
+    claimDate.setMonth(claimDate.getMonth()+3*(i+1));
+    const payDate=new Date(claimDate);
+    payDate.setDate(payDate.getDate()+45);
+    const tccDate=new Date(payDate);
+    tccDate.setDate(tccDate.getDate()+14);
+    rows.push(`<tr>
+      <td>${formatDate(claimDate)}</td>
+      <td>${formatDate(payDate)}</td>
+      <td>${formatDateWeek(tccDate)}</td>
+      <td>Net 30</td>
+    </tr>`);
+  }
+  return rows.join('');
+}
+
+function copySOWText(){
+  const text=document.getElementById('sow-inner').innerText;
+  navigator.clipboard.writeText(text).then(()=>alert('SOW text copied.'));
+}
+
+/* ── PIPELINE DASHBOARD ──────────────────────────────────────── */
+async function getApprovalStage(deal){
+  // Returns which tier needs to act next
+  const s = (deal.approvalStage||'core');
+  return s;
+}
+
+function getApprovalLabel(stage){
+  if(stage==='core') return '<span class="approval-stage stage-core">Awaiting APO Core</span>';
+  if(stage==='intel') return '<span class="approval-stage stage-intel">Awaiting Intel</span>';
+  if(stage==='tcc') return '<span class="approval-stage stage-tcc">Awaiting TCC</span>';
+  if(stage==='approved') return '<span class="approval-stage stage-approved">Fully Approved</span>';
+  return stage;
+}
+
+async function renderApprovalQueue(){
+  if(!currentUser||!currentUser.approver) return;
+  const myTier = currentUser.approver;
+  const allDeals = await loadPipelineDealsFromCloud();
+  const deals = allDeals.filter(d=>{
+    const stage = d.approvalStage||'core';
+    // Show deals at my tier or earlier (for context)
+    return stage === myTier || (myTier==='admin' && stage !== 'approved');
+  });
+
+  const container = document.getElementById('approval-queue-content');
+  const badge = document.getElementById('approval-badge');
+  const title = document.getElementById('approval-title');
+
+  badge.textContent = currentUser.label+' · Approval Queue';
+  title.textContent = myTier==='core'?'APO Core Review':myTier==='intel'?'Intel Leadership Approval':'TCC — Ready for SOW';
+
+  const pending = deals.filter(d=>(d.approvalStage||'core')===myTier);
+  const done = deals.filter(d=>(d.approvalStage||'core')!==myTier);
+
+  if(deals.length===0){
+    container.innerHTML='<div style="padding:32px;text-align:center;color:var(--ink3);font-family:Arial,sans-serif;font-size:.82rem">No deals pending your approval right now.</div>';
+    return;
+  }
+
+  let html='';
+  if(pending.length>0){
+    html+=`<div style="font-family:Arial,sans-serif;font-size:.7rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--ink3);margin-bottom:12px">Pending (${pending.length})</div>`;
+    pending.forEach(deal=>{
+      const totWNE=(deal.fleets||[]).reduce((s,f)=>s+(parseFloat(f.nteCap)||0),0);
+      const totPay=(deal.fleets||[]).reduce((s,f)=>s+(parseFloat(f.rebate)||0),0);
+      html+=`<div class="approval-card">
+        <div class="approval-card-header">
+          <div>
+            <div class="approval-card-title">${deal.custName||'[Customer]'} ${getApprovalLabel(deal.approvalStage||'core')}</div>
+            <div class="approval-card-meta">${deal.actType||'Migration'} · ${deal.segment||''} · ${deal.region||''} · Submitted ${deal.date||''}</div>
+          </div>
+          <div style="text-align:right;font-family:Arial,sans-serif">
+            <div style="font-size:1.1rem;font-weight:700;color:var(--green)">${fmt(totPay)}</div>
+            <div style="font-size:.65rem;color:var(--ink3)">Est. benefit · NTE ${fmt(totWNE)}</div>
+          </div>
+        </div>
+        <div class="approval-grid">
+          <div class="approval-grid-item"><label>ACE ID</label><div class="val mono">${deal.aceID||'Pending'}</div></div>
+          <div class="approval-grid-item"><label>IPIC #</label><div class="val mono">${deal.ipicNum||'—'}</div></div>
+          <div class="approval-grid-item"><label>Program</label><div class="val">${deal.actType||'—'}</div></div>
+          <div class="approval-grid-item"><label>Migration Start</label><div class="val">${deal.migStart||'—'}</div></div>
+          <div class="approval-grid-item"><label>Migration End</label><div class="val">${deal.closeDate||'—'}</div></div>
+          <div class="approval-grid-item"><label>Claim Quarter</label><div class="val">${deal.claimQtr||'—'}</div></div>
+          <div class="approval-grid-item"><label>Workload</label><div class="val">${(deal.workloadSelection||'').replace(/\n/g,', ')||'—'}</div></div>
+          <div class="approval-grid-item"><label>Submitter</label><div class="val">${(deal.team&&deal.team[0])?deal.team[0].name:deal.fhName||'—'}</div></div>
+          <div class="approval-grid-item"><label>AWS Region</label><div class="val">${deal.awsRegion||'—'}</div></div>
+        </div>
+        ${deal.workload?`<div style="margin-top:10px;font-size:.73rem;color:var(--ink2);font-family:Arial,sans-serif;padding-top:8px;border-top:1px solid var(--border2)">${deal.workload}</div>`:''}
+        <div class="approval-actions">
+          <button class="btn btn-success btn-sm" onclick="approveDeal('${deal.id}')">✓ Approve — Move to ${myTier==='core'?'Intel':myTier==='intel'?'TCC':'Fully Approved'}</button>
+          <button class="btn btn-secondary btn-sm" onclick="requestChanges('${deal.id}')">↩ Request Changes</button>
+          <button class="btn btn-secondary btn-sm" onclick="loadDealById('${deal.id}');goStep(1)">👁 View Full Deal</button>
+        </div>
+      </div>`;
+    });
+  }
+
+  if(done.length>0){
+    html+=`<div style="font-family:Arial,sans-serif;font-size:.7rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--ink3);margin:20px 0 12px">Already Actioned (${done.length})</div>`;
+    done.forEach(deal=>{
+      html+=`<div class="approval-card" style="opacity:.6">
+        <div class="approval-card-header">
+          <div>
+            <div class="approval-card-title">${deal.custName||'[Customer]'} ${getApprovalLabel(deal.approvalStage||'core')}</div>
+            <div class="approval-card-meta">${deal.actType||'Migration'} · ${deal.date||''}</div>
+          </div>
+        </div>
+      </div>`;
+    });
+  }
+
+  container.innerHTML=html;
+}
+
+async function approveDeal(id){
+  const deals=await loadPipelineDealsFromCloud();
+  const deal=deals.find(d=>d.id===id);
+  if(!deal) return;
+  const stage=deal.approvalStage||'core';
+  const next=stage==='core'?'intel':stage==='intel'?'tcc':'approved';
+  deal.approvalStage=next;
+  deal.status=next==='intel'?'Intel Review':next==='tcc'?'Onboarding w/ TCC':next==='approved'?'Approved':'';
+  deal['approvedBy_'+stage]=currentUser.name+' · '+new Date().toLocaleDateString();
+  await apiSaveDeal(deal);
+  renderApprovalQueue();
+  alert(`Approved. Deal moved to ${next==='intel'?'Intel Leadership':next==='tcc'?'The Channel Company (TCC)':'Fully Approved'}.`);
+}
+
+async function requestChanges(id){
+  const reason=prompt('Describe what needs to change:');
+  if(!reason) return;
+  const deals=await loadPipelineDealsFromCloud();
+  const deal=deals.find(d=>d.id===id);
+  if(!deal) return;
+  deal.approvalStage='changes_requested';
+  deal.status='Changes Requested';
+  deal.changesRequested=reason;
+  deal.changesRequestedBy=currentUser.name;
+  deal.changesRequestedDate=new Date().toLocaleDateString();
+  await apiSaveDeal(deal);
+  renderApprovalQueue();
+  alert('Changes requested. The submitter will see this when they next view the deal.');
+}
+
+async function renderPipeline(){
+  let deals = await loadPipelineDealsFromCloud();
+  const totRebate=deals.reduce((s,d)=>s+(d.rebate||0),0);
+  const byStatus={draft:0,submitted:0,approved:0,paid:0};
+  deals.forEach(d=>{
+    const s=(d.status||'').toLowerCase();
+    if(s.includes('draft')) byStatus.draft++;
+    else if(s.includes('submitted')) byStatus.submitted++;
+    else if(s.includes('approved')||s.includes('launched')) byStatus.approved++;
+    else if(s.includes('paid')) byStatus.paid++;
+  });
+
+  document.getElementById('pipe-summary').innerHTML=`
+    <div class="pipe-card"><div class="pipe-val">${deals.length}</div><div class="pipe-label">Total Deals</div></div>
+    <div class="pipe-card"><div class="pipe-val">${fmt(totRebate)}</div><div class="pipe-label">Total Benefit Pipeline</div></div>
+    <div class="pipe-card"><div class="pipe-val">${byStatus.submitted+byStatus.approved}</div><div class="pipe-label">Active / Approved</div></div>
+    <div class="pipe-card"><div class="pipe-val">${byStatus.paid}</div><div class="pipe-label">Paid</div></div>`;
+
+  const tbody=document.getElementById('pipeline-tbody');
+  if(deals.length===0){
+    tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:#aaa;padding:20px">No deals submitted yet.</td></tr>';
+    return;
+  }
+  tbody.innerHTML=deals.map(d=>`
+    <tr>
+      <td>${d.custName||'—'}</td>
+      <td>${d.fhName||'—'}</td>
+      <td>${d.segment||'—'}</td>
+      <td>${d.prog||'—'}</td>
+      <td>${fmt(d.rebate||0)}</td>
+      <td><span class="status-pill ${statusClass(d.status)}">${d.status||'Draft'}</span></td>
+      <td>${d.date||'—'}</td>
+      <td><button class="btn btn-secondary btn-sm" onclick="loadDealById('${d.id}')">View</button></td>
+    </tr>`).join('');
+}
+
+function statusClass(s){
+  const sl=(s||'').toLowerCase();
+  if(sl.includes('draft')) return 's-draft';
+  if(sl.includes('submit')) return 's-submitted';
+  if(sl.includes('approv')||sl.includes('launch')) return 's-approved';
+  if(sl.includes('paid')) return 's-paid';
+  return 's-draft';
+}
+
+function loadPipelineDeals(){
+  return [];
+}
+
+async function loadPipelineDealsFromCloud(){
+  if(!API_URL) return loadPipelineDeals();
+  try{
+    const r = await fetch(API_URL+'/deals');
+    const data = await r.json();
+    if(data.deals) return data.deals;
+  } catch(e){ console.error('Cloud load failed, using local:', e); }
+  return loadPipelineDeals();
+}
+
+/* ── BACKEND ─────────────────────────────────────────────────── */
+// Paste your Lambda Function URL here after creating it (see setup guide).
+// Leave empty to run in local-only mode (browser storage).
+const API_URL = 'https://4y8bpdbupd.execute-api.ca-central-1.amazonaws.com';
+
+async function apiSaveDeal(deal){
+  if(!API_URL) return null;
+  try{
+    const r = await fetch(API_URL+'/deal', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({deal})});
+    return await r.json();
+  }catch(e){ console.error('API save failed', e); return null; }
+}
+
+async function apiListDeals(){
+  if(!API_URL) return null;
+  try{
+    const r = await fetch(API_URL+'/deals');
+    const d = await r.json();
+    return d.deals || [];
+  }catch(e){ console.error('API list failed', e); return null; }
+}
+
+async function apiUploadFile(file, dealId){
+  if(!API_URL) return null;
+  return new Promise((resolve)=>{
+    const reader = new FileReader();
+    reader.onload = async function(e){
+      try{
+        const b64 = e.target.result.split(',')[1];
+        const r = await fetch(API_URL+'/upload', {method:'POST', headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({filename:file.name, data:b64, dealId:dealId||'unassigned'})});
+        resolve(await r.json());
+      }catch(err){ console.error('Upload failed', err); resolve(null); }
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+/* ── SAVE / LOAD ─────────────────────────────────────────────── */
+function getCurrentDealData(){
+  return{
+    id:Date.now().toString(),
+    date:today(),
+    team:getTeamData(),
+    fhName:(getTeamData()[0]||{}).name||'',
+    region:v('fh-region'),country:v('fh-country'),
+    origin:v('deal-origin'),originNotes:v('deal-origin-notes'),
+    dealDate:v('deal-date'),migStart:v('mig-start'),closeDate:v('deal-close'),
+    segment:v('deal-segment'),prog:v('deal-program'),
+    cadence:v('deal-cadence'),status:v('deal-status'),
+    custName:v('cust-name'),custAcct:v('cust-acct'),
+    industry:v('cust-industry'),workload:v('cust-workload'),
+    awsRegion:v('cust-awsregion'),recipient:v('cust-recipient'),
+    partnerName:v('partner-name'),partnerTier:v('partner-tier'),
+    partnerRole:v('partner-role'),
+    aceID:v('ace-id'),sfdcID:v('sfdc-id'),campaignCode:v('campaign-code'),pricingCalcLink:v('pricing-calc-link'),
+    aceStage:v('ace-stage'),aceNotes:v('ace-notes'),
+    ipicNum:v('ipic-num'),activityType:v('activity-type'),
+    claimQuarter:v('claim-quarter'),intelBudgetYear:v('intel-budget-year'),
+    workloadSelection:getWorkloadSelection(),
+    fleets:fleets,
+    selectedPlays:[...selectedPlays],
+    totRebate:fleets.reduce((s,f)=>s+(f.rebate||0),0),
+    rebate:fleets.reduce((s,f)=>s+(f.rebate||0),0),
+    approvalStage:'core',
+  };
+}
+
+function saveDraft(){
+  const data=getCurrentDealData();
+  localStorage.setItem('iap-draft',JSON.stringify(data));
+  alert('Draft saved.');
+}
+
+function loadDraft(){
+  const raw=localStorage.getItem('iap-draft');
+  if(!raw){alert('No draft found.');return;}
+  try{restoreDeal(JSON.parse(raw));alert('Draft loaded.');}
+  catch(e){alert('Could not load draft.');}
+}
+
+/* ── WORD GENERATION (RTF, no library) ───────────── */
+function downloadSOWWord(){
+  var d = getCurrentDealData();
+  var fleets = d.fleets||[];
+  var totWNE = fleets.reduce(function(s,f){return s+(f.nteCap||0);},0);
+  var totPay = fleets.reduce(function(s,f){return s+(f.rebate||0);},0);
+  var team = d.team||[];
+  var today = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+  function e(s){ return String(s||'').replace(/\\/g,'\\\\').replace(/[{}]/g,''); }
+  function fm(n){ return '$'+Math.round(n||0).toLocaleString('en-US'); }
+
+  var teamLines = '';
+  for(var t=0;t<team.length;t++){
+    var role = team[t].role==='intel-seller'?'Intel Seller':team[t].role==='aws-account'?'Account Team':'Intel Specialist';
+    teamLines += '{'+e(role)+': '+e(team[t].name)+' \u00b7 '+e(team[t].email)+'\\par}\n';
+  }
+  var fleetLines = '';
+  var fl = fleets.filter(function(f){return f.listARR;});
+  for(var i=0;i<fl.length;i++){
+    var f=fl[i];
+    fleetLines += '{'+(i+1)+'. '+e(f.instance||'')+'  |  '+(f.type==='mod'?'Optimize':'Migrate')+'  |  List: '+fm(f.listARR)+'  |  Rate: '+(f.type==='mod'?'1%':'4.5%')+'  |  Not to Exceed: '+fm(f.nteCap)+'  |  Est. Benefit: '+fm(f.rebate)+'\\par}\n';
+  }
+
+  var rtf = '{\\rtf1\\ansi\\deff0\n'
+    + '{\\fonttbl{\\f0 Arial;}}\n'
+    + '{\\colortbl;\\red0\\green104\\blue181;\\red26\\green110\\blue52;}\n'
+    + '\\paperw12240\\paperh15840\\margl1080\\margr1080\\margt1080\\margb1080\n'
+    + '\\f0\\fs20\n'
+    + '{\\b\\fs36\\qc STATEMENT OF WORK\\par}\n'
+    + '{\\fs22\\qc\\cf1 Intel Acceleration Program \u00b7 The Channel Company\\par}\n'
+    + '{\\b\\fs24\\qc Customer: '+e(d.custName||'[Customer]')+'\\par}\n'
+    + '{\\fs18\\qc Date: '+today+'   |   IPIC: '+e(d.ipicNum||'Pending')+'   |   ACE: '+e(d.aceID||'Pending')+'\\par}\n'
+    + '\\par\\pard\\brdrb\\brdrs\\brdrw10\\par\n'
+    + '{\\b\\cf1 1. PARTIES\\par}\n'
+    + teamLines
+    + '{Disbursing Entity: The Channel Company \u00b7 Jacob Barksdale \u00b7 jbarksdale@thechannelcompany.com\\par}\n'
+    + '{Benefit Recipient: '+e(d.custName||'[Customer]')+'\\par}\n'
+    + '\\par\n'
+    + '{\\b\\cf1 2. PROGRAM OVERVIEW\\par}\n'
+    + '{ACE ID: '+e(d.aceID||'Pending')+'   |   IPIC: '+e(d.ipicNum||'Pending')+'   |   Campaign: '+e(d.campaignCode||'N/A')+'\\par}\n'
+    + '{Migration Start: '+e(d.migStart||'TBD')+'   |   End: '+e(d.closeDate||'TBD')+'   |   Max: 12 months\\par}\n'
+    + '{Region: '+e(d.region||'')+'   |   Country: '+e(d.country||'')+'   |   AWS Region: '+e(d.awsRegion||'')+'\\par}\n'
+    + '{Workload: '+e(d.workload||'')+'\\par}\n'
+    + '\\par\n'
+    + '{\\b\\cf1 3. INSTANCE SCOPE\\par}\n'
+    + fleetLines
+    + '{\\b TOTAL  |  Not to Exceed: '+fm(totWNE)+'  |  Est. Benefit: \\cf2 '+fm(totPay)+'\\cf0\\par}\n'
+    + '\\par\n'
+    + '{\\b\\cf1 4. PAYMENT - MILESTONE BASED\\par}\n'
+    + '{Payment is milestone-based, tied to migration roadmap sign-off and Cost Explorer confirmation. Total benefit: '+fm(totPay)+'.\\par}\n'
+    + '{Maximum duration: 12 months\\par}\n'
+    + '\\par\n'
+    + '{\\b\\cf1 5. PAYMENT CALENDAR\\par}\n'
+    + '{July 1, 2026 - Processing Week Aug 17-21, 2026 - Net 30\\par}\n'
+    + '{Oct 1, 2026 - Processing Week Nov 16-20, 2026 - Net 30\\par}\n'
+    + '{Jan 1, 2027 - Processing Week Feb 15-19, 2027 - Net 30\\par}\n'
+    + '{April 1, 2027 - Processing Week May 17-21, 2027 - Net 30\\par}\n'
+    + '{July 1, 2027 - Processing Week Aug 16-20, 2027 - Net 30\\par}\n'
+    + '{Oct 1, 2027 - Processing Week Nov 15-19, 2027 - Net 30\\par}\n'
+    + '\\par\n'
+    + '{\\b\\cf1 6. TERMS\\par}\n'
+    + '{This SOW is subject to Intel IAP Program terms and The Channel Company disbursement terms. Benefits are non-transferable. Maximum duration: 12 months. CONFIDENTIAL.\\par}\n'
+    + '\\par\\par\n'
+    + '{\\b SUBMITTING SPECIALIST\\tab\\tab\\tab BENEFIT RECIPIENT\\par}\n'
+    + '{'+e((team[0]||{}).name||'')+'\\tab\\tab\\tab '+e(d.custName||'')+'\\par}\n'
+    + '\\par\\par\n'
+    + '{Signature & Date: _______________________\\tab Signature & Date: _______________________\\par}\n'
+    + '}';
+
+  var blob = new Blob([rtf], {type:'application/rtf'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'IAP_SOW_'+(d.custName||'deal').replace(/[^a-z0-9]/gi,'_')+'.rtf';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+function downloadRoadmapWord(){
+  var d = getCurrentDealData();
+  var fleets = d.fleets||[];
+  var totWNE = fleets.reduce(function(s,f){return s+(f.nteCap||0);},0);
+  var totPay = fleets.reduce(function(s,f){return s+(f.rebate||0);},0);
+  var toInst = fleets.map(function(f){return f.instance||'';}).filter(Boolean).join(', ')||'[Target instances]';
+  var team = d.team||[];
+  function e(s){ return String(s||'').replace(/\\/g,'\\\\').replace(/[{}]/g,''); }
+  function fm(n){ return '$'+Math.round(n||0).toLocaleString('en-US'); }
+
+  var rtf = '{\\rtf1\\ansi\\deff0\n'
+    + '{\\fonttbl{\\f0 Arial;}}\n'
+    + '{\\colortbl;\\red0\\green104\\blue181;\\red26\\green110\\blue52;}\n'
+    + '\\paperw12240\\paperh15840\\margl900\\margr900\\margt900\\margb900\n'
+    + '\\f0\\fs20\n'
+    + '{\\b\\cf1\\fs18 INTEL ACCELERATION PROGRAM\\par}\n'
+    + '{\\b\\fs30 Migration Readiness Roadmap\\par}\n'
+    + '{\\fs18 One-page customer sign-off \u00b7 Confidential\\par}\n'
+    + '\\par\\pard\\brdrb\\brdrs\\brdrw15\\par\\pard\n'
+    + '\\par\n'
+    + '{\\b Customer: '+e(d.custName||'[Customer]')+'\\tab ACE ID: '+e(d.aceID||'Pending')+'\\par}\n'
+    + '{\\b Start: '+e(d.migStart||'TBD')+'\\tab End: '+e(d.closeDate||'TBD')+' (max 12 months)\\par}\n'
+    + '{\\b Target Instances: '+e(toInst)+'\\tab Not to Exceed: '+fm(totWNE)+'\\par}\n'
+    + '\\par\\pard\\brdrb\\brdrs\\brdrw10\\par\\pard\n'
+    + '\\par\n'
+    + '{\\b\\cf1 PREREQUISITES\\par}\n'
+    + '{1. Cost Explorer baseline - customer sends directly to The Channel Company/Intel before start date\\par}\n'
+    + '{2. Signed Migration Roadmap - returned to The Channel Company before 1st payment\\par}\n'
+    + '\\par\n'
+    + '{\\b\\cf1 MIGRATION MILESTONES\\par}\n'
+    + '\\par\n'
+    + '{\\b Milestone 1 - Plan & Sign\\par}\n'
+    + '{Customer signs this roadmap confirming commitment to migrate at least 75% of agreed workload.\\par}\n'
+    + '{\\b\\cf2 Triggers milestone payment\\cf0\\par}\n'
+    + '\\par\n'
+    + '{\\b Milestone 2 - Migrate (ongoing)\\par}\n'
+    + '{Customer executes migration. No interim reporting required. The Channel Company/Intel do not need AWS account access.\\par}\n'
+    + '\\par\n'
+    + '{\\b Milestone 3 - Complete 75%+\\par}\n'
+    + '{Customer submits Cost Explorer showing 75%+ of committed workload on target Intel instance family. Customer sends directly to The Channel Company/Intel. AWS cannot share this data.\\par}\n'
+    + '{\\b\\cf2 Triggers final milestone payment\\cf0\\par}\n'
+    + '\\par\\pard\\brdrb\\brdrs\\brdrw10\\par\\pard\n'
+    + '\\par\n'
+    + '{\\b\\cf1 CUSTOMER SIGN-OFF\\par}\n'
+    + '\\par\n'
+    + '{By signing, the Customer confirms:\\par}\n'
+    + '{  - Migration completes within 12 months of start date\\par}\n'
+    + '{  - At least 75% of committed workload reaches target Intel instance family\\par}\n'
+    + '{  - Cost Explorer provided directly to The Channel Company/Intel at baseline and at 75%+ completion\\par}\n'
+    + '{  - AWS is not a party to any payment under this agreement\\par}\n'
+    + '\\par\\par\n'
+    + '{\\b CUSTOMER AUTHORIZED SIGNATORY\\tab\\tab SUBMITTING SPECIALIST\\par}\n'
+    + '{'+e(d.custName||'[Customer]')+'\\tab\\tab '+e((team[0]||{}).name||'[Specialist]')+'\\par}\n'
+    + '\\par\\par\n'
+    + '{Signature & Date: _______________________\\tab Signature & Date: _______________________\\par}\n'
+    + '{\\fs16 The Channel Company \u00b7 Intel Acceleration Program \u00b7 CONFIDENTIAL\\par}\n'
+    + '}';
+
+  var blob = new Blob([rtf], {type:'application/rtf'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'IAP_Roadmap_'+(d.custName||'customer').replace(/[^a-z0-9]/gi,'_')+'.rtf';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+function downloadDealsCSV(){
+  loadPipelineDealsFromCloud().then(function(deals){
+    if(!deals.length){ alert('No deals to download.'); return; }
+    var headers = ['Customer','Submitter','Segment','Program','Benefit Est.','Status','Date','ACE ID'];
+    var rows = deals.map(function(d){ return [
+      d.custName||'', d.fhName||((d.team&&d.team[0])?d.team[0].name:''), d.segment||'', d.actType||'',
+      d.rebate||0, d.status||'', d.date||d.dealDate||'', d.aceID||''
+    ]; });
+    var csv = headers.join(',') + '\n';
+    rows.forEach(function(r){ csv += r.map(function(v){ return '"'+String(v).replace(/"/g,'""')+'"'; }).join(',') + '\n'; });
+    var blob = new Blob([csv], {type:'text/csv'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'IAP_Pipeline_' + new Date().toISOString().split('T')[0] + '.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+}
+
+function exportIPIC(){
+  const d = getCurrentDealData();
+  const team = getTeamData();
+  const intel = team.find(t=>t.role==='intel-seller'||t.role==='intel-specialist')||{};
+  const aws   = team.find(t=>t.role==='aws-account'||t.role==='intel-specialist')||{};
+  const totARR = d.fleets ? d.fleets.reduce((s,f)=>s+(parseFloat(f.listARR)||0),0) : 0;
+  const totWNE = d.fleets ? d.fleets.reduce((s,f)=>s+(parseFloat(f.nteCap)||0),0) : 0;
+  const instUsed = d.fleets ? d.fleets.map(f=>f.instance).filter(Boolean).join(', ') : '';
+
+  const fmtDate = dt => {
+    if(!dt) return '';
+    try{ const d=new Date(dt); return (d.getMonth()+1)+'/'+d.getDate()+'/'+d.getFullYear(); }
+    catch(e){ return dt; }
+  };
+
+  const popDate = d.closeDate ? fmtDate(new Date(new Date(d.closeDate).getTime()+30*24*60*60*1000)) : '';
+
+  // Columns match IAP Project Intake Sheet exactly
+  const headers = [
+    'IPIC Activity #','Activity Name','Activity Type','IPIC Activity Description',
+    'Start Date','End Date','POP Due Date','Claim Quarter',
+    'Partner or End Customer Name','Status','Notes',
+    'Intel Budget Year','Intel Contribution Amount','Funding Percentage','Funding amount not to exceed',
+    'Intake Entry Date','Submitter Name','Submitter Email',
+    'Intel Rep Name','AWS Rep Name',
+    'Migration Project Description','AWS Instances Used','Region/Country of Execution',
+    'Cost of Infrastructure (ARR)','Workload Selection','Requested funding amount',
+    'ACE Opportunity ID','SFDC Opportunity ID','TCC Invoice Contact','TCC Invoice Email'
+  ];
+
+  const progEl = document.getElementById('deal-program');
+  const progLabel = progEl&&progEl.selectedOptions[0]?progEl.selectedOptions[0].text:'';
+  const fundingPct = d.fleets&&d.fleets.length>0?(d.fleets[0].type==='mod'?'1%':'4.5%'):'4.5%';
+
+  const row = [
+    d.ipicNum||'',
+    d.custName||'',
+    d.activityType||'Migration',
+    d.workload||'',
+    fmtDate(d.migStart),
+    fmtDate(d.closeDate),
+    popDate,
+    d.claimQuarter||'',
+    d.custName||'',
+    d.status||'Draft',
+    '',
+    d.intelBudgetYear||new Date().getFullYear(),
+    totWNE||'',
+    fundingPct,
+    totWNE||'',
+    fmtDate(new Date().toISOString()),
+    (team[0]||{}).name||'',
+    (team[0]||{}).email||'',
+    intel.name||'',
+    aws.name||'',
+    d.workload||'',
+    instUsed,
+    (d.cust&&d.cust.awsRegion)||d.awsRegion||v('cust-awsregion')||'',
+    totARR||'',
+    d.workloadSelection||'',
+    totWNE||'',
+    d.aceID||'',
+    d.sfdcID||'',
+    d.tccContactName||'',
+    d.tccContactEmail||''
+  ];
+
+  // Build CSV
+  const escape = val => {
+    const s = String(val===null||val===undefined?'':val);
+    return s.includes(',')||s.includes('"')||s.includes('\n') ? '"'+s.replace(/"/g,'""')+'"' : s;
+  };
+  const csv = [headers.map(escape).join(','), row.map(escape).join(',')].join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'IAP_Intake_'+(d.custName||'deal').replace(/[^a-z0-9]/gi,'_')+'_'+new Date().toISOString().split('T')[0]+'.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+async function submitDeal(){
+  const data=getCurrentDealData();
+  data.status='Submitted to Core';
+  data.approvalStage='core';
+  const apiResult = await apiSaveDeal(data);
+  alert(apiResult && apiResult.saved
+    ? 'Deal submitted and saved to the cloud database.'
+    : 'Deal submission failed. Please try again.');
+}
+
+async function loadDealById(id){
+  const deals = await loadPipelineDealsFromCloud();
+  const deal=deals.find(d=>d.id===id);
+  if(deal){restoreDeal(deal);goStep(1);}
+}
+
+function restoreDeal(d){
+  setVal('fh-region',d.region);
+  updateCountries();
+  setVal('fh-country',d.country);
+  setVal('deal-origin',d.origin);setVal('deal-origin-notes',d.originNotes);
+  setVal('deal-date',d.dealDate);setVal('mig-start',d.migStart);setVal('deal-close',d.closeDate);
+  if(d.team&&d.team.length){
+    document.getElementById('deal-team-rows').innerHTML='';
+    teamMembers=[];teamCount=0;
+    d.team.forEach(t=>{
+      addTeamMember();
+      const id=teamCount;
+      setVal('tm'+id+'-role',t.role);setVal('tm'+id+'-first',t.first);
+      setVal('tm'+id+'-last',t.last);setVal('tm'+id+'-email',t.email);
+      setVal('tm'+id+'-alias',t.alias);
+      handleEmailDomain(id);
+    });
+  }
+  setVal('deal-segment',d.segment);setVal('deal-program',d.prog);
+  setVal('deal-cadence',d.cadence);setVal('deal-status',d.status);
+  setVal('cust-name',d.custName);setVal('cust-acct',d.custAcct);
+  setVal('cust-industry',d.industry);setVal('cust-workload',d.workload);
+  setVal('cust-awsregion',d.awsRegion);setVal('cust-recipient',d.recipient);
+  setVal('partner-name',d.partnerName);setVal('partner-tier',d.partnerTier);
+  setVal('partner-role',d.partnerRole);
+  setVal('ace-id',d.aceID);setVal('sfdc-id',d.sfdcID);
+  setVal('campaign-code',d.campaignCode);setVal('pricing-calc-link',d.pricingCalcLink);
+  setVal('ace-stage',d.aceStage);setVal('ace-notes',d.aceNotes);
+  setVal('ipic-num',d.ipicNum);setVal('activity-type',d.activityType);
+  setVal('claim-quarter',d.claimQuarter);setVal('intel-budget-year',d.intelBudgetYear);
+  if(d.selectedPlays) selectedPlays=new Set(d.selectedPlays);
+}
+
+function clearAll(){
+  if(!confirm('Clear all form data?')) return;
+  document.querySelectorAll('input,select,textarea').forEach(el=>{
+    if(el.type==='checkbox') el.checked=false;
+    else el.value='';
+  });
+  fleets=[];fleetCount=0;selectedPlays=new Set();
+  document.getElementById('fleet-container').innerHTML='';
+  updateTotals();renderCEPanel();
+  goStep(1);
+}
+
+/* ── HELPERS ─────────────────────────────────────────────────── */
+function v(id){
+  const el=document.getElementById(id);
+  return el?el.value.trim():'';
+}
+function setVal(id,val){
+  const el=document.getElementById(id);
+  if(el&&val!=null) el.value=val;
+}
+function fmt(n){
+  if(!n&&n!==0) return '$0';
+  return '$'+Math.round(n).toLocaleString('en-US');
+}
+function getWorkloadSelection(){
+  const checks = document.querySelectorAll('#workload-checks input[type="checkbox"]:checked');
+  return Array.from(checks).map(ch=>ch.value).join('\n') || '';
+}
+
+function fmt30DaysAfter(dateStr){
+  if(!dateStr||dateStr==='[TBD]') return '[30 days after end date]';
+  try{
+    const d=new Date(dateStr);
+    d.setDate(d.getDate()+30);
+    return formatDate(d);
+  }catch(e){return '[30 days after end date]';}
+}
+function pct(n){return Math.round((n||0)*100)+'%'}
+function today(){return new Date().toISOString().split('T')[0]}
+function formatDate(d){
+  return d.toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric'});
+}
+function formatDateWeek(d){
+  const end=new Date(d);end.setDate(end.getDate()+4);
+  return formatDate(d)+' – '+end.getDate()+' '+end.toLocaleString('en-US',{month:'short'});
+}
+
+/* ── INIT ────────────────────────────────────────────────────── */
+// ── DEAL TEAM ──────────────────────────────────────────────
+let teamMembers = [];
+let teamCount = 0;
+
+const ROLES = [
+  {val:'intel-seller',     label:'Intel Seller'},
+  {val:'aws-account',      label:'AWS Account Team'},
+  {val:'intel-specialist', label:'Intel Specialist at AWS'},
+];
+
+function addTeamMember(){
+  teamCount++;
+  const id = teamCount;
+  teamMembers.push({id, role:'', first:'', last:'', email:'', alias:''});
+  const container = document.getElementById('deal-team-rows');
+  const div = document.createElement('div');
+  div.id = 'team-row-'+id;
+  div.style.cssText = 'background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:12px 14px;margin-bottom:8px';
+
+  const roleOptions = ROLES.map(r=>`<option value="${r.val}">${r.label}</option>`).join('');
+
+  div.innerHTML = `
+    <div style="display:grid;grid-template-columns:1.5fr 1fr 1fr 1.2fr 1fr auto;gap:10px;align-items:end">
+      <div class="f-group">
+        <label>Role</label>
+        <select id="tm${id}-role" onchange="handleRoleChange(${id})" style="font-size:.78rem">
+          <option value="">— Select Role —</option>
+          ${roleOptions}
+        </select>
+      </div>
+      <div class="f-group">
+        <label>First Name</label>
+        <input type="text" id="tm${id}-first" placeholder="First">
+      </div>
+      <div class="f-group">
+        <label>Last Name</label>
+        <input type="text" id="tm${id}-last" placeholder="Last">
+      </div>
+      <div class="f-group">
+        <label>Email</label>
+        <input type="email" id="tm${id}-email" placeholder="name@intel.com" oninput="handleEmailDomain(${id})">
+      </div>
+      <div class="f-group" id="tm${id}-alias-wrap" style="display:none">
+        <label id="tm${id}-alias-label">Alias</label>
+        <input type="text" id="tm${id}-alias" placeholder="alias">
+      </div>
+      <div style="padding-bottom:1px">
+        ${id>1?`<button class="btn btn-danger btn-sm" onclick="removeTeamMember(${id})">✕</button>`:''}
+      </div>
+    </div>`;
+  container.appendChild(div);
+}
+
+function handleRoleChange(id){
+  handleEmailDomain(id);
+}
+
+function handleEmailDomain(id){
+  const email=(document.getElementById('tm'+id+'-email')||{}).value||'';
+  const wrap=document.getElementById('tm'+id+'-alias-wrap');
+  const label=document.getElementById('tm'+id+'-alias-label');
+  const input=document.getElementById('tm'+id+'-alias');
+  if(!wrap) return;
+  const domain=email.split('@')[1]||'';
+  if(domain.includes('intel.com')){
+    wrap.style.display='flex';
+    label.textContent='Intel Alias';
+    input.placeholder='Intel idsid';
+  } else if(domain.includes('amazon.com')||domain.includes('aws')){
+    wrap.style.display='flex';
+    label.textContent='AWS Alias';
+    input.placeholder='e.g. jsmith';
+  } else {
+    wrap.style.display='none';
+  }
+}
+
+function removeTeamMember(id){
+  const div=document.getElementById('team-row-'+id);
+  if(div) div.remove();
+  teamMembers=teamMembers.filter(t=>t.id!==id);
+}
+
+function getTeamData(){
+  return teamMembers.map(t=>{
+    const role=(document.getElementById('tm'+t.id+'-role')||{}).value||'';
+    const first=(document.getElementById('tm'+t.id+'-first')||{}).value||'';
+    const last=(document.getElementById('tm'+t.id+'-last')||{}).value||'';
+    const email=(document.getElementById('tm'+t.id+'-email')||{}).value||'';
+    const alias=(document.getElementById('tm'+t.id+'-alias')||{}).value||'';
+    const roleLabel=ROLES.find(r=>r.val===role)?.label||role;
+    return{id:t.id,role,roleLabel,first,last,email,alias,name:(first+' '+last).trim()};
+  }).filter(t=>t.name||t.email);
+}
+
+function initApp(){
+  const dd=document.getElementById('deal-date');
+  if(dd&&!dd.value) dd.value=today();
+  if(fleets.length===0) addFleet();
+  if(teamMembers.length===0){
+    addTeamMember();
+    // Pre-fill submitter from login
+    if(currentUser){
+      setVal('tm1-email',currentUser.email);
+      const parts=(currentUser.name||'').split(' ');
+      if(parts[0]) setVal('tm1-first',parts[0]);
+      if(parts[1]) setVal('tm1-last',parts.slice(1).join(' '));
+      handleEmailDomain(1);
+    }
+  }
+}
+</script>
+</body>
+</html>
