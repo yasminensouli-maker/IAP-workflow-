@@ -3263,18 +3263,10 @@ async function approveDeal(id){
   if(!deal) return;
   const stage=deal.approvalStage||'core';
   const next=stage==='core'?'intel':stage==='intel'?'tcc':'approved';
-  deal.approvalStage=next;
-  deal.status=next==='intel'?'Intel Review':next==='tcc'?'Onboarding w/ TCC':next==='approved'?'Approved':'';
   deal['approvedBy_'+stage]=currentUser.name+' · '+new Date().toLocaleDateString();
-  await apiSaveDeal(deal);
+  await apiSaveDeal(deal, stage, next);  // pass prev+next stage so Lambda fires SES
   renderApprovalQueue();
-  // Trigger email notification to next tier
-  if(next==='intel'){
-    notifyIntelApprovers(deal);
-  } else if(next==='tcc'){
-    notifyTCC(deal);
-  }
-  alert(`Approved. Deal moved to ${next==='intel'?'Intel Leadership':next==='tcc'?'The Channel Company (TCC)':'Fully Approved'}.`);
+  alert(`Approved. Deal moved to ${next==='intel'?'Intel Leadership':next==='tcc'?'The Channel Company (TCC)':'Fully Approved'}. Email notifications sent automatically.`);
 }
 
 function notifyIntelApprovers(deal){
@@ -3465,10 +3457,17 @@ const API_URL = 'https://4y8bpdbupd.execute-api.ca-central-1.amazonaws.com';
 const INTEL_PRICING_URL = 'http://52.26.245.170:8502/api/chat';
 const INTEL_PRICING_KEY = 'intel-arch-7f3a9c2e8b14d05f6a1e9d7c3b8f240a';
 
-async function apiSaveDeal(deal){
+async function apiSaveDeal(deal, prevStage, nextStage){
   if(!API_URL) return null;
   try{
-    const r = await fetch(API_URL+'/deal', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({deal})});
+    // Update stage on deal object before sending
+    if(nextStage) deal.approvalStage = nextStage;
+    if(nextStage==='intel') deal.status='Intel Review';
+    else if(nextStage==='tcc') deal.status='Onboarding w/ TCC';
+    else if(nextStage==='approved') deal.status='Approved';
+    const payload = {deal};
+    if(prevStage) payload.prevStage = prevStage;
+    const r = await fetch(API_URL+'/deal', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
     return await r.json();
   }catch(e){ console.error('API save failed', e); return null; }
 }

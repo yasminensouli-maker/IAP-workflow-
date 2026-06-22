@@ -6,11 +6,119 @@ import os
 
 dynamodb = boto3.resource('dynamodb')
 s3 = boto3.client('s3')
+ses = boto3.client('ses', region_name='ca-central-1')
 bedrock = boto3.client('bedrock-runtime', region_name='us-east-1')
 
 TABLE = os.environ.get('TABLE', 'iap-deals')
 BUCKET = os.environ.get('BUCKET', '')
 NOVA_MODEL = 'amazon.nova-pro-v1:0'
+FROM_EMAIL = 'yasmine@cloudzero.ca'
+APP_URL = 'https://main.dgxv59n7ru973.amplifyapp.com'
+
+def send_email(to_addresses, subject, body_text):
+    """Send email via SES. to_addresses is a list."""
+    try:
+        ses.send_email(
+            Source=FROM_EMAIL,
+            Destination={'ToAddresses': to_addresses},
+            Message={
+                'Subject': {'Data': subject, 'Charset': 'UTF-8'},
+                'Body': {'Text': {'Data': body_text, 'Charset': 'UTF-8'}}
+            }
+        )
+        return True
+    except Exception as e:
+        print(f"SES error: {str(e)}")
+        return False
+
+def notify_intel_approvers(deal):
+    """Fire when ASP Core approves — email Intel Leadership."""
+    subject = f"IAP Deal Pending Your Approval: {deal.get('custName', 'New Deal')}"
+    rebate = float(deal.get('rebate', 0))
+    body = f"""Hi Akanksha, Brendon, and Deep,
+
+A deal has been approved by ASP Core and is now pending Intel Leadership approval.
+
+Deal details:
+- Customer: {deal.get('custName', '')}
+- Activity Type: {deal.get('actType', '')}
+- ACE Opportunity ID: {deal.get('aceID', 'Pending')}
+- IPIC Activity #: {deal.get('ipicNum', 'TBD')}
+- Estimated Benefit: ${rebate:,.2f}
+- Expected ROI (10x): ${rebate * 10:,.2f}
+
+Please log in to the IAP Workflow to review and approve:
+{APP_URL}
+
+Credentials:
+- Akanksha: akanksha.r.bilani@intel.com / Intel2026
+- Brendon: brendon.roosken@intel.com / Intel2026
+- Deep: deep.grewal@intel.com / Intel2026
+
+Approved by ASP Core
+{time.strftime('%B %d, %Y')}
+"""
+    send_email(
+        ['akanksha.r.bilani@intel.com', 'brendon.roosken@intel.com', 'deep.grewal@intel.com'],
+        subject,
+        body
+    )
+
+def notify_tcc(deal):
+    """Fire when Intel Leadership approves — email Jacob at TCC."""
+    subject = f"IAP Deal Ready for TCC Processing: {deal.get('custName', 'New Deal')}"
+    rebate = float(deal.get('rebate', 0))
+    body = f"""Hi Jacob,
+
+A deal has cleared both ASP Core and Intel Leadership approval and is ready for TCC processing.
+
+Deal details:
+- Customer: {deal.get('custName', '')}
+- Activity Type: {deal.get('actType', '')}
+- ACE Opportunity ID: {deal.get('aceID', 'Pending')}
+- IPIC Activity #: {deal.get('ipicNum', 'TBD')}
+- Estimated Benefit: ${rebate:,.2f}
+- Cost Explorer: {deal.get('ceFileName', 'Not attached')}
+
+Please log in to the IAP Workflow to complete final approval and POP check:
+{APP_URL}
+
+Credentials: jacobx.barksdale@intel.com / TCC2026
+
+{time.strftime('%B %d, %Y')}
+"""
+    send_email(
+        ['jacobx.barksdale@intel.com'],
+        subject,
+        body
+    )
+
+def notify_submitter_approved(deal):
+    """Fire when fully approved — email the submitter."""
+    team = deal.get('team', [{}])
+    submitter_email = team[0].get('email', '') if team else ''
+    submitter_name = team[0].get('name', 'Submitter') if team else 'Submitter'
+    if not submitter_email:
+        return
+    subject = f"IAP Deal Approved: {deal.get('custName', 'Your Deal')}"
+    rebate = float(deal.get('rebate', 0))
+    body = f"""Hi {submitter_name},
+
+Your IAP deal has been fully approved and is now onboarding with The Channel Company.
+
+Deal details:
+- Customer: {deal.get('custName', '')}
+- Estimated Benefit: ${rebate:,.2f}
+- Expected ROI (10x): ${rebate * 10:,.2f}
+
+Next steps: The Channel Company (Jacob Barksdale) will reach out regarding the SOW and payment schedule.
+
+You can track status at:
+{APP_URL}
+
+IAP Workflow
+"""
+    send_email([submitter_email], subject, body)
 
 def lambda_handler(event, context):
     headers = {
@@ -41,7 +149,21 @@ def lambda_handler(event, context):
             if not deal.get('id'):
                 deal['id'] = str(int(time.time() * 1000))
             deal['updatedAt'] = int(time.time())
+
+            # Check if approval stage changed — fire SES notifications
+            prev_stage = body.get('prevStage', '')
+            curr_stage = deal.get('approvalStage', '')
+
             table.put_item(Item=json.loads(json.dumps(deal), parse_float=str))
+
+            # Fire emails on stage transitions
+            if prev_stage == 'core' and curr_stage == 'intel':
+                notify_intel_approvers(deal)
+            elif prev_stage == 'intel' and curr_stage == 'tcc':
+                notify_tcc(deal)
+            elif curr_stage == 'approved':
+                notify_submitter_approved(deal)
+
             return ok(headers, {'saved': True, 'id': deal['id']})
 
         # ── LIST DEALS ──
@@ -115,7 +237,6 @@ Respond in this exact JSON format with no other text:
             )
             result = json.loads(response['body'].read())
             text = result['output']['message']['content'][0]['text']
-            # Clean and parse JSON
             text = text.strip()
             if '```' in text:
                 text = text.split('```')[1].replace('json','').strip()
@@ -151,7 +272,7 @@ POP requirements:
    (Customer sends directly to The Channel Company and Intel — AWS cannot share this data)
 3. Payment cannot exceed 12 months from migration start, calendar year only
 
-Write a concise, professional email from Jacob Barksdale to {submitter_name} requesting the POP. 
+Write a concise, professional email from Jacob Barksdale to {submitter_name} requesting the POP.
 - Dry, direct tone — no marketing language
 - Include the two POP requirements clearly
 - Reference the deal by customer name and ACE ID
