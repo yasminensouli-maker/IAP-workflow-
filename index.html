@@ -913,6 +913,284 @@ textarea{resize:vertical;min-height:72px}
 .s-approved{background:var(--green-light);color:var(--green)}
 .s-paid{background:#e8f5e9;color:#1b5e20}
 
+/* ── MOBILE RESPONSIVE ────────────────────────────────────── */
+@media (max-width: 768px){
+
+  /* Layout: hide sidebar, stack vertically */
+  .app-body{
+    grid-template-columns: 1fr;
+    padding-bottom: 70px; /* space for bottom nav */
+  }
+  .sidebar{
+    display: none;
+  }
+
+  /* Header */
+  .app-header{
+    padding: 0 12px;
+    height: 48px;
+  }
+  .app-header-title{
+    font-size: .8rem;
+  }
+  .app-header-right{
+    gap: 8px;
+  }
+  .user-pill{
+    display: none;
+  }
+
+  /* Main content */
+  .main-content{
+    padding: 12px;
+  }
+  .step-header{
+    margin-bottom: 12px;
+  }
+  .step-title{
+    font-size: 1.1rem;
+  }
+  .step-desc{
+    font-size: .75rem;
+  }
+
+  /* Forms: single column */
+  .form-grid{
+    grid-template-columns: 1fr !important;
+    gap: 12px;
+  }
+  .f-group.span2{
+    grid-column: 1 !important;
+  }
+  .f-group label{
+    font-size: .72rem;
+  }
+  input, select, textarea{
+    font-size: 16px !important; /* prevents iOS zoom on focus */
+    padding: 10px 12px !important;
+  }
+  textarea{
+    min-height: 80px;
+  }
+
+  /* Buttons */
+  .btn{
+    padding: 10px 16px;
+    font-size: .78rem;
+  }
+  .btn-row, .sow-btn-row{
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .btn-row .btn, .sow-btn-row .btn{
+    flex: 1 1 calc(50% - 4px);
+    min-width: 120px;
+    text-align: center;
+    justify-content: center;
+  }
+
+  /* Cards */
+  .section-card{
+    padding: 14px;
+    margin-bottom: 12px;
+  }
+
+  /* Fleet rows */
+  .fleet-row-header{
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .fleet-row-body{
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  /* Calculator summary */
+  .calc-summary-grid{
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  /* SOW document */
+  .sow-document{
+    padding: 16px;
+  }
+  .sow-table{
+    font-size: .7rem;
+  }
+
+  /* Pipeline table: scroll horizontally */
+  .deals-table-wrap{
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .deals-table{
+    min-width: 600px;
+  }
+
+  /* Approval cards */
+  .approval-card{
+    padding: 14px;
+  }
+  .approval-grid{
+    grid-template-columns: 1fr 1fr !important;
+  }
+  .approval-actions{
+    flex-wrap: wrap;
+  }
+  .approval-actions .btn{
+    flex: 1 1 100%;
+  }
+
+  /* Bottom navigation bar */
+  .mobile-nav{
+    display: flex !important;
+  }
+}
+
+/* Bottom nav bar — hidden on desktop */
+.mobile-nav{
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: var(--white);
+  border-top: 1px solid var(--border);
+  z-index: 1000;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 4px;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.mobile-nav-btn{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 8px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: 'Arial', sans-serif;
+  font-size: .58rem;
+  color: var(--ink3);
+  flex: 1;
+  border-radius: 8px;
+  transition: color .15s, background .15s;
+}
+.mobile-nav-btn.active{
+  color: var(--intel);
+  background: var(--intel-light);
+}
+.mobile-nav-btn .nav-icon{
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+/* ── BUDGET TRACKER ───────────────────────────────────────── */
+.budget-tracker{
+  background:linear-gradient(135deg,#0A1628 0%,#0F2438 100%);
+  border-radius:14px;
+  padding:20px 24px;
+  margin-bottom:18px;
+  color:#fff;
+  box-shadow:0 4px 20px rgba(10,22,40,.25);
+}
+.budget-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:14px;
+}
+.budget-title{
+  font-family:'Arial',sans-serif;
+  font-size:.78rem;
+  font-weight:700;
+  letter-spacing:.5px;
+  text-transform:uppercase;
+  color:#7FB2E5;
+}
+.budget-bar-track{
+  display:flex;
+  height:18px;
+  border-radius:10px;
+  overflow:hidden;
+  background:rgba(255,255,255,.08);
+  margin-bottom:14px;
+}
+.budget-bar-committed{background:linear-gradient(90deg,#FF9900,#FFB84D);transition:width .5s}
+.budget-bar-pending{background:rgba(127,178,229,.55);transition:width .5s}
+.budget-legend{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:12px;
+}
+.budget-stat{
+  display:flex;
+  flex-direction:column;
+  font-family:'Arial',sans-serif;
+  font-size:.66rem;
+  color:rgba(255,255,255,.6);
+  letter-spacing:.3px;
+  text-transform:uppercase;
+}
+.budget-stat b{
+  font-size:1.05rem;
+  color:#fff;
+  margin-top:3px;
+  letter-spacing:0;
+}
+.bdot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px}
+.bdot.total{background:#7FB2E5}
+.bdot.committed{background:#FF9900}
+.bdot.pending{background:rgba(127,178,229,.55)}
+.bdot.remaining{background:#3FB950}
+@media (max-width:768px){
+  .budget-legend{grid-template-columns:repeat(2,1fr)}
+  .budget-tracker{padding:16px}
+}
+
+/* ── POP CHECK (TCC) ──────────────────────────────────────── */
+.pop-check{
+  margin-top:12px;
+  padding:12px 14px;
+  background:#FFF8EC;
+  border:1px solid #FFE0A3;
+  border-radius:10px;
+}
+.pop-check-label{
+  font-family:'Arial',sans-serif;
+  font-size:.72rem;
+  font-weight:700;
+  color:#8A5A00;
+  margin-bottom:8px;
+}
+.pop-check-btns{display:flex;gap:8px;flex-wrap:wrap}
+.pop-btn{
+  flex:1;
+  min-width:160px;
+  padding:8px 12px;
+  border:1px solid #E0C896;
+  background:#fff;
+  border-radius:8px;
+  font-family:'Arial',sans-serif;
+  font-size:.72rem;
+  font-weight:600;
+  cursor:pointer;
+  transition:all .15s;
+  color:#6B4E00;
+}
+.pop-btn:hover{background:#FFF3DC}
+.pop-yes-active{background:#E6F7E6!important;border-color:#3FB950;color:#1A7431}
+.pop-no-active{background:#FDEAEA!important;border-color:#E5534B;color:#A82820}
+.pop-warn{
+  margin-top:10px;font-family:'Arial',sans-serif;font-size:.72rem;color:#A82820;font-weight:600;
+}
+.pop-warn a{color:var(--intel);text-decoration:underline}
+.pop-ok{
+  margin-top:10px;font-family:'Arial',sans-serif;font-size:.72rem;color:#1A7431;font-weight:600;
+}
+
 /* ── PRINT ────────────────────────────────────────────────── */
 @media print{
   #login-screen,#app>.app-header,.app-body>.sidebar,.btn-row,
@@ -1470,6 +1748,10 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
             <label>Est. Payout at POP</label>
             <div class="val highlight" id="tot-rebate">$0</div>
           </div>
+          <div class="calc-total-item">
+            <label>Expected ROI (10x)</label>
+            <div class="val" id="tot-roi" style="color:var(--green)">$0</div>
+          </div>
         </div>
 
         <!-- Cost Explorer Panel -->
@@ -1640,6 +1922,10 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
           <div class="step-desc">All deals submitted through the IAP workflow tool. Visible to CloudZero Admin and AWS field only.</div>
         </div>
 
+        <div class="budget-tracker" id="budget-tracker">
+          <!-- Injected by JS -->
+        </div>
+
         <div class="pipeline-cards" id="pipe-summary">
           <!-- Injected by JS -->
         </div>
@@ -1731,9 +2017,13 @@ function doLogin(){
   // Show Pipeline for admin/aws; show Approval Queue for approvers
   if(currentUser.tier==='admin' || currentUser.tier==='aws'){
     document.getElementById('nav7').style.display='flex';
+    const mn7=document.getElementById('mnav7');
+    if(mn7) mn7.style.display='flex';
   }
   if(currentUser.approver){
     document.getElementById('nav-approval').style.display='flex';
+    const mn8=document.getElementById('mnav8');
+    if(mn8) mn8.style.display='flex';
   }
 
   // Pre-fill first team member if intel/specialist tier
@@ -1760,7 +2050,10 @@ const TOTAL_STEPS = 7;
 function goStep(n){
   document.querySelectorAll('.step-panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
-  // Show Intel ACE reminder on step 5 if Intel seller is on the team
+  // Highlight mobile nav
+  document.querySelectorAll('.mobile-nav-btn').forEach(b=>b.classList.remove('active'));
+  const mb=document.getElementById('mnav'+n);
+  if(mb) mb.classList.add('active');
   if(n===5){
     const team=getTeamData();
     const hasIntel=team.some(t=>t.role==='intel-seller'||t.role==='intel-specialist');
@@ -2109,6 +2402,8 @@ function updateTotals(){
   document.getElementById('tot-disc').textContent=pct(effDisc);
   document.getElementById('tot-nte').textContent=fmt(totNTE);
   document.getElementById('tot-rebate').textContent=fmt(totRebate);
+  const roiEl=document.getElementById('tot-roi');
+  if(roiEl) roiEl.textContent=fmt(totRebate*10);
 }
 
 function renderCEPanel(){
@@ -2617,7 +2912,18 @@ async function renderApprovalQueue(){
           <div class="approval-grid-item"><label>Workload</label><div class="val">${(deal.workloadSelection||'').replace(/\n/g,', ')||'—'}</div></div>
           <div class="approval-grid-item"><label>Submitter</label><div class="val">${(deal.team&&deal.team[0])?deal.team[0].name:deal.fhName||'—'}</div></div>
           <div class="approval-grid-item"><label>AWS Region</label><div class="val">${deal.awsRegion||'—'}</div></div>
+          <div class="approval-grid-item"><label>Expected ROI (10x)</label><div class="val" style="color:var(--green)">${fmt((deal.rebate||totPay)*10)}</div></div>
         </div>
+        ${myTier==='tcc'?`
+        <div class="pop-check">
+          <div class="pop-check-label">POP Available from Customer?</div>
+          <div class="pop-check-btns">
+            <button class="pop-btn ${deal.popAvailable==='yes'?'pop-yes-active':''}" onclick="setPOP('${deal.id}','yes')">✓ Yes — POP Received</button>
+            <button class="pop-btn ${deal.popAvailable==='no'?'pop-no-active':''}" onclick="setPOP('${deal.id}','no')">✗ No — Request from Submitter</button>
+          </div>
+          ${deal.popAvailable==='no'?`<div class="pop-warn">⚠ POP missing. <a href="#" onclick="emailSubmitterForPOP('${deal.id}');return false">Send email to ${(deal.team&&deal.team[0])?deal.team[0].name:deal.fhName||'submitter'}</a></div>`:''}
+          ${deal.popAvailable==='yes'?`<div class="pop-ok">✓ POP confirmed — cleared for payment processing</div>`:''}
+        </div>`:''}
         ${deal.workload?`<div style="margin-top:10px;font-size:.73rem;color:var(--ink2);font-family:Arial,sans-serif;padding-top:8px;border-top:1px solid var(--border2)">${deal.workload}</div>`:''}
         <div class="approval-actions">
           <button class="btn btn-success btn-sm" onclick="approveDeal('${deal.id}')">✓ Approve — Move to ${myTier==='core'?'Intel':myTier==='intel'?'TCC':'Fully Approved'}</button>
@@ -2643,6 +2949,42 @@ async function renderApprovalQueue(){
   }
 
   container.innerHTML=html;
+}
+
+async function setPOP(id, val){
+  const deals = await loadPipelineDealsFromCloud();
+  const deal = deals.find(d=>d.id===id);
+  if(!deal) return;
+  deal.popAvailable = val;
+  await apiSaveDeal(deal);
+  renderApprovalQueue();
+  if(val==='no') emailSubmitterForPOP(id, deal);
+}
+
+async function emailSubmitterForPOP(id, dealObj){
+  let deal = dealObj;
+  if(!deal){
+    const deals = await loadPipelineDealsFromCloud();
+    deal = deals.find(d=>d.id===id);
+  }
+  if(!deal) return;
+  const submitter = (deal.team&&deal.team[0])?deal.team[0]:{name:deal.fhName,email:deal.fhEmail};
+  const to = submitter.email||'';
+  const subj = encodeURIComponent('IAP — Proof of Performance Required: '+(deal.custName||'Deal'));
+  const body = encodeURIComponent(
+    'Hi '+(submitter.name||'')+',\n\n'+
+    'The IAP deal for '+(deal.custName||'')+' has cleared approval and is ready for payment processing through The Channel Company. '+
+    'Before payment can be released, we need the Proof of Performance (POP) from the customer.\n\n'+
+    'Deal details:\n'+
+    '- Customer: '+(deal.custName||'')+'\n'+
+    '- ACE Opportunity ID: '+(deal.aceID||'Pending')+'\n'+
+    '- IPIC Activity #: '+(deal.ipicNum||'TBD')+'\n'+
+    '- Est. Benefit: '+fmt(deal.rebate||0)+'\n\n'+
+    'As the account owner, please coordinate with the customer to provide the POP (signed migration roadmap and Cost Explorer confirmation at 75%+ completion).\n\n'+
+    'Payment timeline cannot exceed 12 months and follows the calendar year.\n\n'+
+    'Thank you,\nThe Channel Company / IAP Program'
+  );
+  window.location.href='mailto:'+to+'?subject='+subj+'&body='+body;
 }
 
 async function approveDeal(id){
@@ -2677,6 +3019,7 @@ async function requestChanges(id){
 
 async function renderPipeline(){
   let deals = await loadPipelineDealsFromCloud();
+  await syncBudgetFromCloud();
   const totRebate=deals.reduce((s,d)=>s+(d.rebate||0),0);
   const byStatus={draft:0,submitted:0,approved:0,paid:0};
   deals.forEach(d=>{
@@ -2686,6 +3029,40 @@ async function renderPipeline(){
     else if(s.includes('approved')||s.includes('launched')) byStatus.approved++;
     else if(s.includes('paid')) byStatus.paid++;
   });
+
+  // Budget pool tracking
+  const pool = getBudgetPool();
+  const committed = deals.filter(d=>{
+    const s=(d.status||'').toLowerCase();
+    return s.includes('approved')||s.includes('launched')||s.includes('paid');
+  }).reduce((s,d)=>s+(d.rebate||0),0);
+  const pending = deals.filter(d=>{
+    const s=(d.status||'').toLowerCase();
+    return s.includes('submitted');
+  }).reduce((s,d)=>s+(d.rebate||0),0);
+  const remaining = pool - committed - pending;
+  const committedPct = pool>0 ? (committed/pool*100) : 0;
+  const pendingPct = pool>0 ? (pending/pool*100) : 0;
+  const canEdit = currentUser && currentUser.tier==='admin';
+
+  const budgetEl=document.getElementById('budget-tracker');
+  if(budgetEl){
+    budgetEl.innerHTML=`
+      <div class="budget-head">
+        <div class="budget-title">IAP Program Budget — 2026</div>
+        ${canEdit?`<button class="btn btn-secondary btn-sm" onclick="editBudgetPool()">Edit Pool</button>`:''}
+      </div>
+      <div class="budget-bar-track">
+        <div class="budget-bar-committed" style="width:${Math.min(committedPct,100)}%"></div>
+        <div class="budget-bar-pending" style="width:${Math.min(pendingPct,100-committedPct)}%"></div>
+      </div>
+      <div class="budget-legend">
+        <div class="budget-stat"><span class="bdot total"></span>Total Pool<b>${fmt(pool)}</b></div>
+        <div class="budget-stat"><span class="bdot committed"></span>Committed<b>${fmt(committed)}</b></div>
+        <div class="budget-stat"><span class="bdot pending"></span>Pending<b>${fmt(pending)}</b></div>
+        <div class="budget-stat"><span class="bdot remaining"></span>Remaining<b style="color:${remaining<0?'var(--red)':'var(--green)'}">${fmt(remaining)}</b></div>
+      </div>`;
+  }
 
   document.getElementById('pipe-summary').innerHTML=`
     <div class="pipe-card"><div class="pipe-val">${deals.length}</div><div class="pipe-label">Total Deals</div></div>
@@ -2722,6 +3099,32 @@ function statusClass(s){
 
 function loadPipelineDeals(){
   return [];
+}
+
+function getBudgetPool(){
+  const v=localStorage.getItem('iap-budget-pool');
+  return v?parseFloat(v):10000000;
+}
+async function syncBudgetFromCloud(){
+  if(!API_URL) return;
+  try{
+    const r=await fetch(API_URL+'/config?key=budgetPool');
+    const data=await r.json();
+    if(data.value) localStorage.setItem('iap-budget-pool', data.value);
+  }catch(e){}
+}
+function editBudgetPool(){
+  const cur=getBudgetPool();
+  const input=prompt('Set IAP Program Budget Pool (2026).\nEnter total amount in USD:', cur);
+  if(input===null) return;
+  const val=parseFloat(input.replace(/[^0-9.]/g,''));
+  if(isNaN(val)||val<0){ alert('Please enter a valid amount.'); return; }
+  localStorage.setItem('iap-budget-pool', val);
+  if(API_URL){
+    fetch(API_URL+'/config',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({key:'budgetPool',value:val})}).catch(()=>{});
+  }
+  renderPipeline();
 }
 
 async function loadPipelineDealsFromCloud(){
@@ -2798,6 +3201,8 @@ function getCurrentDealData(){
     selectedPlays:[...selectedPlays],
     totRebate:fleets.reduce((s,f)=>s+(f.rebate||0),0),
     rebate:fleets.reduce((s,f)=>s+(f.rebate||0),0),
+    expectedROI:fleets.reduce((s,f)=>s+(f.rebate||0),0)*10,
+    popAvailable:null,
     approvalStage:'core',
   };
 }
@@ -3268,6 +3673,40 @@ function initApp(){
       handleEmailDomain(1);
     }
   }
+}
+</script>
+<!-- Mobile bottom navigation -->
+<nav class="mobile-nav" id="mobile-nav">
+  <button class="mobile-nav-btn" onclick="goStep(1)" id="mnav1">
+    <span class="nav-icon">📋</span>Deal
+  </button>
+  <button class="mobile-nav-btn" onclick="goStep(2)" id="mnav2">
+    <span class="nav-icon">👤</span>Customer
+  </button>
+  <button class="mobile-nav-btn" onclick="goStep(3)" id="mnav3">
+    <span class="nav-icon">🧮</span>Calc
+  </button>
+  <button class="mobile-nav-btn" onclick="goStep(5)" id="mnav5">
+    <span class="nav-icon">🔗</span>ACE
+  </button>
+  <button class="mobile-nav-btn" onclick="goStep(6)" id="mnav6">
+    <span class="nav-icon">📄</span>SOW
+  </button>
+  <button class="mobile-nav-btn" onclick="goStep(7)" id="mnav7" style="display:none">
+    <span class="nav-icon">★</span>Pipeline
+  </button>
+  <button class="mobile-nav-btn" onclick="goStep(8)" id="mnav8" style="display:none">
+    <span class="nav-icon">✓</span>Queue
+  </button>
+</nav>
+
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js')
+      .then(function(reg){ console.log('SW registered'); })
+      .catch(function(err){ console.log('SW failed:', err); });
+  });
 }
 </script>
 </body>
