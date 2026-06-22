@@ -1274,20 +1274,15 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
     <p>Intel Acceleration Program · Restricted Access</p>
     <div class="login-form">
       <label>Email Address</label>
-      <input type="email" id="login-email" placeholder="" autocomplete="email">
+      <input type="email" id="login-email" placeholder="email address" autocomplete="email" onkeydown="if(event.key==='Enter')doLogin()">
       <label>Access Code</label>
-      <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password">
+      <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
       <div class="login-error" id="login-error">Incorrect email or access code. Contact yasmine@cloudzero.ca for access.</div>
       <button class="btn-login" onclick="doLogin()">Sign In</button>
     </div>
     <div class="login-tiers">
-      <div style="margin-bottom:6px">Access tiers:</div>
-      <span class="tier-badge tier-intel">Intel Submitter</span> Submit &amp; view own deals<br style="margin-bottom:4px">
-      <span class="tier-badge tier-aws">AWS Field</span> View all deals, pipeline &amp; export<br style="margin-bottom:4px">
-      <span class="tier-badge tier-core">ASP Core</span> Tier 1 approval — Yasmine &amp; Jeanine<br style="margin-bottom:4px">
-      <span class="tier-badge tier-intel2">Intel Leadership</span> Tier 2 approval — Akanksha, Brendon, Deep<br style="margin-bottom:4px">
-      <span class="tier-badge tier-tcc">The Channel Company</span> Tier 3 — Jacob, final gate<br style="margin-bottom:4px">
-      <span class="tier-badge tier-admin">Admin</span> Full access, pipeline, budget &amp; export
+      <span class="tier-badge tier-aws">Seller</span> Submit &amp; track deals<br style="margin-bottom:6px">
+      <span class="tier-badge tier-admin">Admin</span> Full access — approval, pipeline &amp; budget
     </div>
   </div>
 </div>
@@ -1687,11 +1682,11 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
         <div class="step-header">
           <div class="step-badge">Step 03</div>
           <div class="step-title">IAP Funding Calculator</div>
-          <div class="step-desc">Add one or more EC2 instance fleets. The 4.5% rebate applies to actual post-discount annual spend. Each fleet can be Net New or Modernization.</div>
+          <div class="step-desc">Enter the baseline (Cost Explorer) and target post-migration spend (Simple Monthly). Intel pays 4.5% or 1% of total target ARR. Monthly breakdown required for POP. ★</div>
         </div>
 
         <div class="calc-methodology">
-          <strong>Payment:</strong> Milestone-based, tied to migration roadmap sign-off and Cost Explorer confirmation. <strong>Maximum duration: 12 months.</strong> Rate per fleet: Migrate 4.5% · Optimize 1% (NTE $250k). Not to Exceed set from list price; actual payout from Cost Explorer. Stackable with MAP, VMware SPI, Greenfield SPI, PoC funding.
+          <strong>How it works:</strong> Intel pays 4.5% (Migrate) or 1% (Optimize, NTE $250k) of the customer's total target ARR post-migration. Baseline from Cost Explorer shows the starting point. Simple Monthly × 12 = target ARR. POP requires Cost Explorer confirming the customer reached target spend. Maximum duration: 12 months.
         </div>
 
         <div class="section-card" style="margin-bottom:16px">
@@ -1703,19 +1698,15 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
           <div class="alert alert-info" style="margin-bottom:14px">
             <strong>How the customer finds Cost Explorer:</strong> AWS Console → top-right account menu → Billing and Cost Management → Cost Explorer → set Service to EC2 → Group by Instance Type → set date range (last 3–12 months) → export CSV or take a screenshot. Filter to Intel instance families in scope. The customer sends this directly to The Channel Company and Intel. AWS cannot facilitate this transfer.
           </div>
-          <!-- Method toggle -->
+          <!-- Two-tab method selector -->
           <div style="display:flex;gap:0;margin-bottom:16px;border:1px solid var(--border);border-radius:6px;overflow:hidden">
             <button id="method-btn-1" onclick="setBaselineMethod(1)"
               style="flex:1;padding:10px;font-family:Arial,sans-serif;font-size:.75rem;font-weight:700;border:none;background:var(--intel);color:#fff;cursor:pointer;border-right:1px solid rgba(255,255,255,.2)">
               📊 Cost Explorer
             </button>
             <button id="method-btn-2" onclick="setBaselineMethod(2)"
-              style="flex:1;padding:10px;font-family:Arial,sans-serif;font-size:.75rem;font-weight:700;border:none;background:var(--bg);color:var(--ink2);cursor:pointer;border-right:1px solid var(--border)">
-              🧮 Fleet Builder
-            </button>
-            <button id="method-btn-3" onclick="setBaselineMethod(3)"
               style="flex:1;padding:10px;font-family:Arial,sans-serif;font-size:.75rem;font-weight:700;border:none;background:var(--bg);color:var(--ink2);cursor:pointer">
-              🔗 AWS Pricing Calculator
+              ⚡ Intel Instance Pricing
             </button>
           </div>
 
@@ -1738,38 +1729,10 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
             </div>
           </div>
 
-          <!-- Method 2: Fleet Builder — examine and size the fleet manually -->
+          <!-- Method 2: Intel Instance Pricing API -->
           <div id="baseline-method-2" style="display:none">
-            <div class="alert alert-info">
-              <strong>Fleet Builder = examine and size the fleet.</strong> Use this when Cost Explorer data is not yet available — for new workloads, net-new migrations, or when the customer hasn't exported Cost Explorer yet. Enter instance count × per-instance annual cost to build the ARR. The AWS Pricing Calculator can be used to derive accurate per-instance costs.
-            </div>
-          </div>
-
-          <!-- Method 3: AWS Pricing Calculator — Not to Exceed derivation -->
-          <div id="baseline-method-3" style="display:none">
             <div class="alert alert-info" style="margin-bottom:12px">
-              <strong>AWS Pricing Calculator = Not to Exceed (NTE) derivation.</strong> Use this to establish the list price ceiling from which the NTE is calculated (Migrate: 4.5% of list ARR, Optimize: 1% of list ARR capped at $250k). This is not the same as the Cost Explorer baseline — it establishes the maximum Intel commitment, not the actual post-discount spend.
-            </div>
-            <div class="form-grid">
-              <div class="f-group">
-                <label>AWS Pricing Calculator</label>
-                <a href="https://calculator.aws" target="_blank"
-                  class="btn btn-aws btn-sm" style="display:inline-flex;text-decoration:none;margin-top:4px">
-                  🔗 Open AWS Pricing Calculator
-                </a>
-                <span class="hint">Build your estimate, copy the share link, and paste it below.</span>
-              </div>
-              <div class="f-group">
-                <label>Pricing Calculator Share Link</label>
-                <input type="text" id="pricing-calc-link" placeholder="https://calculator.aws/pricing/2/homescreen?...">
-                <span class="hint">This link is attached to the SOW as pricing evidence.</span>
-              </div>
-              <div class="f-group">
-                <label>Estimated Annual Cost from Calculator ($)</label>
-                <input type="number" id="pricing-calc-arr" placeholder="Annual total from calculator"
-                  oninput="syncCalcARR()" min="0" step="1000">
-                <span class="hint">Enter the annual total — feeds the WNE calculation.</span>
-              </div>
+              <strong>Intel Instance Pricing</strong> — use when Cost Explorer is not yet available or to size a net-new workload. Select an instance family and size, enter count, and click ⚡ Get Intel Price to fetch list price directly from the Intel pricing API. The Simple Monthly target below auto-fills.
             </div>
           </div>
         </div>
@@ -1778,6 +1741,36 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
         </div>
 
         <button class="btn btn-secondary btn-sm" onclick="addFleet()">+ Add Fleet</button>
+
+        <!-- Simple Monthly ★ -->
+        <div class="section-card mt16" id="simple-monthly-card" style="border:2px solid #FCD34D;background:#FFFBEB">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+            <span style="color:var(--red);font-size:1rem;font-weight:700">★</span>
+            <div class="section-card-title" style="color:#92400e;margin-bottom:0">Simple Monthly Target</div>
+            <span style="font-size:.65rem;color:#92400e;font-weight:600">Required for POP submission to Intel</span>
+          </div>
+          <div class="form-grid" style="grid-template-columns:1fr 1fr 1fr">
+            <div class="f-group">
+              <label>Monthly Spend Post-Migration ($)</label>
+              <input type="number" id="simple-monthly" placeholder="e.g. 12500"
+                min="0" step="100" oninput="calcSimpleMonthly()"
+                style="font-size:.85rem;font-weight:700;border:2px solid #FCD34D">
+              <span class="hint">What the customer will spend per month after migration — set this as the target in the SOW</span>
+            </div>
+            <div class="f-group">
+              <label>Target ARR (× 12)</label>
+              <div id="sm-annual" style="font-size:1.1rem;font-weight:700;color:var(--ink);padding:8px 0">$0</div>
+              <span class="hint">This is the ARR Intel pays against</span>
+            </div>
+            <div class="f-group">
+              <label>Monthly Intel Benefit</label>
+              <div id="sm-monthly-benefit" style="font-size:1.1rem;font-weight:700;color:var(--green);padding:8px 0">$0</div>
+              <span class="hint">Target ARR × rate ÷ 12</span>
+            </div>
+          </div>
+          <div id="sm-breakdown" style="display:none;margin-top:10px;padding:10px 14px;background:#fff;border-radius:6px;border:1px solid #FCD34D;font-size:.74rem;line-height:1.8;color:#78350f">
+          </div>
+        </div>
 
         <!-- Running Totals -->
         <div class="calc-totals mt16" id="calc-totals" style="grid-template-columns:repeat(5,1fr)">
@@ -2046,6 +2039,8 @@ const USERS = {
   'yasmine@cloudzero.ca':       { pass:'CZ@dmin1', tier:'admin',   name:'Yasmine',         label:'CloudZero Admin',  approver:'core' },
   'hisham@cloudzero.ca':        { pass:'CZ@dmin1', tier:'admin',   name:'Hisham',          label:'CloudZero Admin',  approver:'core' },
   'reidelj@amazon.com':         { pass:'Core2026', tier:'core',    name:'Jeanine Reidel',  label:'ASP Core',         approver:'core' },
+  // Intel Field (submitter)
+  'seller@intel.com':           { pass:'Intel2026', tier:'intel', name:'Intel Field', label:'Intel Field' },
   // Intel approvers
   'akanksha.r.bilani@intel.com':{ pass:'Intel2026',tier:'intel_approver', name:'Akanksha Bilani', label:'Intel Leadership', approver:'intel' },
   'brendon.roosken@intel.com':  { pass:'Intel2026',tier:'intel_approver', name:'Brendon Roosken', label:'Intel Leadership', approver:'intel' },
@@ -2202,6 +2197,70 @@ const DISCOUNT_MODELS = [
 let fleetCount = 0;
 let fleets = []; // array of fleet data
 
+async function getIntelPricing(id){
+  const instEl = document.getElementById('f'+id+'-inst');
+  const inst = instEl ? instEl.value : '';
+  if(!inst){ alert('Select a Target Instance Family first.'); return; }
+
+  // Get region from deal info step
+  const regionEl = document.getElementById('aws-region');
+  const region = (regionEl && regionEl.value) ? regionEl.value : 'us-east-1';
+
+  const btn = document.getElementById('f'+id+'-intel-btn');
+  if(btn){ btn.textContent = '⏳ Fetching...'; btn.disabled = true; }
+
+  try {
+    const sizeEl = document.getElementById('f'+id+'-size');
+  const size = (sizeEl && sizeEl.value) ? sizeEl.value : '2xlarge';
+  const fullInstance = inst + '.' + size;
+  const msg = `Price ${fullInstance} in ${region} with the Intel program`;
+    const resp = await fetch(INTEL_PRICING_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-Key': INTEL_PRICING_KEY
+      },
+      body: JSON.stringify({ message: msg })
+    });
+
+    if(!resp.ok) throw new Error('API returned ' + resp.status);
+    const data = await resp.json();
+
+    // API returns: { instance, region, on_demand_hourly, annual_list, intel_program_rate, nte }
+  const annualList = data.annual_list || (data.on_demand_hourly * 8760) || 0;
+    const nte = data.nte || 0;
+    const rate = data.intel_program_rate || 0;
+
+    // Auto-fill per-instance annual list price
+    const perInstEl = document.getElementById('f'+id+'-perinst');
+    if(perInstEl && annualList){
+      perInstEl.value = Math.round(annualList);
+      autoARR(id);
+    }
+    // Auto-fill Simple Monthly if not already set
+    const countEl = document.getElementById('f'+id+'-count');
+    const count = parseFloat(countEl ? countEl.value : 0) || 0;
+    const smEl = document.getElementById('simple-monthly');
+    if(smEl && annualList && count > 0 && !smEl.value){
+      smEl.value = Math.round((annualList * count) / 12);
+      calcSimpleMonthly();
+    }
+
+    // Show what we got
+    const resultHint = document.getElementById('f'+id+'-intel-result');
+    if(resultHint){
+      resultHint.innerHTML = `<span style="color:var(--green)">✓ ${fullInstance} in ${region}: $${annualList.toLocaleString()}/yr list · NTE ${(rate*100).toFixed(1)}% · Intel NTE $${nte.toLocaleString()}</span>`;
+      resultHint.style.display = 'block';
+    }
+
+    if(btn){ btn.textContent = '✓ Priced'; btn.style.background='#1a7f3c'; btn.disabled = false; }
+
+  } catch(err) {
+    if(btn){ btn.textContent = '⚡ Intel Price'; btn.disabled = false; }
+    alert('Intel Pricing API error: ' + err.message + '\n\nCheck that the server at 52.26.245.170:8502 is reachable.');
+  }
+}
+
 function addFleet(){
   fleetCount++;
   const id = fleetCount;
@@ -2228,12 +2287,27 @@ function addFleet(){
         ${id>1?`<button class="btn btn-danger btn-sm" onclick="removeFleet(${id})">Remove</button>`:''}
       </div>
     </div>
-    <div class="fleet-fields" style="grid-template-columns:1.8fr 1fr 1.1fr 1.2fr 1.2fr auto">
+    <div class="fleet-fields" style="grid-template-columns:1.4fr 0.7fr 0.7fr 1fr 1.1fr auto">
       <div class="f-group">
         <label>Target Instance Family</label>
         <select id="f${id}-inst" onchange="calcFleet(${id})" style="font-size:.75rem">
           <option value="">— Select —</option>
           ${instOptions}
+        </select>
+      </div>
+      <div class="f-group">
+        <label>Size</label>
+        <select id="f${id}-size" onchange="calcFleet(${id})" style="font-size:.75rem">
+          <option value="large">large</option>
+          <option value="xlarge">xlarge</option>
+          <option value="2xlarge" selected>2xlarge</option>
+          <option value="4xlarge">4xlarge</option>
+          <option value="8xlarge">8xlarge</option>
+          <option value="12xlarge">12xlarge</option>
+          <option value="16xlarge">16xlarge</option>
+          <option value="24xlarge">24xlarge</option>
+          <option value="48xlarge">48xlarge</option>
+          <option value="metal">metal</option>
         </select>
       </div>
       <div class="f-group">
@@ -2258,10 +2332,15 @@ function addFleet(){
           ${discOptions}
         </select>
       </div>
-      <div style="padding-bottom:1px">
-        <button class="btn btn-secondary btn-sm" onclick="calcFleet(${id})">↺</button>
+      <div style="padding-bottom:1px;display:flex;flex-direction:column;gap:4px">
+        <button class="btn btn-secondary btn-sm" onclick="calcFleet(${id})" title="Recalculate">↺</button>
+        <button id="f${id}-intel-btn" onclick="getIntelPricing(${id})"
+          style="background:#0068B5;color:#fff;font-size:.62rem;font-weight:700;padding:5px 7px;white-space:nowrap;border:none;border-radius:4px;cursor:pointer;font-family:Arial,sans-serif">
+          ⚡ Intel
+        </button>
       </div>
     </div>
+    <div id="f${id}-intel-result" style="display:none;font-size:.7rem;margin-top:6px;padding:6px 10px;background:rgba(0,104,181,.08);border-radius:4px;border-left:3px solid #0068B5"></div>
     <div class="f-group" id="f${id}-custom-wrap" style="display:none;margin-top:8px;max-width:220px">
       <label>Custom Discount %</label>
       <input type="number" id="f${id}-customdisc" placeholder="e.g. 25"
@@ -2447,6 +2526,43 @@ function calcFleet(id){
 
   updateTotals();
   renderCEPanel();
+}
+
+function calcSimpleMonthly(){
+  const monthly = parseFloat(document.getElementById('simple-monthly').value)||0;
+  const annualEl = document.getElementById('sm-annual');
+  const benefitEl = document.getElementById('sm-monthly-benefit');
+  const breakdownEl = document.getElementById('sm-breakdown');
+
+  if(monthly <= 0){
+    annualEl.textContent = '$0';
+    benefitEl.textContent = '$0';
+    breakdownEl.style.display = 'none';
+    return;
+  }
+
+  const targetARR = monthly * 12;
+  // Determine rate from first fleet type (default migrate)
+  const firstFleet = fleets[0];
+  const rate = (firstFleet && firstFleet.type==='mod') ? 0.01 : 0.045;
+  const rateLabel = rate===0.01 ? '1% (Optimize)' : '4.5% (Migrate)';
+  const totalBenefit = targetARR * rate;
+  const monthlyBenefit = totalBenefit / 12;
+  const modCap = rate===0.01 ? Math.min(totalBenefit, 250000) : totalBenefit;
+
+  annualEl.textContent = fmt(targetARR);
+  benefitEl.textContent = fmt(monthlyBenefit);
+
+  breakdownEl.innerHTML =
+    '<strong>Calculation breakdown:</strong><br>' +
+    'Monthly target: ' + fmt(monthly) + ' &nbsp;×&nbsp; 12 = Target ARR: ' + fmt(targetARR) + '<br>' +
+    'Intel rate: ' + rateLabel + ' &nbsp;×&nbsp; ' + fmt(targetARR) + ' = Total benefit: ' + fmt(modCap) + '<br>' +
+    'Monthly Intel benefit: ' + fmt(modCap) + ' ÷ 12 = <strong>' + fmt(monthlyBenefit) + '/month</strong><br>' +
+    '<span style="color:#92400e;font-size:.68rem">POP: Customer must provide Cost Explorer showing ≥75% of ' + fmt(targetARR) + ' target ARR achieved before TCC processes final payment.</span>';
+  breakdownEl.style.display = 'block';
+
+  // Sync to fleet rebate totals for SOW
+  updateTotals();
 }
 
 function updateTotals(){
@@ -3177,12 +3293,13 @@ function notifyIntelApprovers(deal){
     window.location.origin+'\n\n'+
     'Intel Credentials:\n'+
     'Akanksha: akanksha.r.bilani@intel.com / Intel2026\n'+
-    'Brendon: brendon.roosken@intel.com / Intel2026\n\n'+
+    'Brendon: brendon.roosken@intel.com / Intel2026\n'+
+    'Deep: deep.grewal@intel.com / Intel2026\n\n'+
     'Approved by: '+(currentUser.name||'ASP Core')+'\n'+
     'Approval date: '+new Date().toLocaleDateString()
   );
   // Open email client with both Intel approvers
-  window.location.href = 'mailto:akanksha.r.bilani@intel.com,brendon.roosken@intel.com?subject='+subject+'&body='+body;
+  window.location.href = 'mailto:akanksha.r.bilani@intel.com,brendon.roosken@intel.com,deep.grewal@intel.com?subject='+subject+'&body='+body;
 }
 
 function notifyTCC(deal){
@@ -3345,6 +3462,8 @@ async function loadPipelineDealsFromCloud(){
 // Paste your Lambda Function URL here after creating it (see setup guide).
 // Leave empty to run in local-only mode (browser storage).
 const API_URL = 'https://4y8bpdbupd.execute-api.ca-central-1.amazonaws.com';
+const INTEL_PRICING_URL = 'http://52.26.245.170:8502/api/chat';
+const INTEL_PRICING_KEY = 'intel-arch-7f3a9c2e8b14d05f6a1e9d7c3b8f240a';
 
 async function apiSaveDeal(deal){
   if(!API_URL) return null;
