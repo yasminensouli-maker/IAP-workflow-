@@ -1284,7 +1284,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
       <div style="margin-bottom:6px">Access tiers:</div>
       <span class="tier-badge tier-intel">Intel Submitter</span> Submit &amp; view own deals<br style="margin-bottom:4px">
       <span class="tier-badge tier-aws">AWS Field</span> View all deals, pipeline &amp; export<br style="margin-bottom:4px">
-      <span class="tier-badge tier-core">APO Core</span> Tier 1 approval — Yasmine &amp; Jeanine<br style="margin-bottom:4px">
+      <span class="tier-badge tier-core">ASP Core</span> Tier 1 approval — Yasmine &amp; Jeanine<br style="margin-bottom:4px">
       <span class="tier-badge tier-intel2">Intel Leadership</span> Tier 2 approval — Akanksha, Brendon, Deep<br style="margin-bottom:4px">
       <span class="tier-badge tier-tcc">The Channel Company</span> Tier 3 — Jacob, final gate<br style="margin-bottom:4px">
       <span class="tier-badge tier-admin">Admin</span> Full access, pipeline, budget &amp; export
@@ -1342,7 +1342,6 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
       <div class="sidebar-section">
         <div class="sidebar-label">Operating Tenets</div>
         <div class="tenets">
-          <div class="tenet-item"><strong>ACE First</strong>Every opportunity must be in ACE before funding is confirmed. Cost Explorer baseline required before start date.</div>
           <div class="tenet-item"><strong>Actual Spend</strong>Rebate applies to post-discount EC2 ARR, never list price.</div>
           <div class="tenet-item"><strong>TCC Channel</strong>Intel funds TCC · The Channel Company disburses to partner or customer. AWS does not participate in payment.</div>
           <div class="tenet-item"><strong>POP Required</strong>Proof of Performance due before claim date or rolls to next cycle.</div>
@@ -1354,7 +1353,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
         <div class="sidebar-label">Approval Flow</div>
         <div class="tenets">
           <div class="tenet-item"><strong>1 · Submit</strong>Deal submitted through this tool with Cost Explorer baseline.</div>
-          <div class="tenet-item"><strong>2 · APO Core</strong>Yasmine Nsouli / Jeanine Reidel review and validate.</div>
+          <div class="tenet-item"><strong>2 · ASP Core</strong>Yasmine Nsouli / Jeanine Reidel review and validate.</div>
           <div class="tenet-item"><strong>3 · Intel Leadership</strong>Akanksha Bilani approves funding.</div>
           <div class="tenet-item"><strong>4 · TCC / IPIC</strong>TCC inputs into IPIC and generates the SOW.</div>
         </div>
@@ -1698,7 +1697,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
         <div class="section-card" style="margin-bottom:16px">
           <div class="section-card-title">Step 1 — Establish Baseline</div>
           <div class="alert alert-warn" style="margin-bottom:14px">
-            <strong>AWS cannot share customer data with Intel or any third party.</strong> This must be sent directly by the customer. Choose one method below to establish the baseline spend.
+            <strong>AWS cannot share customer data with Intel or any third party.</strong> Cost Explorer must be sent directly by the customer to The Channel Company and Intel. Choose one method below based on what data is available.
           </div>
 
           <div class="alert alert-info" style="margin-bottom:14px">
@@ -1708,7 +1707,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
           <div style="display:flex;gap:0;margin-bottom:16px;border:1px solid var(--border);border-radius:6px;overflow:hidden">
             <button id="method-btn-1" onclick="setBaselineMethod(1)"
               style="flex:1;padding:10px;font-family:Arial,sans-serif;font-size:.75rem;font-weight:700;border:none;background:var(--intel);color:#fff;cursor:pointer;border-right:1px solid rgba(255,255,255,.2)">
-              📊 Cost Explorer Upload
+              📊 Cost Explorer
             </button>
             <button id="method-btn-2" onclick="setBaselineMethod(2)"
               style="flex:1;padding:10px;font-family:Arial,sans-serif;font-size:.75rem;font-weight:700;border:none;background:var(--bg);color:var(--ink2);cursor:pointer;border-right:1px solid var(--border)">
@@ -1720,14 +1719,17 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
             </button>
           </div>
 
-          <!-- Method 1: Cost Explorer Upload -->
+          <!-- Method 1: Cost Explorer — existing fleet baseline -->
           <div id="baseline-method-1">
+            <div class="alert alert-info" style="margin-bottom:12px">
+              <strong>Cost Explorer = existing fleet baseline.</strong> The customer's actual EC2 spend establishes the ARR against which the IAP benefit is calculated. This is the preferred method for existing workloads already running on AWS.
+            </div>
             <div class="form-grid">
               <div class="f-group">
                 <label>Upload Cost Explorer Export</label>
                 <input type="file" id="ce-upload" accept=".csv,.png,.jpg,.jpeg,.pdf,.xlsx"
                   onchange="handleCEUpload(this)" style="font-size:.75rem;padding:6px">
-                <span class="hint">CSV, screenshot, or PDF. Provided by the customer directly to The Channel Company / Intel.</span>
+                <span class="hint">CSV, screenshot, or PDF. Provided by the customer directly to The Channel Company / Intel — not via AWS.</span>
               </div>
               <div class="f-group">
                 <label>Baseline Status</label>
@@ -1736,13 +1738,18 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
             </div>
           </div>
 
-          <!-- Method 2: Fleet Builder (already below, just label) -->
+          <!-- Method 2: Fleet Builder — examine and size the fleet manually -->
           <div id="baseline-method-2" style="display:none">
-            <div class="alert alert-info">Use the fleet rows below to build the ARR from instance count × per-instance cost. The total auto-populates the WNE.</div>
+            <div class="alert alert-info">
+              <strong>Fleet Builder = examine and size the fleet.</strong> Use this when Cost Explorer data is not yet available — for new workloads, net-new migrations, or when the customer hasn't exported Cost Explorer yet. Enter instance count × per-instance annual cost to build the ARR. The AWS Pricing Calculator can be used to derive accurate per-instance costs.
+            </div>
           </div>
 
-          <!-- Method 3: AWS Pricing Calculator -->
+          <!-- Method 3: AWS Pricing Calculator — Not to Exceed derivation -->
           <div id="baseline-method-3" style="display:none">
+            <div class="alert alert-info" style="margin-bottom:12px">
+              <strong>AWS Pricing Calculator = Not to Exceed (NTE) derivation.</strong> Use this to establish the list price ceiling from which the NTE is calculated (Migrate: 4.5% of list ARR, Optimize: 1% of list ARR capped at $250k). This is not the same as the Cost Explorer baseline — it establishes the maximum Intel commitment, not the actual post-discount spend.
+            </div>
             <div class="form-grid">
               <div class="f-group">
                 <label>AWS Pricing Calculator</label>
@@ -2035,10 +2042,10 @@ const USERS = {
   // Tier 2 — AWS / CloudZero field
   'field@amazon.com':           { pass:'CZFIELD',  tier:'aws',     name:'AWS Field',       label:'AWS Field' },
   'pdm@amazon.com':             { pass:'CZFIELD',  tier:'aws',     name:'AWS PDM',         label:'AWS PDM' },
-  // APO Core approvers
+  // ASP Core approvers
   'yasmine@cloudzero.ca':       { pass:'CZ@dmin1', tier:'admin',   name:'Yasmine',         label:'CloudZero Admin',  approver:'core' },
   'hisham@cloudzero.ca':        { pass:'CZ@dmin1', tier:'admin',   name:'Hisham',          label:'CloudZero Admin',  approver:'core' },
-  'reidelj@amazon.com':         { pass:'Core2026', tier:'core',    name:'Jeanine Reidel',  label:'APO Core',         approver:'core' },
+  'reidelj@amazon.com':         { pass:'Core2026', tier:'core',    name:'Jeanine Reidel',  label:'ASP Core',         approver:'core' },
   // Intel approvers
   'akanksha.r.bilani@intel.com':{ pass:'Intel2026',tier:'intel_approver', name:'Akanksha Bilani', label:'Intel Leadership', approver:'intel' },
   'brendon.roosken@intel.com':  { pass:'Intel2026',tier:'intel_approver', name:'Brendon Roosken', label:'Intel Leadership', approver:'intel' },
@@ -2317,6 +2324,7 @@ function setFleetType(id, type){
 }
 
 let ceFileName = '';
+let ceS3Key = '';
 let baselineMethod = 1;
 
 function setBaselineMethod(n){
@@ -2351,6 +2359,7 @@ function handleCEUpload(input){
   // Push to S3 if backend connected
   apiUploadFile(file).then(r=>{
     if(r && r.uploaded){
+      ceS3Key = r.key || '';
       status.innerHTML += '<br><span style="font-size:.68rem;color:var(--green)">☁ Stored securely in S3</span>';
     }
   });
@@ -2903,7 +2912,7 @@ async function getApprovalStage(deal){
 }
 
 function getApprovalLabel(stage){
-  if(stage==='core') return '<span class="approval-stage stage-core">Awaiting APO Core</span>';
+  if(stage==='core') return '<span class="approval-stage stage-core">Awaiting ASP Core</span>';
   if(stage==='intel') return '<span class="approval-stage stage-intel">Awaiting Intel</span>';
   if(stage==='tcc') return '<span class="approval-stage stage-tcc">Awaiting TCC</span>';
   if(stage==='approved') return '<span class="approval-stage stage-approved">Fully Approved</span>';
@@ -2925,7 +2934,7 @@ async function renderApprovalQueue(){
   const title = document.getElementById('approval-title');
 
   badge.textContent = currentUser.label+' · Approval Queue';
-  title.textContent = myTier==='core'?'APO Core Review':myTier==='intel'?'Intel Leadership Approval':'TCC — Ready for SOW';
+  title.textContent = myTier==='core'?'ASP Core Review':myTier==='intel'?'Intel Leadership Approval':'TCC — Ready for SOW';
 
   const pending = deals.filter(d=>(d.approvalStage||'core')===myTier);
   const done = deals.filter(d=>(d.approvalStage||'core')!==myTier);
@@ -2963,6 +2972,7 @@ async function renderApprovalQueue(){
           <div class="approval-grid-item"><label>Submitter</label><div class="val">${(deal.team&&deal.team[0])?deal.team[0].name:deal.fhName||'—'}</div></div>
           <div class="approval-grid-item"><label>AWS Region</label><div class="val">${deal.awsRegion||'—'}</div></div>
           <div class="approval-grid-item"><label>Expected ROI (10x)</label><div class="val" style="color:var(--green)">${fmt((deal.rebate||totPay)*10)}</div></div>
+          <div class="approval-grid-item"><label>Cost Explorer</label><div class="val">${deal.ceFileName?'<span style="color:var(--green)">✓ '+deal.ceFileName+'</span>':'<span style="color:var(--red)">⚠ Not attached</span>'}</div></div>
         </div>
         ${myTier==='tcc'?`
         <div class="pop-check">
@@ -3142,7 +3152,57 @@ async function approveDeal(id){
   deal['approvedBy_'+stage]=currentUser.name+' · '+new Date().toLocaleDateString();
   await apiSaveDeal(deal);
   renderApprovalQueue();
+  // Trigger email notification to next tier
+  if(next==='intel'){
+    notifyIntelApprovers(deal);
+  } else if(next==='tcc'){
+    notifyTCC(deal);
+  }
   alert(`Approved. Deal moved to ${next==='intel'?'Intel Leadership':next==='tcc'?'The Channel Company (TCC)':'Fully Approved'}.`);
+}
+
+function notifyIntelApprovers(deal){
+  const subject = encodeURIComponent('IAP Deal Pending Your Approval: '+(deal.custName||'New Deal'));
+  const body = encodeURIComponent(
+    'Hi Akanksha and Brendon,\n\n'+
+    'A deal has been approved by ASP Core and is now pending Intel Leadership approval.\n\n'+
+    'Deal details:\n'+
+    '- Customer: '+(deal.custName||'')+'\n'+
+    '- Activity Type: '+(deal.actType||'')+'\n'+
+    '- ACE Opportunity ID: '+(deal.aceID||'Pending')+'\n'+
+    '- IPIC Activity #: '+(deal.ipicNum||'TBD')+'\n'+
+    '- Est. Benefit: '+fmt(deal.rebate||0)+'\n'+
+    '- Expected ROI (10x): '+fmt((deal.rebate||0)*10)+'\n\n'+
+    'Please log in to the IAP Workflow to review and approve:\n'+
+    window.location.origin+'\n\n'+
+    'Intel Credentials:\n'+
+    'Akanksha: akanksha.r.bilani@intel.com / Intel2026\n'+
+    'Brendon: brendon.roosken@intel.com / Intel2026\n\n'+
+    'Approved by: '+(currentUser.name||'ASP Core')+'\n'+
+    'Approval date: '+new Date().toLocaleDateString()
+  );
+  // Open email client with both Intel approvers
+  window.location.href = 'mailto:akanksha.r.bilani@intel.com,brendon.roosken@intel.com?subject='+subject+'&body='+body;
+}
+
+function notifyTCC(deal){
+  const subject = encodeURIComponent('IAP Deal Ready for TCC Processing: '+(deal.custName||'New Deal'));
+  const body = encodeURIComponent(
+    'Hi Jacob,\n\n'+
+    'A deal has cleared both ASP Core and Intel Leadership approval and is ready for TCC processing.\n\n'+
+    'Deal details:\n'+
+    '- Customer: '+(deal.custName||'')+'\n'+
+    '- Activity Type: '+(deal.actType||'')+'\n'+
+    '- ACE Opportunity ID: '+(deal.aceID||'Pending')+'\n'+
+    '- IPIC Activity #: '+(deal.ipicNum||'TBD')+'\n'+
+    '- Est. Benefit: '+fmt(deal.rebate||0)+'\n\n'+
+    'Please log in to the IAP Workflow to complete final approval and POP check:\n'+
+    window.location.origin+'\n\n'+
+    'TCC Credentials: jacobx.barksdale@intel.com / TCC2026\n\n'+
+    'Approved by: '+(currentUser.name||'Intel Leadership')+'\n'+
+    'Approval date: '+new Date().toLocaleDateString()
+  );
+  window.location.href = 'mailto:jacobx.barksdale@intel.com?subject='+subject+'&body='+body;
 }
 
 async function requestChanges(id){
@@ -3346,6 +3406,8 @@ function getCurrentDealData(){
     totRebate:fleets.reduce((s,f)=>s+(f.rebate||0),0),
     rebate:fleets.reduce((s,f)=>s+(f.rebate||0),0),
     expectedROI:fleets.reduce((s,f)=>s+(f.rebate||0),0)*10,
+    ceFileName: ceFileName || '',
+    ceS3Key: ceS3Key || '',
     popAvailable:null,
     approvalStage:'core',
   };
