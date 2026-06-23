@@ -11,7 +11,7 @@ bedrock = boto3.client('bedrock-runtime', region_name='ca-central-1')
 
 TABLE = os.environ.get('TABLE', 'iap-deals')
 BUCKET = os.environ.get('BUCKET', '')
-NOVA_MODEL = 'amazon.nova-lite-v1:0'
+NOVA_MODEL = 'amazon.nova-2-lite-v1:0'
 FROM_EMAIL = 'yasmine@cloudzero.ca'
 APP_URL = 'https://main.dgxv59n7ru973.amplifyapp.com'
 
@@ -353,7 +353,7 @@ Answer clearly and concisely. If the question is about a specific field in the f
         # ── INTEL PRICING PROXY ──
         if path == '/intel/price' and method == 'POST':
             import urllib.request as _ur
-            message = body.get('message', '')
+            message = body.get('message', '') or body.get('question', '')
             if not message:
                 return ok(headers, {'error': 'no message'})
             intel_payload = json.dumps({'message': message}).encode()
