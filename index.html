@@ -2122,6 +2122,8 @@ const USERS = {
 };
 
 let currentUser = null;
+let teamMembers = [];
+let teamCount = 0;
 
 function doLogin(){
   const email = (document.getElementById('login-email').value||'').trim().toLowerCase();
@@ -3526,7 +3528,7 @@ async function loadPipelineDealsFromCloud(){
 // Paste your Lambda Function URL here after creating it (see setup guide).
 // Leave empty to run in local-only mode (browser storage).
 const API_URL = 'https://4y8bpdbupd.execute-api.ca-central-1.amazonaws.com';
-const INTEL_PRICING_URL = API_BASE + '/intel/price';
+const INTEL_PRICING_URL = API_URL + '/intel/price';
 const INTEL_PRICING_KEY = 'intel-arch-7f3a9c2e8b14d05f6a1e9d7c3b8f240a';
 
 async function apiSaveDeal(deal, prevStage, nextStage){
@@ -3960,8 +3962,6 @@ function formatDateWeek(d){
 
 /* ── INIT ────────────────────────────────────────────────────── */
 // ── DEAL TEAM ──────────────────────────────────────────────
-let teamMembers = [];
-let teamCount = 0;
 
 const ROLES = [
   {val:'intel-seller',     label:'Intel Seller'},
