@@ -306,7 +306,51 @@ Respond with ONLY the email body text, no subject line, no JSON wrapper."""
             )
             return ok(headers, {'uploaded': True, 'key': key})
 
-        return {'statusCode': 404, 'headers': headers, 'body': json.dumps({'error': 'not found'})}
+        # ── ASK NOVA (general IAP assistant) ──
+        if path == '/ai/ask' and method == 'POST':
+            question = body.get('question', '')
+            context = body.get('context', {})
+            if not question:
+                return ok(headers, {'answer': 'Please ask a question.'})
+
+            prompt = f"""You are Nova, an expert assistant for the Intel Acceleration Program (IAP), an AWS co-sell funding program. You help AWS sellers, Intel field reps, and partners understand and navigate the IAP.
+
+Key IAP facts:
+- Migration rate: 4.5% of customer's actual post-discount EC2 ARR on Intel-eligible instances
+- Optimization/Modernization rate: 1% of ARR, capped at $250,000 NTE
+- Payment is milestone-based: signed migration roadmap triggers first payment; Cost Explorer at 75%+ completion triggers final payment
+- Maximum duration: 12 months, calendar year only
+- Cost Explorer must be sent directly by the customer to The Channel Company and Intel — AWS cannot share customer spend data
+- Deal must be in ACE co-sell status before submission
+- IPIC Activity # is mandatory for all deals
+- Intel-eligible instances: m8i, c8i, r8i, m7i, c7i, r7i, m6i, c6i, r6i and other Intel Xeon families
+- Trainium and Graviton workloads are NOT eligible
+- Payment flows through The Channel Company (TCC) — AWS does not participate in payment
+- Jacob Barksdale at TCC handles invoicing
+- Approval chain: ASP Core (Yasmine/Jeanine) → Intel Leadership (Akanksha/Brendon/Deep) → TCC (Jacob)
+- Stackable with MAP, VMware SPI, Greenfield SPI, and PoC funding
+
+Current context:
+- Step: {context.get('currentStep', 'unknown')}
+- Customer: {context.get('custName', 'not set')}
+- Activity type: {context.get('actType', 'not set')}
+
+User question: {question}
+
+Answer clearly and concisely. If the question is about a specific field in the form, explain what to enter and why. Keep answers under 150 words. Do not use bullet points unless listing more than 3 items."""
+
+            response = bedrock.invoke_model(
+                modelId=NOVA_MODEL,
+                body=json.dumps({{
+                    "messages": [{{"role": "user", "content": [{{"text": prompt}}]}}],
+                    "inferenceConfig": {{"maxTokens": 300, "temperature": 0.3}}
+                }})
+            )
+            result = json.loads(response['body'].read())
+            answer = result['output']['message']['content'][0]['text'].strip()
+            return ok(headers, {{'answer': answer}})
+
+        return {{'statusCode': 404, 'headers': headers, 'body': json.dumps({{'error': 'not found'}})}}
 
     except Exception as e:
         return {'statusCode': 500, 'headers': headers, 'body': json.dumps({'error': str(e)})}
