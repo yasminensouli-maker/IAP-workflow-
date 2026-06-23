@@ -1810,7 +1810,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
             <span style="color:var(--red);font-size:1rem;font-weight:700">★</span>
             <div class="section-card-title" style="color:#92400e;margin-bottom:0">Simple Monthly Target</div>
             <span style="font-size:.65rem;color:#92400e;font-weight:600">Required for POP submission to Intel</span>
-            <a href="https://calculator.aws/pricing/2/home" target="_blank"
+            <a href="https://calculator.aws" target="_blank"
               style="margin-left:auto;background:#FF9900;color:#fff;border:none;border-radius:5px;padding:5px 12px;font-size:.7rem;font-weight:700;cursor:pointer;font-family:Arial,sans-serif;text-decoration:none;display:inline-flex;align-items:center;gap:4px">
               🔗 Open AWS Pricing Calculator
             </a>
@@ -2286,8 +2286,7 @@ async function getIntelPricing(id){
     const resp = await fetch(INTEL_PRICING_URL, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'X-API-Key': INTEL_PRICING_KEY
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({ message: msg })
     });
@@ -3523,7 +3522,7 @@ async function loadPipelineDealsFromCloud(){
 // Paste your Lambda Function URL here after creating it (see setup guide).
 // Leave empty to run in local-only mode (browser storage).
 const API_URL = 'https://4y8bpdbupd.execute-api.ca-central-1.amazonaws.com';
-const INTEL_PRICING_URL = 'http://52.26.245.170:8502/api/chat';
+const INTEL_PRICING_URL = API_BASE + '/intel/price';
 const INTEL_PRICING_KEY = 'intel-arch-7f3a9c2e8b14d05f6a1e9d7c3b8f240a';
 
 async function apiSaveDeal(deal, prevStage, nextStage){

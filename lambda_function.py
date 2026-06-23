@@ -350,6 +350,33 @@ Answer clearly and concisely. If the question is about a specific field in the f
             answer = result['output']['message']['content'][0]['text'].strip()
             return ok(headers, {{'answer': answer}})
 
+        # ── INTEL PRICING PROXY ──
+        if path == '/intel/price' and method == 'POST':
+            import urllib.request as _ur
+            message = body.get('message', '')
+            if not message:
+                return ok(headers, {'error': 'no message'})
+            intel_payload = json.dumps({'message': message}).encode()
+            req = _ur.Request(
+                'http://52.26.245.170:8502/api/chat',
+                data=intel_payload,
+                headers={
+                    'Content-Type': 'application/json',
+                    'X-API-Key': 'intel-arch-7f3a9c2e8b14d05f6a1e9d7c3b8f240a'
+                },
+                method='POST'
+            )
+            with _ur.urlopen(req, timeout=15) as intel_resp:
+                intel_data = json.loads(intel_resp.read().decode())
+            return ok(headers, intel_data)
+
+        # ── DEBUG: return Lambda outbound IP ──
+        if path == '/debug/ip' and method == 'GET':
+            import urllib.request as _ur2
+            with _ur2.urlopen('https://checkip.amazonaws.com', timeout=5) as r:
+                outbound_ip = r.read().decode().strip()
+            return ok(headers, {{'lambda_outbound_ip': outbound_ip}})
+
         return {{'statusCode': 404, 'headers': headers, 'body': json.dumps({{'error': 'not found'}})}}
 
     except Exception as e:
