@@ -7,11 +7,11 @@ import os
 dynamodb = boto3.resource('dynamodb')
 s3 = boto3.client('s3')
 ses = boto3.client('ses', region_name='ca-central-1')
-bedrock = boto3.client('bedrock-runtime', region_name='us-east-1')
+bedrock = boto3.client('bedrock-runtime', region_name='ca-central-1')
 
 TABLE = os.environ.get('TABLE', 'iap-deals')
 BUCKET = os.environ.get('BUCKET', '')
-NOVA_MODEL = 'amazon.nova-pro-v1:0'
+NOVA_MODEL = 'amazon.nova-lite-v1:0'
 FROM_EMAIL = 'yasmine@cloudzero.ca'
 APP_URL = 'https://main.dgxv59n7ru973.amplifyapp.com'
 
