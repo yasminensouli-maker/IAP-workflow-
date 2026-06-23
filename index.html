@@ -2770,7 +2770,8 @@ function renderACESummary(){
   const fhName = lead.name||'[Submitter]';
   const fhEmailS = lead.email||'[email]';
   const region = v('fh-region')||'[Region]';
-  const plays  = [...selectedPlays].map(id=>PLAYS.find(p=>p.id===id)?.name||'').filter(Boolean).join(', ')||'[Select plays in Step 4]';
+  const playsArr = (selectedPlays && typeof selectedPlays[Symbol.iterator]==='function') ? [...selectedPlays] : [];
+  const plays  = playsArr.map(id=>PLAYS.find(p=>p.id===id)?.name||'').filter(Boolean).join(', ')||'[Select plays in Step 4]';
 
   const summary =
 `IAP CO-SELL OPPORTUNITY SUMMARY
@@ -2910,7 +2911,7 @@ function generateSOW(){
   const popRows = generatePOPSchedule(cadence);
 
   // Selected plays list
-  const playsText = [...selectedPlays].map(id=>PLAYS.find(p=>p.id===id)?.name||'').filter(Boolean);
+  const playsText = ((selectedPlays && typeof selectedPlays[Symbol.iterator]==='function') ? [...selectedPlays] : []).map(id=>PLAYS.find(p=>p.id===id)?.name||'').filter(Boolean);
 
   const html=`
 <div class="sow-header">
@@ -3906,7 +3907,7 @@ function restoreDeal(d){
   setVal('ace-stage',d.aceStage);setVal('ace-notes',d.aceNotes);
   setVal('ipic-num',d.ipicNum);setVal('activity-type',d.activityType);
   setVal('claim-quarter',d.claimQuarter);setVal('intel-budget-year',d.intelBudgetYear);
-  if(d.selectedPlays) selectedPlays=new Set(d.selectedPlays);
+  selectedPlays = Array.isArray(d.selectedPlays) ? new Set(d.selectedPlays) : new Set();
 }
 
 function clearAll(){
