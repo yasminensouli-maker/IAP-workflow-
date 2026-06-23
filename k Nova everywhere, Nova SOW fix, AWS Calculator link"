@@ -1,0 +1,46 @@
+{
+    "FunctionName": "iap-backend",
+    "FunctionArn": "arn:aws:lambda:ca-central-1:937991583695:function:iap-backend",
+    "Runtime": "python3.12",
+    "Role": "arn:aws:iam::937991583695:role/iap-backend-role",
+    "Handler": "lambda_function.lambda_handler",
+    "CodeSize": 4163,
+    "Description": "",
+    "Timeout": 30,
+    "MemorySize": 128,
+    "LastModified": "2026-06-22T23:02:40.000+0000",
+    "CodeSha256": "bh+pw36y9wdUXRKXay1e1Dn2y3/0299Rdh4GwEJJkQ0=",
+    "Version": "$LATEST",
+    "Environment": {
+        "Variables": {
+            "TABLE": "iap-deals",
+            "BUCKET": "iap-cost-explorer-937991583695"
+        }
+    },
+    "TracingConfig": {
+        "Mode": "PassThrough"
+    },
+    "RevisionId": "64328f9c-2e81-4ba5-a3d2-1f4ff69f308e",
+    "State": "Active",
+    "LastUpdateStatus": "InProgress",
+    "LastUpdateStatusReason": "The function is being created.",
+    "LastUpdateStatusReasonCode": "Creating",
+    "PackageType": "Zip",
+    "Architectures": [
+        "x86_64"
+    ],
+    "EphemeralStorage": {
+        "Size": 512
+    },
+    "SnapStart": {
+        "ApplyOn": "None",
+        "OptimizationStatus": "Off"
+    },
+    "RuntimeVersionConfig": {
+        "RuntimeVersionArn": "arn:aws:lambda:ca-central-1::runtime:0eb6fb00a97c1a17d2e3014b04c79bfc9bea4301466439e3458f985dc75cadcc"
+    },
+    "LoggingConfig": {
+        "LogFormat": "Text",
+        "LogGroup": "/aws/lambda/iap-backend"
+    }
+}
