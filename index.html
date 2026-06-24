@@ -1445,11 +1445,232 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
         <div class="step-header">
           <div class="step-badge">Step 01</div>
           <div class="step-title">Deal Information</div>
-          <div class="step-desc">Capture the deal metadata needed to route the opportunity through the IAP co-sell motion. All fields feed the SOW and ACE submission.</div>
+          <div class="step-desc" id="step1-desc">Capture the deal details to route this opportunity through the Intel × AWS co-investment program.</div>
         </div>
 
+        <!-- Intel Seller simplified view -->
+        <div id="intel-seller-view" style="display:none">
+          <div class="alert alert-info" style="margin-bottom:14px;border-left:4px solid var(--intel)">
+            <strong>Intel Seller View</strong> — Fill what you know. Nothing here is mandatory. Your AWS counterpart will complete the rest.
+          </div>
+
+          <div class="section-card">
+            <div class="section-card-title">Customer & Opportunity</div>
+            <div style="font-size:.7rem;color:var(--ink3);margin-bottom:10px">Added by: Intel Seller</div>
+            <div class="form-grid">
+              <div class="f-group">
+                <label>Customer Name</label>
+                <input type="text" id="cust-name-intel" placeholder="e.g. Acme Corporation">
+              </div>
+              <div class="f-group">
+                <label>Customer Industry</label>
+                <select id="cust-industry-intel">
+                  <option value="">— Select —</option>
+                  <option>Financial Services</option>
+                  <option>Healthcare & Life Sciences</option>
+                  <option>Manufacturing</option>
+                  <option>Media & Entertainment</option>
+                  <option>Retail & CPG</option>
+                  <option>Technology / ISV</option>
+                  <option>Telecommunications</option>
+                  <option>Energy & Utilities</option>
+                  <option>Public Sector / Government</option>
+                  <option>Automotive</option>
+                  <option>Aerospace & Defense</option>
+                  <option>Other</option>
+                </select>
+              </div>
+              <div class="f-group">
+                <label>Country</label>
+                <select id="fh-country-intel">
+                  <option value="">— Select —</option>
+                  <option>United States</option><option>Canada</option><option>United Kingdom</option>
+                  <option>Germany</option><option>France</option><option>Netherlands</option>
+                  <option>Australia</option><option>Japan</option><option>Singapore</option>
+                  <option>India</option><option>Brazil</option><option>Mexico</option>
+                  <option>South Korea</option><option>Israel</option><option>UAE</option><option>Other</option>
+                </select>
+              </div>
+              <div class="f-group">
+                <label>Estimated Annual EC2 Spend (USD)</label>
+                <input type="number" id="est-arr-intel" placeholder="e.g. 1000000" min="0" step="10000" oninput="calcIntelFunding()">
+                <span class="hint">This drives the Intel co-investment calculation</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-card">
+            <div class="section-card-title">Program Type</div>
+            <div style="font-size:.7rem;color:var(--ink3);margin-bottom:10px">Added by: Intel Seller — drives funding rate</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+              <div id="prog-card-migrate" onclick="selectIntelProgram('migrate')" style="border:2px solid var(--border);border-radius:8px;padding:16px;cursor:pointer;transition:.2s">
+                <div style="font-weight:700;font-size:.85rem;color:var(--intel);margin-bottom:6px">Program 1 — Migration</div>
+                <div style="font-size:.72rem;color:var(--ink2);line-height:1.5">Moving mission-critical workloads to AWS from on-premises, end-of-life hardware, or another cloud</div>
+                <div style="font-size:1.1rem;font-weight:800;color:var(--intel);margin-top:8px">4.5% of ARR</div>
+              </div>
+              <div id="prog-card-optimize" onclick="selectIntelProgram('optimize')" style="border:2px solid var(--border);border-radius:8px;padding:16px;cursor:pointer;transition:.2s">
+                <div style="font-weight:700;font-size:.85rem;color:var(--intel);margin-bottom:6px">Program 2 — Optimization</div>
+                <div style="font-size:.72rem;color:var(--ink2);line-height:1.5">Existing AWS customers on pre-8th gen x86 — right-size fleet, reduce spend, unlock GenAI budget</div>
+                <div style="font-size:1.1rem;font-weight:800;color:var(--intel);margin-top:8px">1% of ARR (NTE $250K)</div>
+              </div>
+            </div>
+            <div id="intel-funding-result" style="display:none;padding:14px 16px;background:linear-gradient(135deg,#f0f4ff,#e8f0fe);border-radius:8px;border:1px solid var(--intel)">
+              <div style="font-size:.72rem;color:var(--ink3);margin-bottom:4px">Estimated Intel Co-Investment</div>
+              <div id="intel-funding-amount" style="font-size:1.6rem;font-weight:800;color:var(--intel)">$0</div>
+              <div id="intel-funding-note" style="font-size:.68rem;color:var(--ink3);margin-top:4px"></div>
+            </div>
+          </div>
+
+          <div class="section-card">
+            <div class="section-card-title">Current & Target Infrastructure</div>
+            <div style="font-size:.7rem;color:var(--ink3);margin-bottom:10px">Added by: Intel Seller</div>
+            <div class="form-grid">
+              <div class="f-group">
+                <label>Where is the customer today?</label>
+                <select id="current-infra-intel">
+                  <option value="">— Select —</option>
+                  <option>On-premises (own datacenter)</option>
+                  <option>On-premises (colocation)</option>
+                  <option>AWS — prior generation Intel (m6i, c6i, r6i)</option>
+                  <option>AWS — 7th gen Intel (m7i, c7i, r7i)</option>
+                  <option>AWS — AMD or Graviton instances</option>
+                  <option>Another cloud (Azure, GCP, OCI)</option>
+                  <option>Mixed / Hybrid</option>
+                </select>
+              </div>
+              <div class="f-group">
+                <label>Target Intel Instance Family</label>
+                <select id="target-instance-intel">
+                  <option value="">— Select 8th Gen Target —</option>
+                  <optgroup label="8th Gen — Intel Xeon 6 (Latest — custom-built for AWS)">
+                    <option value="m8i">m8i / m8i-flex — General Purpose · 20% faster than m7i · 2.5× memory bandwidth · SAP certified · 13 sizes to 96xlarge</option>
+                    <option value="c8i">c8i / c8i-flex — Compute Optimized · 60% faster NGINX · ideal for HPC, EDA, SLM inference, web/API fleets</option>
+                    <option value="r8i">r8i / r8i-flex — Memory Optimized · up to 384 vCPUs / 3TB RAM · 2.5× memory bandwidth · Oracle, SAP HANA, analytics</option>
+                    <option value="x8i">x8i — Extra Large Memory · SAP RISE, large in-memory databases, mission-critical ERP</option>
+                    <option value="u7i">u7i — Ultra Large Memory · largest memory footprint on AWS · bare metal available</option>
+                    <option value="m8id">m8id — General + Local NVMe · 22.8TB local storage · batch processing, logging, media</option>
+                    <option value="m8in">m8in — General + 600Gbps Network · real-time analytics, distributed cache, 5G UPF, Telco</option>
+                    <option value="m8idn">m8idn — General + NVMe + 600Gbps · highest combined network and storage throughput</option>
+                    <option value="m8ib">m8ib — General + High EBS · 300Gbps EBS bandwidth · high-performance file systems, NoSQL</option>
+                    <option value="r8id">r8id — Memory + Local NVMe · 22.8TB local storage · in-memory databases needing fast local I/O</option>
+                    <option value="r8in">r8in — Memory + 600Gbps Network · web-scale in-memory caches, AI/ML cluster caching fleets</option>
+                    <option value="r8idn">r8idn — Memory + NVMe + 600Gbps · highest memory throughput with local storage and network</option>
+                  </optgroup>
+                  <optgroup label="7th Gen — Intel Xeon Scalable (Active — upgrade path)">
+                    <option value="m7i">m7i / m7i-flex — General Purpose</option>
+                    <option value="c7i">c7i / c7i-flex — Compute Optimized</option>
+                    <option value="r7i">r7i — Memory Optimized</option>
+                    <option value="x2idn">x2idn / x2iedn / x2iezn — High Memory</option>
+                    <option value="i4i">i4i — Storage Optimized (NVMe)</option>
+                    <option value="hpc7i">hpc7i — HPC + EFA networking</option>
+                  </optgroup>
+                </select>
+              </div>
+              <div class="f-group span2">
+                <label>Workload Type (check all that apply)</label>
+                <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px">
+                  <label style="display:flex;align-items:center;gap:4px;font-size:.75rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer"><input type="checkbox" value="SAP RISE / S4HANA" class="intel-workload-check"> SAP RISE / S/4HANA</label>
+                  <label style="display:flex;align-items:center;gap:4px;font-size:.75rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer"><input type="checkbox" value="VMware Migration" class="intel-workload-check"> VMware Migration</label>
+                  <label style="display:flex;align-items:center;gap:4px;font-size:.75rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer"><input type="checkbox" value="Oracle Database" class="intel-workload-check"> Oracle Database</label>
+                  <label style="display:flex;align-items:center;gap:4px;font-size:.75rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer"><input type="checkbox" value="SQL Server" class="intel-workload-check"> SQL Server</label>
+                  <label style="display:flex;align-items:center;gap:4px;font-size:.75rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer"><input type="checkbox" value="HPC / EDA" class="intel-workload-check"> HPC / EDA</label>
+                  <label style="display:flex;align-items:center;gap:4px;font-size:.75rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer"><input type="checkbox" value="GenAI / SLM Inference" class="intel-workload-check"> GenAI / SLM Inference</label>
+                  <label style="display:flex;align-items:center;gap:4px;font-size:.75rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer"><input type="checkbox" value="Mainframe Modernization" class="intel-workload-check"> Mainframe Modernization</label>
+                  <label style="display:flex;align-items:center;gap:4px;font-size:.75rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer"><input type="checkbox" value="Analytics / ETL" class="intel-workload-check"> Analytics / ETL</label>
+                  <label style="display:flex;align-items:center;gap:4px;font-size:.75rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer"><input type="checkbox" value="Web / API" class="intel-workload-check"> Web / API</label>
+                  <label style="display:flex;align-items:center;gap:4px;font-size:.75rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer"><input type="checkbox" value="Other" class="intel-workload-check"> Other</label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-card">
+            <div class="section-card-title">Timeline & Engagement</div>
+            <div style="font-size:.7rem;color:var(--ink3);margin-bottom:10px">Added by: Intel Seller</div>
+            <div class="form-grid">
+              <div class="f-group">
+                <label>Migration / Activity Start Date</label>
+                <input type="date" id="mig-start-intel">
+              </div>
+              <div class="f-group">
+                <label>Migration / Activity End Date</label>
+                <input type="date" id="mig-end-intel" oninput="calcClaimDateIntel()">
+                <span class="hint" id="claim-date-hint-intel"></span>
+              </div>
+              <div class="f-group">
+                <label>Engagement Phase</label>
+                <select id="engagement-phase-intel" onchange="showPhaseNext()">
+                  <option value="">— Where are you in the process? —</option>
+                  <option value="1">Phase 1 — Discovery & Scoping (Week 1–2)</option>
+                  <option value="2">Phase 2 — TCO & Instance Modelling (Week 2–3)</option>
+                  <option value="3">Phase 3 — Investment Proposal (Week 3–4)</option>
+                  <option value="4">Phase 4 — Proof of Concept (Week 4–8)</option>
+                  <option value="5">Phase 5 — Investment Deployment (Week 6–10)</option>
+                  <option value="6">Phase 6 — Migration / Optimization (Week 8–20)</option>
+                </select>
+              </div>
+              <div class="f-group">
+                <label>Investment Use Case</label>
+                <select id="investment-use-intel">
+                  <option value="">— How will Intel cash be used? —</option>
+                  <option>Customer Proof of Concept</option>
+                  <option>Migration & Modernization Services</option>
+                  <option>Demand Generation</option>
+                  <option>Technical Specialists</option>
+                  <option>AWS Marketplace</option>
+                  <option>Partner & Channel Enablement</option>
+                  <option>Mixed / Multiple</option>
+                </select>
+              </div>
+            </div>
+            <div id="phase-next-step" style="display:none;padding:12px 14px;background:#f0f4ff;border-radius:6px;border-left:3px solid var(--intel);font-size:.75rem;margin-top:8px;color:var(--ink2)"></div>
+          </div>
+
+          <div class="section-card">
+            <div class="section-card-title">Co-Sell Context</div>
+            <div style="font-size:.7rem;color:var(--ink3);margin-bottom:10px">Added by: Intel Seller — optional</div>
+            <div class="form-grid">
+              <div class="f-group">
+                <label>AWS Specialist / Account Team Contact</label>
+                <input type="text" id="aws-contact-intel" placeholder="Name or email of AWS contact (optional)">
+              </div>
+              <div class="f-group">
+                <label>ACE / SFDC Opportunity ID</label>
+                <input type="text" id="ace-id-intel" placeholder="O-XXXXXXXXXX or leave blank" class="mono">
+                <span class="hint">ACE is AWS's co-sell tracking system — it connects this deal to net new cloud consumption. Not required to start. If your AWS contact has created an ACE opportunity, add the ID here.</span>
+              </div>
+              <div class="f-group span2">
+                <label>Has this been pushed to ACE?</label>
+                <div style="display:flex;gap:16px;margin-top:6px;flex-wrap:wrap">
+                  <label style="display:flex;align-items:center;gap:6px;font-size:.8rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer">
+                    <input type="radio" name="ace-pushed-intel" value="yes"> Yes — ACE opportunity exists
+                  </label>
+                  <label style="display:flex;align-items:center;gap:6px;font-size:.8rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer">
+                    <input type="radio" name="ace-pushed-intel" value="no"> Not yet — AWS contact will create it
+                  </label>
+                  <label style="display:flex;align-items:center;gap:6px;font-size:.8rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer">
+                    <input type="radio" name="ace-pushed-intel" value="unknown"> Not sure
+                  </label>
+                </div>
+              </div>
+              <div class="f-group span2">
+                <label>Additional Notes</label>
+                <textarea id="intel-notes" placeholder="Any context useful for the AWS team — competitive situation, customer timeline, exec sponsor, POC status..." style="min-height:60px"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="syncIntelSellerFields(); goStep(2)">Continue → Customer Profile</button>
+            <button class="btn btn-secondary" onclick="saveDraft()">Save Draft</button>
+          </div>
+        </div>
+
+        <!-- AWS Specialist / Admin full view -->
+        <div id="aws-specialist-view">
         <div class="section-card">
           <div class="section-card-title">Deal Team</div>
+          <div style="font-size:.7rem;color:var(--ink3);margin-bottom:8px">Added by: AWS Specialist</div>
           <div class="alert alert-info" style="margin-bottom:14px">Add all people involved in originating this deal. At least one submitter is required.</div>
 
           <div id="deal-team-rows">
@@ -1599,7 +1820,8 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
           <button class="btn btn-secondary" onclick="saveDraft()">Save Draft</button>
           <button class="btn btn-aws" onclick="exportIPIC()">⬇ Export IPIC / Smartsheet Row</button>
         </div>
-      </div>
+        </div><!-- /aws-specialist-view -->
+      </div><!-- /step1 -->
 
       <!-- ── STEP 2: CUSTOMER PROFILE ── -->
       <div class="step-panel" id="step2">
@@ -1932,41 +2154,51 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
       <div class="step-panel" id="step5">
         <div class="step-header">
           <div class="step-badge">Step 05</div>
-          <div class="step-title">ACE &amp; SFDC Opportunity IDs</div>
-          <div class="step-desc">Every IAP deal requires a valid ACE co-sell opportunity before funding is confirmed. Capture both IDs here — they appear in the SOW and are used to verify Launched status.</div>
+          <div class="step-title">ACE & Co-Sell Tracking</div>
+          <div class="step-desc">ACE connects this deal to net new AWS consumption tracking. Either ACE or SFDC ID is sufficient — both are not required. This is an AWS co-sell motion field, not a customer-facing requirement.</div>
         </div>
 
-        <div class="alert alert-warn">
-          <strong>Requirement:</strong> The ACE opportunity must be in co-sell status before submitting this SOW. If no ACE ID exists yet, create the opportunity in AWS Partner Central before proceeding.
-        </div>
-        <div class="alert alert-info" id="intel-ace-reminder" style="display:none">
-          <strong>Intel Submitters:</strong> Before proceeding, confirm this deal has been submitted via ACE. Intel-originated deals must have an active ACE co-sell opportunity. If you do not have an ACE ID, work with your AWS counterpart to create one before submitting this form.
+        <div class="alert alert-info">
+          <strong>What is ACE?</strong> ACE (AWS Customer Engagements) is AWS's co-sell system. When a deal is registered in ACE, AWS tracks it as net new utility — meaning new or incremental cloud consumption. This is what qualifies the deal for the IAP co-investment. You need either the ACE ID <em>or</em> the SFDC ID. If neither exists yet, your AWS counterpart creates the ACE opportunity and shares the ID.
         </div>
 
         <div class="section-card">
-          <div class="section-card-title">Opportunity IDs</div>
+          <div class="section-card-title">Opportunity IDs — provide at least one</div>
           <div class="form-grid">
             <div class="f-group">
-              <label>ACE Opportunity ID <span class="req">*</span></label>
-              <input type="text" id="ace-id" placeholder="O-XXXXXXXXXX"
-                oninput="validateACE(this)" class="mono">
+              <label>ACE Opportunity ID</label>
+              <input type="text" id="ace-id" placeholder="O-XXXXXXXXXX" oninput="validateACE(this)" class="mono">
               <span class="hint" id="ace-hint">Format: O- followed by alphanumeric (e.g. O-AB12345678)</span>
             </div>
             <div class="f-group">
               <label>SFDC / CRM Opportunity ID</label>
               <input type="text" id="sfdc-id" placeholder="0060X000XXXXXXXXXX" class="mono">
-              <span class="hint">Salesforce 18-char opportunity ID</span>
+              <span class="hint">Salesforce 18-char opportunity ID — either this or ACE ID is sufficient</span>
             </div>
-            <div class="f-group span2">
+            <div class="f-group">
+              <label>Has this been pushed to ACE?</label>
+              <div style="display:flex;gap:16px;margin-top:6px;flex-wrap:wrap">
+                <label style="display:flex;align-items:center;gap:6px;font-size:.8rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer">
+                  <input type="radio" name="ace-pushed" value="yes" onchange="updateACEStatus()"> Yes — approved in ACE
+                </label>
+                <label style="display:flex;align-items:center;gap:6px;font-size:.8rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer">
+                  <input type="radio" name="ace-pushed" value="pending" onchange="updateACEStatus()"> Submitted — pending ACE approval
+                </label>
+                <label style="display:flex;align-items:center;gap:6px;font-size:.8rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer">
+                  <input type="radio" name="ace-pushed" value="no" onchange="updateACEStatus()"> Not yet — will create ACE opportunity
+                </label>
+              </div>
+            </div>
+            <div class="f-group">
               <label>ACE Co-Sell Stage</label>
               <select id="ace-stage">
+                <option value="">— Select if known —</option>
                 <option>Prospect</option>
                 <option>Qualified</option>
                 <option>Technical Validation</option>
                 <option>Business Validation</option>
                 <option>Committed</option>
                 <option>Launched</option>
-                <option>Closed Lost</option>
               </select>
             </div>
             <div class="f-group">
@@ -1975,8 +2207,8 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
               <span class="hint">Intel campaign code if applicable</span>
             </div>
             <div class="f-group span2">
-              <label>AWS AE / PDM Notes</label>
-              <textarea id="ace-notes" placeholder="Any relevant context — e.g. migration timeline, exec sponsor, competitive context..."></textarea>
+              <label>Notes</label>
+              <textarea id="ace-notes" placeholder="Migration timeline, exec sponsor, competitive context..."></textarea>
             </div>
           </div>
         </div>
@@ -1995,8 +2227,107 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
         </div>
       </div>
 
-      <!-- ── STEP 6: SOW ── -->
+      <!-- ── STEP 5.5: SUMMARY ── injected as step 6, SOW becomes step 7 -->
       <div class="step-panel" id="step6">
+        <div class="step-header">
+          <div class="step-badge">Step 06</div>
+          <div class="step-title">Deal Summary</div>
+          <div class="step-desc">Review the full deal before generating the SOW. Nova will suggest any gaps or improvements.</div>
+        </div>
+
+        <div id="summary-nova-suggestion" style="display:none;margin-bottom:16px"></div>
+
+        <div class="section-card" id="summary-content">
+          <div style="text-align:center;padding:30px;color:var(--ink3);font-size:.8rem">Click Generate Summary to populate.</div>
+        </div>
+
+        <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+          <button class="btn btn-primary" onclick="generateSummary()">⚡ Generate Summary</button>
+          <button class="btn btn-nova" onclick="runNovaSummaryCheck()">✦ Nova Review</button>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-secondary" onclick="goStep(5)">← Back</button>
+          <button class="btn btn-primary" onclick="goStep(7)">Generate SOW →</button>
+        </div>
+      </div>
+
+      <!-- ── STEP 7: SOW ── -->
+      <div class="step-panel" id="step7-sow">
+        <div class="step-header">
+          <div class="step-badge">Step 07</div>
+          <div class="step-title">Statement of Work</div>
+          <div class="step-desc">Review and generate the SOW exactly per Intel/TCC requirements. Download or print from this page.</div>
+        </div>
+
+        <!-- SOW extra fields needed for Jeanine's template -->
+        <div class="section-card" style="margin-bottom:16px">
+          <div class="section-card-title">SOW Details</div>
+          <div style="font-size:.7rem;color:var(--ink3);margin-bottom:10px">These 6 fields complete the SOW. Everything else auto-fills from your earlier entries.</div>
+          <div class="form-grid">
+            <div class="f-group">
+              <label>Activity Name</label>
+              <input type="text" id="sow-activity-name" placeholder="IAP – [Customer] Migration" oninput="updateSOWActivityName()">
+              <span class="hint">e.g. IAP – Acme Corp Migration to m8i</span>
+            </div>
+            <div class="f-group">
+              <label>Customer Legal Name (for SOW)</label>
+              <input type="text" id="sow-cust-legal" placeholder="Full legal entity name">
+              <span class="hint">Exactly as it should appear on the signed document</span>
+            </div>
+            <div class="f-group">
+              <label>Infrastructure Summary</label>
+              <textarea id="sow-infra-summary" placeholder="e.g. Migration of 200 m6i instances to m8i for Oracle database workload. Baseline established via Cost Explorer. Target ARR $2.4M." style="min-height:60px"></textarea>
+              <span class="hint">2–3 sentences describing what is being migrated or optimized</span>
+            </div>
+            <div class="f-group">
+              <label>Customer Signatory Name</label>
+              <input type="text" id="sow-signatory-name" placeholder="e.g. Jane Smith">
+            </div>
+            <div class="f-group">
+              <label>Customer Signatory Title</label>
+              <input type="text" id="sow-signatory-title" placeholder="e.g. VP Cloud Infrastructure">
+            </div>
+            <div class="f-group">
+              <label>Customer Remit-to Address</label>
+              <input type="text" id="sow-remit-address" placeholder="Full mailing address for payment">
+            </div>
+          </div>
+        </div>
+
+        <div class="alert alert-info" style="margin-bottom:14px">
+          <strong>Payment flows through The Channel Company.</strong> Cost Explorer is provided by the customer directly to Intel and The Channel Company — AWS does not share data and does not appear as a party to the payment.
+        </div>
+
+        <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+          <button class="btn btn-primary" onclick="generateSOW()">⚡ Generate SOW</button>
+          <button class="btn btn-secondary" onclick="downloadSOWWord()">📄 Save as Word</button>
+          <button class="btn btn-secondary" onclick="window.print()">🖨 Print / Save PDF</button>
+          <button class="btn btn-secondary" onclick="copySOWText()">📋 Copy Text</button>
+          <button class="btn btn-nova" onclick="runSOWCheck()" id="sow-check-btn">✦ Nova SOW Check</button>
+        </div>
+
+        <div id="sow-check-result" style="display:none;margin-bottom:16px"></div>
+
+        <div class="sow-document" id="sow-document">
+          <div class="sow-watermark">CONFIDENTIAL</div>
+          <div class="sow-inner" id="sow-inner">
+            <div style="text-align:center;padding:40px;color:var(--ink3);font-family:'Arial',sans-serif;font-size:.8rem">
+              Click <strong>Generate SOW</strong> to populate this document.
+            </div>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-secondary" onclick="goStep(6)">← Back</button>
+          <button class="btn btn-success" onclick="submitDeal()">✓ Submit to Core</button>
+          <button class="btn btn-aws" onclick="exportIPIC()">⬇ Export IPIC Row</button>
+          <button class="btn btn-secondary" onclick="downloadSOWWord()">📄 Download SOW as Word</button>
+        </div>
+      </div>
+
+      <!-- ── OLD STEP 6: SOW (kept as fallback, hidden) ── -->
+      <div class="step-panel" id="step6-old" style="display:none">
         <div class="step-header">
           <div class="step-badge">Step 06</div>
           <div class="step-title">Statement of Work</div>
@@ -2152,9 +2483,18 @@ function doLogin(){
     if(mn8) mn8.style.display='flex';
   }
 
-  // Pre-fill first team member if intel/specialist tier
-  if(currentUser.tier==='intel'){
+  // Show Intel Seller view or AWS Specialist view based on tier
+  const isIntelSeller = currentUser.tier==='intel';
+  const intelView = document.getElementById('intel-seller-view');
+  const awsView = document.getElementById('aws-specialist-view');
+  if(intelView) intelView.style.display = isIntelSeller ? 'block' : 'none';
+  if(awsView) awsView.style.display = isIntelSeller ? 'none' : 'block';
+
+  // Hide pipeline for intel sellers
+  if(isIntelSeller){
     document.getElementById('nav7').style.display='none';
+    const mn7=document.getElementById('mnav7');
+    if(mn7) mn7.style.display='none';
   }
 
   initApp();
@@ -2174,7 +2514,13 @@ let currentStep = 1;
 const TOTAL_STEPS = 7;
 
 function goStep(n){
+  // Handle step 7 SOW which has id step7-sow
   document.querySelectorAll('.step-panel').forEach(p=>p.classList.remove('active'));
+  // Special case: step 7 is the SOW step with id step7-sow
+  if(n===7){
+    const sowStep = document.getElementById('step7-sow');
+    if(sowStep){ sowStep.classList.add('active'); currentStep=7; return; }
+  }
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
   // Highlight mobile nav
   document.querySelectorAll('.mobile-nav-btn').forEach(b=>b.classList.remove('active'));
@@ -2810,6 +3156,228 @@ function copyACESummary(){
 }
 
 /* ── ACE ID VALIDATION ───────────────────────────────────────── */
+/* ── INTEL SELLER VIEW FUNCTIONS ───────────────────────────── */
+function selectIntelProgram(type){
+  const migrate = document.getElementById('prog-card-migrate');
+  const optimize = document.getElementById('prog-card-optimize');
+  if(!migrate || !optimize) return;
+  migrate.style.border = type==='migrate' ? '2px solid var(--intel)' : '2px solid var(--border)';
+  migrate.style.background = type==='migrate' ? '#f0f4ff' : '';
+  optimize.style.border = type==='optimize' ? '2px solid var(--intel)' : '2px solid var(--border)';
+  optimize.style.background = type==='optimize' ? '#f0f4ff' : '';
+  // Sync to main program field
+  const mainProg = document.getElementById('deal-program');
+  if(mainProg) mainProg.value = type==='migrate' ? 'migrate' : 'optimize';
+  window._intelProgram = type;
+  calcIntelFunding();
+}
+
+function calcIntelFunding(){
+  const arr = parseFloat(document.getElementById('est-arr-intel')?.value||0);
+  const prog = window._intelProgram;
+  const result = document.getElementById('intel-funding-result');
+  const amount = document.getElementById('intel-funding-amount');
+  const note = document.getElementById('intel-funding-note');
+  if(!arr || !prog || !result) return;
+  result.style.display = 'block';
+  if(prog==='migrate'){
+    const est = arr * 0.045;
+    amount.textContent = '$' + est.toLocaleString('en-US',{maximumFractionDigits:0});
+    note.textContent = '4.5% of $' + arr.toLocaleString('en-US',{maximumFractionDigits:0}) + ' estimated ARR — subject to program approval and Cost Explorer validation';
+  } else {
+    const est = Math.min(arr * 0.01, 250000);
+    amount.textContent = '$' + est.toLocaleString('en-US',{maximumFractionDigits:0});
+    note.textContent = '1% of $' + arr.toLocaleString('en-US',{maximumFractionDigits:0}) + ' ARR' + (arr*0.01>250000 ? ' (capped at $250K NTE)' : '') + ' — subject to program approval';
+  }
+}
+
+function calcClaimDateIntel(){
+  const end = document.getElementById('mig-end-intel')?.value;
+  const hint = document.getElementById('claim-date-hint-intel');
+  if(!end || !hint) return;
+  const d = new Date(end);
+  d.setDate(d.getDate()+30);
+  hint.textContent = 'Final claim date: ' + d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+}
+
+const PHASE_NEXT = {
+  '1': 'Next: TCO & Instance Modelling — Intel SA + AWS SA + your platform team model your specific workload on Xeon 6. Output: validated TCO with projected savings range. (Week 2–3)',
+  '2': 'Next: Investment Proposal — Intel and AWS formalize the co-investment amount, eligible use cases, and timeline. Output: signed program agreement. (Week 3–4)',
+  '3': 'Next: Proof of Concept — Joint engineering validates performance on your actual workloads in the Intel sandbox. Output: validated instance recommendation. (Week 4–8)',
+  '4': 'Next: Investment Deployment — Intel cash is deployed through the agreed program structure. (Week 6–10)',
+  '5': 'Next: Migration / Optimization — Full deployment on AWS Xeon 6 8th Gen with joint engineering support and quarterly business reviews. (Week 8–20)',
+  '6': 'Active deployment in progress. Quarterly business reviews track results against agreed outcomes.'
+};
+
+function showPhaseNext(){
+  const phase = document.getElementById('engagement-phase-intel')?.value;
+  const box = document.getElementById('phase-next-step');
+  if(!box) return;
+  if(phase && PHASE_NEXT[phase]){
+    box.style.display = 'block';
+    box.textContent = PHASE_NEXT[phase];
+  } else {
+    box.style.display = 'none';
+  }
+}
+
+function syncIntelSellerFields(){
+  // Copy Intel Seller fields into main form fields so the rest of the flow works
+  const custNameIntel = document.getElementById('cust-name-intel')?.value;
+  const custName = document.getElementById('cust-name');
+  if(custName && custNameIntel) custName.value = custNameIntel;
+
+  const industryIntel = document.getElementById('cust-industry-intel')?.value;
+  const industry = document.getElementById('cust-industry');
+  if(industry && industryIntel) industry.value = industryIntel;
+
+  const startIntel = document.getElementById('mig-start-intel')?.value;
+  const start = document.getElementById('mig-start');
+  if(start && startIntel) start.value = startIntel;
+
+  const endIntel = document.getElementById('mig-end-intel')?.value;
+  const end = document.getElementById('deal-close');
+  if(end && endIntel) end.value = endIntel;
+
+  const aceIntel = document.getElementById('ace-id-intel')?.value;
+  const ace = document.getElementById('ace-id');
+  if(ace && aceIntel) ace.value = aceIntel;
+
+  const arrIntel = document.getElementById('est-arr-intel')?.value;
+  const simMonthly = document.getElementById('simple-monthly');
+  if(simMonthly && arrIntel) {
+    simMonthly.value = (parseFloat(arrIntel)/12).toFixed(0);
+    calcSimpleMonthly();
+  }
+}
+
+function updateACEStatus(){
+  // Just a hook for future logic
+}
+
+function updateSOWActivityName(){
+  // Sync activity name to SOW preview
+}
+
+/* ── SUMMARY STEP ─────────────────────────────────────────── */
+function generateSummary(){
+  const custName = v('cust-name') || v('cust-name-intel') || '[Customer]';
+  const prog = document.getElementById('deal-program');
+  const progLabel = prog && prog.selectedOptions[0] ? prog.selectedOptions[0].text : '[Program]';
+  const migStart = v('mig-start') || v('mig-start-intel') || '[TBD]';
+  const migEnd = v('deal-close') || v('mig-end-intel') || '[TBD]';
+  const region = v('fh-region') || '[Region]';
+  const country = v('fh-country') || v('fh-country-intel') || '[Country]';
+  const workload = v('cust-workload') || '[Workload pending]';
+  const acctID = v('cust-acct') || '[Pending]';
+  const aceID = v('ace-id') || v('ace-id-intel') || '[Pending]';
+  const partner = v('partner-name') || 'None';
+
+  const totRebate = fleets.reduce((s,f)=>s+(f.rebate||0),0);
+  const totActual = fleets.reduce((s,f)=>s+(f.actualARR||0),0);
+  const smVal = parseFloat(document.getElementById('simple-monthly')?.value||0);
+  const smARR = smVal * 12;
+  const progRate = (document.getElementById('deal-program')?.value==='optimize') ? 0.01 : 0.045;
+  const intelEst = (smARR||totActual) * progRate;
+
+  const intelArr = parseFloat(document.getElementById('est-arr-intel')?.value||0);
+  const finalEst = intelEst || (intelArr * progRate);
+
+  const targetInst = document.getElementById('target-instance-intel');
+  const targetLabel = targetInst && targetInst.selectedOptions[0] ? targetInst.selectedOptions[0].text : '';
+
+  const infraSummary = v('sow-infra-summary') || 'Infrastructure summary pending — complete SOW Details in Step 7.';
+  const currentInfra = document.getElementById('current-infra-intel')?.value || '[Not specified]';
+  const phase = document.getElementById('engagement-phase-intel');
+  const phaseLabel = phase && phase.selectedOptions[0] ? phase.selectedOptions[0].text : '[Not specified]';
+  const useCase = document.getElementById('investment-use-intel')?.value || '[Not specified]';
+
+  // Claim dates
+  const endD = new Date(migEnd);
+  const claimD = new Date(migEnd);
+  claimD.setDate(claimD.getDate()+30);
+  const claimDate = isNaN(claimD) ? '[30 days after end date]' : claimD.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+
+  const html = `
+    <div style="padding:4px 0">
+      <div style="font-size:1rem;font-weight:700;color:var(--ink);margin-bottom:16px">Deal Summary — ${custName}</div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+        <div style="background:var(--bg);border-radius:6px;padding:12px;border:1px solid var(--border)">
+          <div style="font-size:.65rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Customer</div>
+          <div style="font-size:.85rem;font-weight:600">${custName}</div>
+          <div style="font-size:.72rem;color:var(--ink2)">${country} · ${region}</div>
+          <div style="font-size:.72rem;color:var(--ink2)">AWS Account: ${acctID}</div>
+        </div>
+        <div style="background:var(--bg);border-radius:6px;padding:12px;border:1px solid var(--border)">
+          <div style="font-size:.65rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Program</div>
+          <div style="font-size:.85rem;font-weight:600">${progLabel}</div>
+          <div style="font-size:.72rem;color:var(--ink2)">Start: ${migStart} → End: ${migEnd}</div>
+          <div style="font-size:.72rem;color:var(--ink2)">Final Claim Date: ${claimDate}</div>
+        </div>
+        <div style="background:#f0fdf4;border-radius:6px;padding:12px;border:1px solid #86efac">
+          <div style="font-size:.65rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Estimated Intel Co-Investment</div>
+          <div style="font-size:1.3rem;font-weight:800;color:var(--green)">$${finalEst.toLocaleString('en-US',{maximumFractionDigits:0})}</div>
+          <div style="font-size:.68rem;color:var(--ink3)">Subject to Cost Explorer validation and program approval</div>
+        </div>
+        <div style="background:var(--bg);border-radius:6px;padding:12px;border:1px solid var(--border)">
+          <div style="font-size:.65rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">ACE / Co-Sell</div>
+          <div style="font-size:.85rem;font-weight:600">${aceID}</div>
+          <div style="font-size:.72rem;color:var(--ink2)">Partner: ${partner}</div>
+        </div>
+      </div>
+
+      <div style="background:var(--bg);border-radius:6px;padding:12px;border:1px solid var(--border);margin-bottom:12px">
+        <div style="font-size:.65rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Infrastructure</div>
+        <div style="font-size:.78rem;color:var(--ink2)"><strong>Today:</strong> ${currentInfra}</div>
+        ${targetLabel ? '<div style="font-size:.78rem;color:var(--ink2)"><strong>Target:</strong> ' + targetLabel.split('·')[0].trim() + '</div>' : ''}
+        <div style="font-size:.78rem;color:var(--ink2);margin-top:6px">${infraSummary}</div>
+      </div>
+
+      <div style="background:var(--bg);border-radius:6px;padding:12px;border:1px solid var(--border);margin-bottom:12px">
+        <div style="font-size:.65rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Engagement Status</div>
+        <div style="font-size:.78rem;color:var(--ink2)"><strong>Phase:</strong> ${phaseLabel}</div>
+        <div style="font-size:.78rem;color:var(--ink2)"><strong>Investment Use:</strong> ${useCase}</div>
+        <div style="font-size:.78rem;color:var(--ink2)"><strong>Workload:</strong> ${workload}</div>
+      </div>
+
+      <div style="padding:10px 14px;background:#fff7ed;border-radius:6px;border-left:3px solid #fb923c;font-size:.74rem;color:#9a3412">
+        <strong>Before generating the SOW:</strong> Confirm the 6 SOW Detail fields in Step 7 — Activity Name, Customer Legal Name, Infrastructure Summary, Signatory Name &amp; Title, and Remit-to Address. Everything else auto-fills.
+      </div>
+    </div>`;
+
+  const box = document.getElementById('summary-content');
+  if(box) box.innerHTML = html;
+}
+
+async function runNovaSummaryCheck(){
+  const custName = v('cust-name') || v('cust-name-intel') || '[Customer]';
+  const box = document.getElementById('summary-nova-suggestion');
+  if(!box) return;
+  box.style.display = 'block';
+  box.innerHTML = '<div style="padding:12px;background:#f8f9ff;border-radius:8px;border:1px solid var(--intel);font-size:.78rem;color:var(--ink2)">✦ Nova is reviewing this deal...</div>';
+  try {
+    const r = await fetch(API_URL+'/ai/ask',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        question: 'Review this IAP deal and flag any gaps or risks: Customer=' + custName +
+          ', Program=' + (document.getElementById('deal-program')?.value||'') +
+          ', ARR estimate=' + (document.getElementById('est-arr-intel')?.value||document.getElementById('simple-monthly')?.value||'unknown') +
+          ', ACE ID=' + (v('ace-id')||v('ace-id-intel')||'none') +
+          ', Workload=' + (v('cust-workload')||'not specified') +
+          '. Flag missing fields, eligibility concerns, or next steps needed.',
+        context: {role: currentUser?.tier}
+      })
+    });
+    const d = await r.json();
+    const ans = d.answer || d.response || 'No response';
+    box.innerHTML = '<div style="padding:12px;background:#f8f9ff;border-radius:8px;border:1px solid var(--intel);font-size:.78rem;color:var(--ink2)"><strong>✦ Nova Review:</strong><br><br>' + ans.replace(/\n/g,'<br>') + '</div>';
+  } catch(e) {
+    box.innerHTML = '<div style="padding:12px;background:#fff5f5;border-radius:8px;border:1px solid #fca5a5;font-size:.78rem">Nova unavailable — proceed to SOW manually.</div>';
+  }
+}
+
 function validateACE(el){
   const val=el.value.trim();
   const hint=document.getElementById('ace-hint');
@@ -2833,239 +3401,189 @@ function validateAcct(el){
 
 /* ── SOW GENERATION ──────────────────────────────────────────── */
 function generateSOW(){
-  const custName   = v('cust-name')     || '[Customer Name]';
-  const teamLead   = getTeamData()[0]||{};
-  const fhName     = teamLead.name||'[Submitter Name]';
-  const fhEmail    = teamLead.email||'[Submitter Email]';
-  const segment    = v('deal-segment')  || '[Segment]';
-  const region     = v('fh-region')     || '[Region]';
-  const country    = v('fh-country')    || '[Country]';
-  const dealDate   = v('deal-date')     || today();
-  const closeDate  = v('deal-close')    || '[TBD]';
-  const migStart   = v('mig-start')     || '[TBD]';
-  const aceID      = v('ace-id')        || '[ACE ID Pending]';
-  const tccName    = 'Jacob Barksdale';
-  const tccEmail   = 'jbarksdale@thechannelcompany.com';
-  const ipicNum    = v('ipic-num')          || '[Pending]';
-  const actType    = v('activity-type')     || '[Activity Type]';
-  const claimQtr   = v('claim-quarter')     || '[Quarter]';
-  const sfdcID     = v('sfdc-id')       || '[N/A]';
-  const aceStage   = v('ace-stage')     || 'Prospect';
-  const workload   = v('cust-workload') || '[Workload description pending]';
-  const recipient  = v('cust-recipient')|| 'Customer';
-  const partner    = v('partner-name')  || 'N/A';
-  const cadence    = v('deal-cadence')  || 'Quarterly';
-  const awsRegion  = v('cust-awsregion')|| '[AWS Region]';
-  const acctID     = v('cust-acct')     || '[Pending]';
-  const progEl     = document.getElementById('deal-program');
-  const progLabel  = progEl && progEl.selectedOptions[0] ? progEl.selectedOptions[0].text : 'Program 1';
-  const rebateRate = '4.5% / 1%'; // per fleet — see table
+  // Pull from SOW detail fields (Step 7) first, fall back to earlier steps
+  const custLegal   = v('sow-cust-legal')     || v('cust-name') || v('cust-name-intel') || '[Customer Legal Name]';
+  const activityName = v('sow-activity-name') || 'IAP – ' + (v('cust-name')||v('cust-name-intel')||'Customer');
+  const infraSummary = v('sow-infra-summary') || '[Infrastructure summary pending]';
+  const signatoryName = v('sow-signatory-name') || '[Customer Signatory]';
+  const signatoryTitle = v('sow-signatory-title') || '[Title]';
+  const remitAddress = v('sow-remit-address') || '[Remit-to address pending]';
 
-  const totList   = fleets.reduce((s,f)=>s+(f.listARR||0),0);
-  const totActual = fleets.reduce((s,f)=>s+(f.actualARR||0),0);
-  const totRebate = fleets.reduce((s,f)=>s+(f.rebate||0),0);
-  const totNTE    = fleets.reduce((s,f)=>s+(f.nteCap||0),0);
-  const origin    = v('deal-origin')||'[Not specified]';
-  const originNotes = v('deal-origin-notes')||'';
+  const migStart   = v('mig-start') || v('mig-start-intel') || '[TBD]';
+  const migEnd     = v('deal-close') || v('mig-end-intel') || '[TBD]';
+  const ipicNum    = v('ipic-num') || '[Pending — provided upon POP approval]';
+  const cadence    = v('deal-cadence') || 'Quarterly';
 
-  // Build team rows for SOW parties table
-  const team = getTeamData();
-  // AWS cannot appear on the SOW — show role and contact only, no AWS-specific labels
-  const teamRowsHTML = team.length>0
-    ? team.map(t=>{
-        const roleSOW = t.role==='aws-account'?'Account Team':
-                        t.role==='intel-specialist'?'Intel Specialist':
-                        t.role==='intel-seller'?'Intel Seller':t.roleLabel;
-        return `<tr><td>${roleSOW}</td><td>${t.name||'—'}</td><td>${t.email}</td></tr>`;
-      }).join('')
-    : '<tr><td>Deal Team</td><td colspan="2">[No team members added]</td></tr>';
+  // Final claim date = end + 30 days
+  let claimDate = '[End date + 30 days]';
+  if(migEnd && migEnd !== '[TBD]'){
+    const d = new Date(migEnd);
+    d.setDate(d.getDate()+30);
+    if(!isNaN(d)) claimDate = (d.getMonth()+1).toString().padStart(2,'0')+'/'+d.getDate().toString().padStart(2,'0')+'/'+d.getFullYear();
+  }
 
-  // Fleet table rows
-  let fleetRows='';
-  fleets.forEach((fleet,i)=>{
-    if(!fleet.listARR) return;
-    const instEl=document.getElementById('f'+fleet.id+'-inst');
-    const instLabel=instEl&&instEl.selectedOptions[0]?instEl.selectedOptions[0].text:'[Instance]';
-    const fromEl=document.getElementById('f'+fleet.id+'-from');
-    const toEl=document.getElementById('f'+fleet.id+'-to');
-    const fromVal=fromEl?fromEl.value:'';
-    const toVal=toEl?toEl.value:'';
-    const fromTo=fromVal?' ('+fromVal+' → '+(toVal||instLabel)+')':'';
-    const motionLabel=fleet.type==='mod'?'Optimize'+fromTo:'Migrate / Net New';
-    const countEl=document.getElementById('f'+fleet.id+'-count');
-    const count=countEl&&countEl.value?countEl.value:'—';
-    const rateLabel=fleet.type==='mod'?'1% (NTE $250k)':'4.5%';
-    fleetRows+=`<tr>
-      <td>${i+1}</td>
-      <td style="font-family:monospace;font-size:.72rem">${instLabel}</td>
-      <td>${motionLabel}</td>
-      <td>${count}</td>
-      <td>${fmt(fleet.listARR)}</td>
-      <td>${fmt(fleet.actualARR||0)}</td>
-      <td>${rateLabel}</td>
-      <td>${fmt(fleet.nteCap||0)}</td>
-      <td>${fmt(fleet.rebate||0)}</td>
-    </tr>`;
-  });
-  if(!fleetRows) fleetRows=`<tr><td colspan="9" style="text-align:center;color:#aaa">No fleets added — return to Step 3</td></tr>`;
+  // Funding
+  const progEl = document.getElementById('deal-program');
+  const progType = progEl?.value || (window._intelProgram||'migrate');
+  const rate = progType==='optimize' ? '1%' : '4.5%';
+  const rateLabel = progType==='optimize' ? '1% on consumption (NTE $250,000 USD)' : '4.5% on consumption';
 
-  // POP schedule based on cadence
-  const popRows = generatePOPSchedule(cadence);
+  const smVal = parseFloat(document.getElementById('simple-monthly')?.value||0);
+  const smARR = smVal * 12;
+  const intelArr = parseFloat(document.getElementById('est-arr-intel')?.value||0);
+  const baseARR = smARR || fleets.reduce((s,f)=>s+(f.actualARR||0),0) || intelArr;
+  const progRate = progType==='optimize' ? 0.01 : 0.045;
+  const fundingEst = progType==='optimize' ? Math.min(baseARR*0.01,250000) : baseARR*0.045;
+  const fundingLabel = fundingEst > 0 ? '$' + fundingEst.toLocaleString('en-US',{maximumFractionDigits:0}) + ' USD' : '[To be determined based on Cost Explorer validation]';
 
-  // Selected plays list
-  const playsText = ((selectedPlays && typeof selectedPlays[Symbol.iterator]==='function') ? [...selectedPlays] : []).map(id=>PLAYS.find(p=>p.id===id)?.name||'').filter(Boolean);
-
-  const html=`
-<div class="sow-header">
-  <div class="sow-logos">
-    <div style="font-family:Arial,sans-serif;font-weight:700;font-size:14px;letter-spacing:.5px">THE CHANNEL COMPANY</div>
-  </div>
-  <div class="sow-meta">
-    <div style="font-weight:700;color:var(--ink)">STATEMENT OF WORK</div>
-    <div>Date: ${dealDate}</div>
-    <div>ACE ID: ${aceID}</div>
-    <div>Version: 1.0 · CONFIDENTIAL</div>
-  </div>
-</div>
-
-<div class="sow-title-block">
-  <div class="sow-doc-title">IAP Co-Sell Statement of Work — ${custName}</div>
-  <div class="sow-doc-sub">${progLabel} · ${segment} · ${region} · ${country}</div>
-</div>
-
-<div class="sow-section-head">1. Parties</div>
-<table class="sow-table">
-  <thead><tr><th>Role</th><th>Entity</th><th>Contact / Detail</th></tr></thead>
-  <tbody>
-    ${teamRowsHTML}
-    <tr><td>Disbursing Entity</td><td>The Channel Company</td><td>Jacob Barksdale · jbarksdale@thechannelcompany.com</td></tr>
-    <tr><td>Benefit Recipient</td><td>${custName}</td><td>${acctID!=='[Pending]'?'AWS Account: '+acctID:''}</td></tr>
-    ${partner!=='N/A'?`<tr><td>SI/ISV Partner</td><td>${partner}</td><td>See partner agreement</td></tr>`:''}
-  </tbody>
-</table>
-
-<div class="sow-section-head">2. Program Overview</div>
-<p class="sow-p">This Statement of Work documents the terms under which ${custName} will receive an IAP co-sell benefit funded by Intel and disbursed through The Channel Company. The benefit is calculated as ${rebateRate} of the customer's actual annual EC2 spend on Intel-eligible instance families, measured post-discount (not at list price). This engagement falls under <strong>${progLabel}</strong>.</p>
-<p class="sow-p">ACE Opportunity ID: <strong>${aceID}</strong> &nbsp;|&nbsp; SFDC ID: <strong>${sfdcID}</strong> &nbsp;|&nbsp; ACE Stage: <strong>${aceStage}</strong> &nbsp;|&nbsp; IPIC Activity #: <strong>${ipicNum}</strong></p>
-<p class="sow-p">Activity Type: <strong>${actType}</strong> &nbsp;|&nbsp; Claim Quarter: <strong>${claimQtr}</strong>${v('campaign-code')?' &nbsp;|&nbsp; Campaign Code: <strong>'+v('campaign-code')+'</strong>':''}</p>
-<p class="sow-p">Migration Start Date: <strong>${migStart}</strong> &nbsp;|&nbsp; Migration End Date: <strong>${closeDate}</strong> &nbsp;|&nbsp; Final Claim Date: <strong>${fmt30DaysAfter(closeDate)}</strong></p>
-<p class="sow-p">The total calculated amount of <strong>${fmt(totNTE)}</strong> is the Not to Exceed Amount. Actual disbursement is calculated from the customer's final Cost Explorer at no less than 75% migration completion, and cannot exceed the WNE. Payment schedule can be customized by agreement; the standard quarterly calendar applies unless stated otherwise.</p>
-
-<div class="sow-section-head">3. Workload &amp; Instance Scope</div>
-<p class="sow-p">${workload}</p>
-<p class="sow-p">Primary AWS Region: <strong>${awsRegion}</strong>. The eligible instance families listed below are confirmed Intel-optimized. Trainium (trn*), Graviton (m7g, c7g, r7g, etc.), and non-Intel GPU instances are excluded from benefit calculation.</p>
-
-<table class="sow-table">
-  <thead>
-    <tr>
-      <th>#</th>
-      <th>Instance (Target)</th>
-      <th>Motion</th>
-      <th>Count</th>
-      <th>List ARR</th>
-      <th>Actual Spend ARR</th>
-      <th>Rate</th>
-      <th>Not to Exceed</th>
-      <th>Est. Payout at POP</th>
-    </tr>
-  </thead>
-  <tbody>${fleetRows}</tbody>
-  <tfoot>
-    <tr style="background:var(--ink);color:#fff;font-family:Arial,sans-serif;font-size:.72rem;font-weight:700">
-      <td colspan="5">TOTAL</td>
-      <td>${fmt(totActual)}</td>
-      <td>—</td>
-      <td>${fmt(totNTE)}</td>
-      <td>${fmt(totRebate)}</td>
-    </tr>
-  </tfoot>
-</table>
-
-<div class="sow-highlight-box">
-  <strong>Benefit basis:</strong> NTE of ${fmt(totNTE)} is calculated from list price and represents Intel's maximum commitment. Actual payout of est. ${fmt(totRebate)} is calculated from Cost Explorer post-discount spend at POP time. The ${fmt(totList - totActual)} discount from list price is excluded from the benefit base.
-</div>
-
-<div class="sow-section-head">3b. Reimbursement Agreement</div>
-<table class="sow-table">
-  <thead>
-    <tr>
-      <th>Start Date</th><th>End Date</th><th>Final Claim Date</th><th>Rate</th>
-      <th>NTE Amount</th><th>ACE Opportunity</th><th>Description</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>${dealDate}</td>
-      <td>${closeDate}</td>
-      <td>${fmt30DaysAfter(closeDate)}</td>
-      <td>${totRebate>0?(fleets.some(f=>f.type==='nn'&&f.listARR)&&fleets.some(f=>f.type==='mod'&&f.listARR)?'Mixed (4.5% / 1%)':fleets.some(f=>f.type==='mod'&&f.listARR)?'1%':'4.5%'):'—'}</td>
-      <td>${fmt(totNTE)}</td>
-      <td>${aceID}</td>
-      <td>IAP Co-Sell · Intel Xeon migration/modernization on AWS EC2</td>
-    </tr>
-  </tbody>
-</table>
-<p class="sow-p" style="font-size:.7rem">Final Claim Date = 30 days after End Date. End date extension requests must be submitted in writing to The Channel Company prior to the end date. All reimbursements are paid on discounted AWS costs (Cost Explorer actual), not list price.</p>
-
-<div class="sow-section-head">3c. Deal Origination</div>
-<p class="sow-p"><strong>Source:</strong> ${origin}${originNotes?' — '+originNotes:''}</p>
-
-
-
-<div class="sow-section-head">5. Payment Process</div>
-<p class="sow-p">The Channel Company disburses to the rebate recipient — ${custName} or designated partner — per the schedule below. Payment cadence: <strong>${cadence}</strong>. AWS does not participate in, have visibility into, or process any payment under this SOW. Intel does not share AWS customer spend data with any third party; rebate amounts are calculated from Intel-verified records and the ACE Launched status.</p>
-
-<table class="sow-table">
-  <thead>
-    <tr>
-      <th>Submit Claim / POP By</th>
-      <th>Payment Processing Week</th>
-      <th>Payment Net</th>
-    </tr>
-  </thead>
-  <tbody>
+  // Payment schedule — fixed per SOW template
+  const popRows = `
     <tr><td>July 1, 2026</td><td>Aug 17–21, 2026</td><td>Net 30</td></tr>
     <tr><td>Oct 1, 2026</td><td>Nov 16–20, 2026</td><td>Net 30</td></tr>
     <tr><td>Jan 1, 2027</td><td>Feb 15–19, 2027</td><td>Net 30</td></tr>
     <tr><td>April 1, 2027</td><td>May 17–21, 2027</td><td>Net 30</td></tr>
     <tr><td>July 1, 2027</td><td>Aug 16–20, 2027</td><td>Net 30</td></tr>
-    <tr><td>Oct 1, 2027</td><td>Nov 15–19, 2027</td><td>Net 30</td></tr>
-  </tbody>
-</table>
-<p class="sow-p" style="font-size:.7rem">All POP must be submitted by EOD on the claim date. Submissions after the deadline roll to the next cycle. Payments are issued once Intel pays The Channel Company. Any delay from Intel causes a corresponding delay in payment to the partner or customer. Payment Processing Week is when The Channel Company pays the partner or customer.</p>
+    <tr><td>Oct 1, 2027</td><td>Nov 15–19, 2027</td><td>Net 30</td></tr>`;
 
-<div class="sow-section-head">6. Cost Explorer Prerequisite</div>
-<p class="sow-p"><strong>Cost Explorer data must be provided prior to work starting.</strong> This is not a POP item — it is a prerequisite to activating the reimbursement. The customer provides Cost Explorer filtered by the eligible instance families directly to Intel and The Channel Company before the start date is confirmed. AWS does not share this data. This establishes the baseline actual spend against which POP is measured.</p>
+  const html = `
+<div class="sow-header">
+  <div class="sow-logos">
+    <div style="font-weight:700;font-size:15px;letter-spacing:.5px;font-family:Arial,sans-serif">intel × aws</div>
+  </div>
+  <div class="sow-meta">
+    <div style="font-weight:700;color:var(--ink)">STATEMENT OF WORK</div>
+    <div style="font-size:.72rem;color:var(--ink2)">IPIC Activity #: ${ipicNum}</div>
+  </div>
+</div>
 
-<div class="sow-section-head">7. Proof of Performance Requirements</div>
-<p class="sow-p">Project Completion and/or Consumption confirmation is required to receive payment. Submit all of the following to the The Channel Company invoice contact by EOD on the applicable claim date:</p>
-<div class="sow-highlight-box" style="margin-bottom:12px"><strong>Invoice Contact:</strong> ${tccName} · ${tccEmail}<br><span style="font-size:.72rem">Single contact only. Invoices sent to multiple addresses will not be processed.</span></div>
+<div class="sow-title-block">
+  <div class="sow-doc-title">Statement of Work</div>
+  <div class="sow-doc-sub" style="margin-top:8px;font-size:.85rem;color:var(--ink2)">
+    This SoW is issued and hereby made as part of the Agreement noted below between
+    <strong>${custLegal}</strong>, hereinafter <em>End Customer</em>, and
+    <strong>Intel Corporation c/o The Channel Company Inc.</strong>
+  </div>
+</div>
+
+<div class="sow-section-head">Activity Name</div>
+<p class="sow-p" style="font-weight:600">${activityName}</p>
+
+<div class="sow-section-head">Activity Summary</div>
 <table class="sow-table">
-  <thead><tr><th>Document</th><th>Source</th><th>Notes</th></tr></thead>
+  <thead>
+    <tr>
+      <th>Start Date</th>
+      <th>End Date</th>
+      <th>Percentage</th>
+      <th>Final Claim Date</th>
+      <th>Funding Amount Not to Exceed</th>
+      <th>Description</th>
+    </tr>
+  </thead>
   <tbody>
-    <tr><td>Cost Explorer Export</td><td>AWS Cost Explorer</td><td>Filtered by instance type within agreed start and end dates. Must show Intel-eligible instances only.</td></tr>
-    <tr><td>Instance Type Verification</td><td>EC2 Console or CUR</td><td>Confirms Intel-eligible instances — Graviton and Trainium excluded</td></tr>
-    <tr><td>Signed POP Attestation</td><td>The Channel Company template</td><td>Signed by AWS Specialist and rebate recipient</td></tr>
+    <tr>
+      <td>${migStart}</td>
+      <td>${migEnd}</td>
+      <td>${rateLabel}</td>
+      <td>${claimDate} (30 days after end date)</td>
+      <td>${fundingLabel}</td>
+      <td>${infraSummary}</td>
+    </tr>
   </tbody>
 </table>
 
-<div class="sow-section-head">7. Terms &amp; Conditions</div>
-<p class="sow-p">This SOW is subject to Intel IAP Program terms and The Channel Company disbursement terms. Benefits are non-transferable. This document is CONFIDENTIAL and is not for distribution beyond the named parties.</p>
+<div class="sow-section-head">Proof of Performance</div>
+<div class="sow-p">
+  <p>Project Completion / Consumption is required to receive payment. End Customer must provide Cost Explorer information with instance type within the agreed start and end dates. All reimbursements are paid off discounted AWS costs, <em>not</em> list price.</p>
+  <p>Note: End Customer has until the Final Claim Date listed above to provide all final POP. Anything submitted after that date will not be paid. There are no extensions or exceptions.</p>
+</div>
 
-<div style="margin-top:32px;padding-top:16px;border-top:1px solid var(--border);display:grid;grid-template-columns:1fr 1fr;gap:24px">
+<div style="margin-top:12px;margin-bottom:4px;font-weight:700;font-size:.8rem;color:var(--ink)">Calendar of Claim and Payment Schedule</div>
+<table class="sow-table">
+  <thead>
+    <tr>
+      <th>Submit Claim / POP</th>
+      <th>Payment Processing Week</th>
+      <th>Payment Net</th>
+    </tr>
+  </thead>
+  <tbody>${popRows}</tbody>
+</table>
+
+<div class="sow-section-head">Reimbursement Agreement</div>
+<p class="sow-p">
+  Upon completion of the activity, and approval of PoP by Intel Corporation, End Customer will invoice Intel Corporation c/o The Channel Company Inc. an approved portion of the cost, which is not to exceed <strong>${fundingLabel}</strong>. The Channel Company Inc. will then reimburse End Customer, c/o Intel Corporation.
+</p>
+
+<div class="sow-section-head">Terms & Conditions</div>
+<div class="sow-p">
+  <p><strong>Invoice Contents</strong></p>
+  <p>To prevent invoice rejection or delays in payment, all invoices must include the following information:</p>
+  <ul style="font-size:.78rem;line-height:1.8;padding-left:18px">
+    <li>The invoice(s) must be addressed to: Intel Corporation c/o The Channel Company Inc, 117 Kendrick Street, Suite 300, Needham, MA 02494</li>
+    <li>Activity name: <strong>${activityName}</strong></li>
+    <li>Invoice number</li>
+    <li>Invoice date</li>
+    <li>Remit-to address: ${remitAddress}</li>
+    <li>IAP reference number: ${ipicNum} (provided upon approval of PoP)</li>
+  </ul>
+  <p>Any invoice received without all the correct information will be returned to the issuing party and the payment date will be adjusted accordingly.</p>
+
+  <p><strong>Invoice Recipients</strong></p>
+  <p>End Customer must send the invoice to: <strong>jbarksdale@thechannelcompany.com</strong></p>
+
+  <p><strong>PoP / PoE (Proof of Performance / Execution) Requirement</strong></p>
+  <p>Before any Intel Corporation reimbursement can be accepted, End Customer will be required to provide Proof of Performance (PoP). In case PoP is not compliant with Intel Accelerator Program guidelines, Intel Corporation reserves the right to reject the fund request, and End Customer will be responsible to cover all fees on its own.</p>
+
+  <p><strong>Termination</strong></p>
+  <p>In case the named activity in this statement of work (SoW) does not take place, for any reason, Intel Corporation will neither proceed with reimbursement, nor keep available funds for another fund request. Each activity fund request should have its own SoW and approval.</p>
+
+  <p><strong>Payment Method</strong></p>
+  <p>Once approved, TCC Inc will organize, on behalf of Intel Corporation, to pay the agreed upon funding amount via bank transfer.</p>
+
+  <p><strong>Acceptance</strong></p>
+  <p>To accept this SoW, please sign it via ContractSafe and notify your contact: jbarksdale@thechannelcompany.com</p>
+</div>
+
+<div class="sow-section-head">End-Customer Acceptance</div>
+<p class="sow-p" style="font-size:.78rem">By signing you agree to the terms and conditions.</p>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;margin:20px 0;padding:16px 0;border-top:1px solid var(--border)">
   <div>
-    <div style="font-family:Arial,sans-serif;font-size:.65rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--ink2);margin-bottom:16px">SUBMITTING SPECIALIST</div>
-    <div style="border-bottom:1px solid var(--ink);margin-bottom:4px;height:32px"></div>
-    <div style="font-size:.72rem;font-family:Arial,sans-serif;color:var(--ink2)">${fhName} · ${fhEmail}</div>
+    <div style="font-size:.65rem;color:var(--ink3);margin-bottom:20px">Name</div>
+    <div style="border-bottom:1px solid var(--ink);padding-bottom:4px;font-size:.8rem">${signatoryName}</div>
   </div>
   <div>
-    <div style="font-family:Arial,sans-serif;font-size:.65rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--ink2);margin-bottom:16px">REBATE RECIPIENT</div>
-    <div style="border-bottom:1px solid var(--ink);margin-bottom:4px;height:32px"></div>
-    <div style="font-size:.72rem;font-family:Arial,sans-serif;color:var(--ink2)">${custName} · Authorized Signatory</div>
+    <div style="font-size:.65rem;color:var(--ink3);margin-bottom:20px">Job Title</div>
+    <div style="border-bottom:1px solid var(--ink);padding-bottom:4px;font-size:.8rem">${signatoryTitle}</div>
   </div>
+  <div>
+    <div style="font-size:.65rem;color:var(--ink3);margin-bottom:20px">Date and Signature</div>
+    <div style="border-bottom:1px solid var(--ink);padding-bottom:4px;font-size:.8rem">&nbsp;</div>
+  </div>
+</div>
+
+<div class="sow-section-head">AWS Inc c/o TCC Inc Acceptance</div>
+<p class="sow-p" style="font-size:.78rem">By signing you agree to the terms and conditions.</p>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;margin:20px 0;padding:16px 0;border-top:1px solid var(--border)">
+  <div>
+    <div style="font-size:.65rem;color:var(--ink3);margin-bottom:20px">Contact Name</div>
+    <div style="border-bottom:1px solid var(--ink);padding-bottom:4px;font-size:.8rem">Jacob Barksdale</div>
+  </div>
+  <div>
+    <div style="font-size:.65rem;color:var(--ink3);margin-bottom:20px">Job Title</div>
+    <div style="border-bottom:1px solid var(--ink);padding-bottom:4px;font-size:.8rem">&nbsp;</div>
+  </div>
+  <div>
+    <div style="font-size:.65rem;color:var(--ink3);margin-bottom:20px">Date and Signature</div>
+    <div style="border-bottom:1px solid var(--ink);padding-bottom:4px;font-size:.8rem">&nbsp;</div>
+  </div>
+</div>
+
+<div style="margin-top:24px;padding:12px;background:var(--bg);border-radius:6px;border:1px solid var(--border);font-size:.68rem;color:var(--ink3);text-align:center">
+  Intel × AWS · Intel Acceleration Program · Confidential · intel.com/aws · aws.amazon.com/intel
 </div>`;
 
-  document.getElementById('sow-inner').innerHTML=html;
+  document.getElementById('sow-inner').innerHTML = html;
 }
 
 function generatePOPSchedule(cadence){
