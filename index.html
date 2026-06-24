@@ -1262,36 +1262,12 @@ textarea{resize:vertical;min-height:72px}
 hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
 
 /* ── ASK NOVA FLOATING ── */
-.nova-fab{
-  position:fixed;bottom:24px;right:24px;z-index:9999;
-  background:linear-gradient(135deg,#9333EA,#4C1D95);
-  color:#fff;border:none;border-radius:50px;
-  padding:12px 20px;font-size:.8rem;font-weight:700;
-  cursor:pointer;font-family:Arial,sans-serif;
-  box-shadow:0 4px 20px rgba(147,51,234,.4);
-  display:flex;align-items:center;gap:8px;
-  transition:transform .2s;
-}
+
 .nova-fab:hover{transform:scale(1.05)}
-.nova-panel{
-  position:fixed;bottom:80px;right:24px;z-index:9998;
-  width:360px;max-width:calc(100vw - 48px);
-  background:#fff;border-radius:12px;
-  box-shadow:0 8px 40px rgba(0,0,0,.18);
-  border:1px solid #E9D5FF;
-  display:none;flex-direction:column;
-  max-height:520px;overflow:hidden;
-}
-.nova-panel.open{display:flex}
-.nova-panel-header{
-  background:linear-gradient(135deg,#9333EA,#4C1D95);
-  color:#fff;padding:12px 16px;
-  display:flex;align-items:center;justify-content:space-between;
-  font-family:Arial,sans-serif;font-size:.82rem;font-weight:700;
-}
-.nova-panel-header button{
-  background:none;border:none;color:#fff;cursor:pointer;font-size:1.1rem;
-}
+
+
+
+
 .nova-messages{
   flex:1;overflow-y:auto;padding:14px;
   display:flex;flex-direction:column;gap:10px;
@@ -1318,8 +1294,8 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
   cursor:pointer;font-family:Arial,sans-serif;white-space:nowrap;
 }
 @media(max-width:600px){
-  .nova-panel{width:calc(100vw - 32px);right:16px;bottom:72px}
-  .nova-fab{bottom:16px;right:16px;padding:10px 16px}
+  
+  
 }
 
 </style>
@@ -1330,6 +1306,103 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
 <!-- ══════════════════════════════════════════════
      LOGIN SCREEN
 ══════════════════════════════════════════════ -->
+<div id="welcome-screen" style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#001f5c 0%,#003087 50%,#0052cc 100%);padding:20px">
+  <div style="background:#fff;border-radius:12px;max-width:680px;width:100%;padding:32px;box-shadow:0 20px 60px rgba(0,0,0,.3)">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;padding-bottom:16px;border-bottom:2px solid #f0f0f0">
+      <div style="background:#003087;color:#fff;font-weight:900;font-size:11px;padding:5px 8px;border-radius:4px;letter-spacing:.5px">intel</div>
+      <div style="font-size:13px;color:#666">×</div>
+      <div style="color:#FF9900;font-weight:900;font-size:13px;letter-spacing:.5px">aws</div>
+      <div style="margin-left:auto;font-size:.65rem;color:#999;text-transform:uppercase;letter-spacing:.05em">IAP Workflow Tool · Internal Reference</div>
+    </div>
+
+    <div style="font-size:1.15rem;font-weight:800;color:#001f5c;margin-bottom:4px">Intel Acceleration Program</div>
+    <div style="font-size:.78rem;color:#666;margin-bottom:20px">End-to-end workflow for partners, customers, Intel sellers, and AWS representatives · Managed by ASP Core</div>
+
+    <div style="background:#f8f9ff;border-left:4px solid #003087;padding:12px 14px;border-radius:0 6px 6px 0;margin-bottom:20px;font-size:.78rem;font-style:italic;color:#333;line-height:1.6">
+      "Cost Explorer is your starting line. The Pricing Calculator is your finish line. Intel pays a percentage of the target ARR."
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
+      <div style="background:#f8f9ff;border-radius:8px;padding:14px;border:1px solid #e0e7ff">
+        <div style="font-size:.65rem;color:#003087;text-transform:uppercase;letter-spacing:.05em;font-weight:700;margin-bottom:8px">📊 Cost Explorer = Baseline</div>
+        <div style="font-size:.74rem;color:#444;line-height:1.6">The customer pulls their current Intel EC2 spend and sends it <strong>directly to TCC and Intel</strong>. AWS cannot forward this data. This is the "before" picture and the Proof of Performance at each quarter.</div>
+      </div>
+      <div style="background:#f8f9ff;border-radius:8px;padding:14px;border:1px solid #e0e7ff">
+        <div style="font-size:.65rem;color:#003087;text-transform:uppercase;letter-spacing:.05em;font-weight:700;margin-bottom:8px">🧮 Pricing Calculator = Target</div>
+        <div style="font-size:.74rem;color:#444;line-height:1.6">The partner or customer models future spend on Gen 8 Intel instances. Monthly total × 12 = Target ARR. Intel pays 4.5% (Migrate) or 1% (Optimize, NTE $250K) of that ARR.</div>
+      </div>
+    </div>
+
+    <div style="margin-bottom:16px">
+      <div style="font-size:.7rem;font-weight:700;color:#001f5c;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Eligible Instances — Gen 8 Intel Xeon 6 Only</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <span style="background:#003087;color:#fff;padding:4px 10px;border-radius:20px;font-size:.72rem;font-weight:600">m8i — General Purpose</span>
+        <span style="background:#003087;color:#fff;padding:4px 10px;border-radius:20px;font-size:.72rem;font-weight:600">c8i — Compute Optimized</span>
+        <span style="background:#003087;color:#fff;padding:4px 10px;border-radius:20px;font-size:.72rem;font-weight:600">r8i — Memory Optimized</span>
+        <span style="background:#003087;color:#fff;padding:4px 10px;border-radius:20px;font-size:.72rem;font-weight:600">x8i — Extended Memory</span>
+      </div>
+      <div style="font-size:.67rem;color:#e53e3e;margin-top:6px">⚠ Trainium (Trn) and Graviton (Arm) instances are explicitly excluded from all calculations.</div>
+    </div>
+
+    <div style="margin-bottom:16px">
+      <div style="font-size:.7rem;font-weight:700;color:#001f5c;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Quarterly Milestone Payment Schedule</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
+        <div style="background:#f0f7f0;border-radius:6px;padding:10px;text-align:center;border:1px solid #86efac">
+          <div style="font-size:.65rem;color:#166534;font-weight:700">Q1 · Month 3</div>
+          <div style="font-size:1.2rem;font-weight:800;color:#166534">10%</div>
+          <div style="font-size:.6rem;color:#555">Pilot Intel instances live + migration roadmap</div>
+        </div>
+        <div style="background:#f0f7f0;border-radius:6px;padding:10px;text-align:center;border:1px solid #86efac">
+          <div style="font-size:.65rem;color:#166534;font-weight:700">Q2 · Month 6</div>
+          <div style="font-size:1.2rem;font-weight:800;color:#166534">20%</div>
+          <div style="font-size:.6rem;color:#555">≥25% of target ARR on Intel</div>
+        </div>
+        <div style="background:#f0f7f0;border-radius:6px;padding:10px;text-align:center;border:1px solid #86efac">
+          <div style="font-size:.65rem;color:#166534;font-weight:700">Q3 · Month 9</div>
+          <div style="font-size:1.2rem;font-weight:800;color:#166534">30%</div>
+          <div style="font-size:.6rem;color:#555">≥50% of target ARR on Intel</div>
+        </div>
+        <div style="background:#f0f7f0;border-radius:6px;padding:10px;text-align:center;border:1px solid #86efac">
+          <div style="font-size:.65rem;color:#166534;font-weight:700">Q4 · Month 12</div>
+          <div style="font-size:1.2rem;font-weight:800;color:#166534">40%</div>
+          <div style="font-size:.6rem;color:#555">≥75% of target ARR · sustained 30+ days</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:#fff8f0;border-radius:8px;padding:12px 14px;border:1px solid #fed7aa;margin-bottom:20px">
+      <div style="font-size:.7rem;font-weight:700;color:#c2410c;margin-bottom:6px">⚠ Key Guardrails — Review at Kickoff</div>
+      <div style="font-size:.72rem;color:#555;line-height:1.8">
+        · AWS <strong>cannot</strong> share or forward Cost Explorer data to Intel or TCC — customer sends directly<br>
+        · Rebate applies to <strong>post-discount ARR only</strong> — never list price<br>
+        · Trainium and Graviton workloads are <strong>excluded</strong> from all calculations<br>
+        · Q4 POP requires <strong>sustained 30-day run-rate</strong> — not a single-day spike<br>
+        · A missed quarterly submission <strong>rolls to the next cycle</strong> — it does not forfeit future milestones
+      </div>
+    </div>
+
+    <div style="margin-bottom:20px">
+      <div style="font-size:.7rem;font-weight:700;color:#001f5c;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Approval Flow</div>
+      <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">
+        <div style="background:#003087;color:#fff;padding:5px 10px;border-radius:20px;font-size:.68rem">1 · Submit</div>
+        <div style="color:#999;font-size:.8rem">→</div>
+        <div style="background:#003087;color:#fff;padding:5px 10px;border-radius:20px;font-size:.68rem">2 · ASP Core</div>
+        <div style="color:#999;font-size:.8rem">→</div>
+        <div style="background:#003087;color:#fff;padding:5px 10px;border-radius:20px;font-size:.68rem">3 · Intel Leadership</div>
+        <div style="color:#999;font-size:.8rem">→</div>
+        <div style="background:#FF9900;color:#000;padding:5px 10px;border-radius:20px;font-size:.68rem;font-weight:700">4 · TCC / IPIC</div>
+      </div>
+      <div style="font-size:.67rem;color:#666;margin-top:6px">Yasmine Nsouli / Jeanine Reidel → Akanksha Bilani → The Channel Company (TCC disburses — not Intel, not AWS)</div>
+    </div>
+
+    <button onclick="document.getElementById('welcome-screen').style.display='none'" 
+      style="width:100%;background:linear-gradient(135deg,#001f5c,#003087);color:#fff;border:none;border-radius:8px;padding:14px;font-size:.9rem;font-weight:700;cursor:pointer;font-family:Arial,sans-serif;letter-spacing:.5px">
+      I understand — Continue to Sign In →
+    </button>
+    <div style="text-align:center;font-size:.65rem;color:#999;margin-top:8px">For questions on deal eligibility or program mechanics, contact Yasmine Nsouli · ASP Core · Intel × AWS IAP Program</div>
+  </div>
+</div>
+
 <div id="login-screen">
   <div class="login-box">
     <div class="login-logo">
@@ -1972,6 +2045,79 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
           <div class="step-desc">Enter the baseline (Cost Explorer) and target post-migration spend (Simple Monthly). Intel pays 4.5% or 1% of total target ARR. Monthly breakdown required for POP. ★</div>
         </div>
 
+        <!-- ── COST EXPLORER GUIDE ── -->
+        <div style="border:1px solid #e0e7ff;border-radius:8px;margin-bottom:16px;overflow:hidden">
+          <div style="background:linear-gradient(135deg,#001f5c,#003087);color:#fff;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="toggleCEGuide()">
+            <div>
+              <div style="font-weight:700;font-size:.82rem">📊 Cost Explorer Guide — How to Pull the Baseline & POP</div>
+              <div style="font-size:.68rem;opacity:.8;margin-top:2px">Step-by-step · Customer sends directly to TCC and Intel · AWS cannot forward this data</div>
+            </div>
+            <span id="ce-guide-arrow" style="font-size:1rem;transition:.2s">▼</span>
+          </div>
+          <div id="ce-guide-body" style="display:none;padding:16px;background:#fafbff">
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+              <div>
+                <div style="font-size:.68rem;font-weight:700;color:#001f5c;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Step-by-Step: Pulling the Baseline</div>
+                <ol style="font-size:.74rem;color:#444;line-height:2;padding-left:16px;margin:0">
+                  <li>AWS Console → Billing & Cost Management → Cost Explorer</li>
+                  <li>Set <strong>Service</strong> filter to <strong>EC2</strong></li>
+                  <li>Group by <strong>Instance Type</strong></li>
+                  <li>Set date range to <strong>last 3–12 months</strong></li>
+                  <li>Filter to Intel families: <strong>m8i, c8i, r8i, x8i</strong> only<br><span style="color:#e53e3e;font-size:.68rem">⚠ Exclude Trainium (Trn) and Graviton (Arm)</span></li>
+                  <li><strong>Save this filter</strong> as a named report — reuse each quarter</li>
+                  <li>Export as <strong>CSV or screenshot</strong></li>
+                  <li>Customer emails export <strong>directly to TCC and Intel</strong></li>
+                </ol>
+              </div>
+              <div>
+                <div style="font-size:.68rem;font-weight:700;color:#001f5c;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Quarterly POP — Same Steps, New Date Range</div>
+                <div style="background:#f0f7f0;border-radius:6px;padding:10px;border:1px solid #86efac;margin-bottom:8px">
+                  <div style="font-size:.7rem;color:#166534;font-weight:700;margin-bottom:4px">💡 Pro Tip: Save the Filter</div>
+                  <div style="font-size:.7rem;color:#444;line-height:1.6">When pulling the baseline, save the Cost Explorer filter configuration as a named saved report. For each quarterly POP, the customer reopens the same report, updates only the date range, and exports. A 5-step setup becomes a 1-click action every quarter.</div>
+                </div>
+                <div style="font-size:.7rem;color:#444;line-height:1.8">
+                  <strong>Q1 (Month 3):</strong> Initial Intel instances live<br>
+                  <strong>Q2 (Month 6):</strong> Date range = Month 4–6<br>
+                  <strong>Q3 (Month 9):</strong> Date range = Month 7–9<br>
+                  <strong>Q4 (Month 12):</strong> Date range = Month 10–12 · Must show 30+ days sustained
+                </div>
+              </div>
+            </div>
+
+            <div style="border-top:1px solid #e0e7ff;padding-top:12px">
+              <div style="font-size:.68rem;font-weight:700;color:#001f5c;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">📧 Customer Submission Email Template</div>
+              <div style="background:#f8f8f8;border:1px solid #ddd;border-radius:6px;padding:12px;font-family:monospace;font-size:.72rem;line-height:1.8;position:relative">
+                <button onclick="copyCETemplate()" style="position:absolute;top:8px;right:8px;background:#003087;color:#fff;border:none;border-radius:4px;padding:3px 8px;font-size:.65rem;cursor:pointer">Copy</button>
+                <div id="ce-email-template">To: jbarksdale@thechannelcompany.com<br>
+Subject: IAP Cost Explorer Submission — [Customer Name] — Q[X] POP<br>
+<br>
+Hi Jacob,<br>
+<br>
+Please find attached our Cost Explorer export for [Q1/Q2/Q3/Q4] of our IAP engagement.<br>
+<br>
+Details:<br>
+- Customer: [Legal Name]<br>
+- Program: [Migration 4.5% / Optimization 1%]<br>
+- Period covered: [Start Date] to [End Date]<br>
+- Intel instance families included: m8i, c8i, r8i, x8i<br>
+- Trainium and Graviton excluded from export<br>
+<br>
+The Cost Explorer export is attached as a CSV.<br>
+<br>
+Please confirm receipt.<br>
+<br>
+[Your Name]<br>
+[Title] · [Company]</div>
+              </div>
+            </div>
+
+            <div style="background:#fff8f0;border-radius:6px;padding:10px 12px;border-left:3px solid #f97316;margin-top:12px;font-size:.72rem;color:#555;line-height:1.6">
+              <strong style="color:#c2410c">Compliance reminder:</strong> AWS cannot share or forward Cost Explorer data to Intel or TCC. The customer must pull the export from their own AWS console and send it directly. AWS may coach the customer on how to use the tool — that is the extent of AWS involvement in the data transfer.
+            </div>
+          </div>
+        </div>
+
         <div class="calc-methodology">
           <strong>How it works:</strong> Intel pays 4.5% (Migrate) or 1% (Optimize, NTE $250k) of the customer's total target ARR post-migration. Baseline from Cost Explorer shows the starting point. Simple Monthly × 12 = target ARR. POP requires Cost Explorer confirming the customer reached target spend. Maximum duration: 12 months.
         </div>
@@ -2016,10 +2162,28 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
             </div>
           </div>
 
-          <!-- Method 2: Intel Instance Pricing API -->
+          <!-- Method 2: Intel Instance Pricing Chat -->
           <div id="baseline-method-2" style="display:none">
             <div class="alert alert-info" style="margin-bottom:12px">
-              <strong>Intel Instance Pricing</strong> — use when Cost Explorer is not yet available or to size a net-new workload. Select an instance family and size, enter count, and click ⚡ Get Intel Price to fetch list price directly from the Intel pricing API. The Simple Monthly target below auto-fills.
+              <strong>Intel Pricing Assistant</strong> — ask about any 8th gen instance price, program rates, or regional availability. Powered by Intel's pricing API.
+            </div>
+            <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:12px">
+              <div id="intel-chat-messages" style="min-height:120px;max-height:280px;overflow-y:auto;padding:12px;background:#fafafa;font-size:.78rem;line-height:1.6">
+                <div style="color:var(--ink3);font-size:.72rem">Ask the Intel Pricing Assistant — e.g. "Price m8i.large in us-east-1" or "What is the IAP rate for r8i?" or "Compare m8i vs m7i cost"</div>
+              </div>
+              <div style="display:flex;gap:8px;padding:8px;border-top:1px solid var(--border);background:#fff">
+                <input type="text" id="intel-chat-input"
+                  placeholder="e.g. Price m8i.2xlarge in ca-central-1 with Intel program..."
+                  style="flex:1;font-size:.78rem;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-family:Arial,sans-serif"
+                  onkeydown="if(event.key==='Enter')sendIntelChat()">
+                <button onclick="sendIntelChat()"
+                  style="background:var(--intel);color:#fff;border:none;border-radius:6px;padding:8px 16px;font-size:.75rem;font-weight:700;cursor:pointer;font-family:Arial,sans-serif;white-space:nowrap">
+                  ⚡ Ask Intel
+                </button>
+              </div>
+            </div>
+            <div style="font-size:.68rem;color:var(--ink3)">
+              Try: "Price m8i.large us-east-1" · "IAP rate for c8i migration" · "m8i vs m7i savings" · "r8i.8xlarge Canada pricing"
             </div>
           </div>
         </div>
@@ -2235,7 +2399,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
           <div class="step-desc">Review the full deal before generating the SOW. Nova will suggest any gaps or improvements.</div>
         </div>
 
-        <div id="summary-nova-suggestion" style="display:none;margin-bottom:16px"></div>
+        
 
         <div class="section-card" id="summary-content">
           <div style="text-align:center;padding:30px;color:var(--ink3);font-size:.8rem">Click Generate Summary to populate.</div>
@@ -2243,7 +2407,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
 
         <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
           <button class="btn btn-primary" onclick="generateSummary()">⚡ Generate Summary</button>
-          <button class="btn btn-nova" onclick="runNovaSummaryCheck()">✦ Nova Review</button>
+          
         </div>
 
         <div class="btn-row">
@@ -2304,10 +2468,10 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
           <button class="btn btn-secondary" onclick="downloadSOWWord()">📄 Save as Word</button>
           <button class="btn btn-secondary" onclick="window.print()">🖨 Print / Save PDF</button>
           <button class="btn btn-secondary" onclick="copySOWText()">📋 Copy Text</button>
-          <button class="btn btn-nova" onclick="runSOWCheck()" id="sow-check-btn">✦ Nova SOW Check</button>
+          
         </div>
 
-        <div id="sow-check-result" style="display:none;margin-bottom:16px"></div>
+        
 
         <div class="sow-document" id="sow-document">
           <div class="sow-watermark">CONFIDENTIAL</div>
@@ -2343,11 +2507,11 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
           <button class="btn btn-secondary" onclick="downloadSOWWord()">📄 Save as Word</button>
           <button class="btn btn-secondary" onclick="window.print()">🖨 Print / Save PDF</button>
           <button class="btn btn-secondary" onclick="copySOWText()">📋 Copy Text</button>
-          <button class="btn btn-nova" onclick="runSOWCheck()" id="sow-check-btn">✦ Nova SOW Check</button>
+          
         </div>
 
         <!-- Nova SOW Check Result -->
-        <div id="sow-check-result" style="display:none;margin-bottom:16px"></div>
+        
 
         <div class="sow-document" id="sow-document">
           <div class="sow-watermark">CONFIDENTIAL</div>
@@ -3350,7 +3514,7 @@ function generateSummary(){
   if(box) box.innerHTML = html;
 }
 
-async function runNovaSummaryCheck(){
+async function _disabledRunNovaSummaryCheck(){
   const custName = v('cust-name') || v('cust-name-intel') || '[Customer]';
   const box = document.getElementById('summary-nova-suggestion');
   if(!box) return;
@@ -3376,6 +3540,82 @@ async function runNovaSummaryCheck(){
   } catch(e) {
     box.innerHTML = '<div style="padding:12px;background:#fff5f5;border-radius:8px;border:1px solid #fca5a5;font-size:.78rem">Nova unavailable — proceed to SOW manually.</div>';
   }
+}
+
+/* ── INTEL PRICING CHAT ────────────────────────────────────── */
+async function sendIntelChat(){
+  const input = document.getElementById('intel-chat-input');
+  const messages = document.getElementById('intel-chat-messages');
+  if(!input || !messages) return;
+  const msg = input.value.trim();
+  if(!msg) return;
+
+  // Show user message
+  messages.innerHTML += '<div style="margin-bottom:8px"><span style="background:var(--intel);color:#fff;padding:3px 8px;border-radius:10px;font-size:.72rem">' + msg + '</span></div>';
+  input.value = '';
+  messages.innerHTML += '<div id="intel-typing" style="color:var(--ink3);font-size:.72rem;font-style:italic">Intel Pricing API is responding...</div>';
+  messages.scrollTop = messages.scrollHeight;
+
+  try {
+    const r = await fetch(API_URL + '/intel/price', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({message: msg})
+    });
+    const data = await r.json();
+    document.getElementById('intel-typing')?.remove();
+
+    let responseText = '';
+    if(data.response) responseText = data.response;
+    else if(data.answer) responseText = data.answer;
+    else if(data.error) responseText = '⚠ ' + data.error;
+    else responseText = JSON.stringify(data, null, 2);
+
+    // Try to extract pricing and auto-fill
+    const annualMatch = responseText.match(/\$[\d,]+(?:\.\d+)?.*?annual/i);
+    const hourlyMatch = responseText.match(/\$[\d.]+.*?hour/i);
+
+    messages.innerHTML += '<div style="margin-bottom:12px;padding:8px 10px;background:#f0f4ff;border-radius:6px;border-left:3px solid var(--intel);font-size:.75rem;white-space:pre-wrap">' +
+      '<strong style="color:var(--intel);font-size:.65rem;display:block;margin-bottom:4px">✦ Intel Pricing API</strong>' +
+      responseText.replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</div>';
+    messages.scrollTop = messages.scrollHeight;
+
+    // Auto-fill Simple Monthly if price detected
+    if(data.on_demand_hourly || data.hourly_price){
+      const hourly = data.on_demand_hourly || data.hourly_price;
+      const monthly = hourly * 730;
+      const smField = document.getElementById('simple-monthly');
+      if(smField && !smField.value){
+        smField.value = Math.round(monthly);
+        calcSimpleMonthly();
+        messages.innerHTML += '<div style="font-size:.68rem;color:var(--green);margin-bottom:8px">✓ Monthly price auto-filled: $' + Math.round(monthly).toLocaleString() + '</div>';
+      }
+    }
+  } catch(e) {
+    document.getElementById('intel-typing')?.remove();
+    messages.innerHTML += '<div style="margin-bottom:8px;padding:8px;background:#fff5f5;border-radius:6px;font-size:.72rem;color:#dc2626">Could not reach Intel Pricing API. Error: ' + e.message + '</div>';
+    messages.scrollTop = messages.scrollHeight;
+  }
+}
+
+function toggleCEGuide(){
+  const body = document.getElementById('ce-guide-body');
+  const arrow = document.getElementById('ce-guide-arrow');
+  if(!body) return;
+  const open = body.style.display !== 'none';
+  body.style.display = open ? 'none' : 'block';
+  if(arrow) arrow.textContent = open ? '▼' : '▲';
+}
+
+function copyCETemplate(){
+  const el = document.getElementById('ce-email-template');
+  if(!el) return;
+  const text = el.innerText;
+  navigator.clipboard.writeText(text).then(()=>{
+    const btn = event.target;
+    btn.textContent = 'Copied!';
+    setTimeout(()=>btn.textContent='Copy', 2000);
+  });
 }
 
 function validateACE(el){
@@ -3567,7 +3807,7 @@ function generateSOW(){
 <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;margin:20px 0;padding:16px 0;border-top:1px solid var(--border)">
   <div>
     <div style="font-size:.65rem;color:var(--ink3);margin-bottom:20px">Contact Name</div>
-    <div style="border-bottom:1px solid var(--ink);padding-bottom:4px;font-size:.8rem">Jacob Barksdale</div>
+    <div style="border-bottom:1px solid var(--ink);padding-bottom:4px;font-size:.8rem">&nbsp;</div>
   </div>
   <div>
     <div style="font-size:.65rem;color:var(--ink3);margin-bottom:20px">Job Title</div>
@@ -3719,7 +3959,7 @@ async function renderApprovalQueue(){
   container.innerHTML=html;
 }
 
-async function runSOWCheck(){
+async function _disabledRunSOWCheck(){
   const btn = document.getElementById('sow-check-btn');
   const panel = document.getElementById('sow-check-result');
   btn.disabled = true;
@@ -4625,74 +4865,9 @@ if('serviceWorker' in navigator){
 </script>
 
 <!-- ── ASK NOVA FLOATING PANEL ── -->
-<button class="nova-fab" onclick="toggleNovaPanel()">✦ Ask Nova</button>
 
-<div class="nova-panel" id="nova-panel">
-  <div class="nova-panel-header">
-    <span>✦ Ask Nova — IAP Assistant</span>
-    <button onclick="toggleNovaPanel()">✕</button>
-  </div>
-  <div class="nova-messages" id="nova-messages">
-    <div class="nova-msg nova">Hi! I'm Nova, your IAP co-sell assistant. Ask me anything about the Intel Acceleration Program — deal eligibility, rates, POP requirements, ACE process, or help filling in this form.</div>
-  </div>
-  <div class="nova-input-row">
-    <input type="text" id="nova-input" placeholder="Ask anything about IAP..." 
-      onkeydown="if(event.key==='Enter')sendNovaMessage()">
-    <button onclick="sendNovaMessage()">Send</button>
-  </div>
-</div>
 
-<script>
-function toggleNovaPanel(){
-  const p = document.getElementById('nova-panel');
-  p.classList.toggle('open');
-  if(p.classList.contains('open')){
-    document.getElementById('nova-input').focus();
-  }
-}
 
-async function sendNovaMessage(){
-  const input = document.getElementById('nova-input');
-  const msgs = document.getElementById('nova-messages');
-  const text = (input.value||'').trim();
-  if(!text) return;
-  input.value = '';
-
-  // Add user message
-  const userMsg = document.createElement('div');
-  userMsg.className = 'nova-msg user';
-  userMsg.textContent = text;
-  msgs.appendChild(userMsg);
-  msgs.scrollTop = msgs.scrollHeight;
-
-  // Add loading
-  const loadMsg = document.createElement('div');
-  loadMsg.className = 'nova-msg nova';
-  loadMsg.textContent = '✦ Thinking...';
-  msgs.appendChild(loadMsg);
-  msgs.scrollTop = msgs.scrollHeight;
-
-  try{
-    const r = await fetch(API_URL+'/ai/ask', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        question: text,
-        context: {
-          currentStep: document.querySelector('.step-badge') ? document.querySelector('.step-badge').textContent : '',
-          custName: (document.getElementById('cust-name')||{}).value||'',
-          actType: (document.getElementById('act-type')||{}).value||''
-        }
-      })
-    });
-    const data = await r.json();
-    loadMsg.textContent = data.answer || 'Sorry, I could not get a response. Try again.';
-  }catch(e){
-    loadMsg.textContent = 'Connection error. Make sure you are online and try again.';
-  }
-  msgs.scrollTop = msgs.scrollHeight;
-}
-</script>
 
 </body>
 </html>
