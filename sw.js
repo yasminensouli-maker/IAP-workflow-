@@ -1,8 +1,9 @@
-const CACHE = 'iap-v1';
+const CACHE = 'iap-v2';
 const ASSETS = [
   '/',
   '/index.html',
-  '/manifest.json'
+  '/manifest.json',
+  '/logo.png'
 ];
 
 self.addEventListener('install', function(e){
