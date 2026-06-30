@@ -1,4 +1,4 @@
-const CACHE = 'iap-v2';
+const CACHE = 'iap-v3';
 const ASSETS = [
   '/',
   '/index.html',

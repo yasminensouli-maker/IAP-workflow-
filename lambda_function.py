@@ -120,6 +120,30 @@ IAP Workflow
 """
     send_email([submitter_email], subject, body)
 
+def notify_submitted(deal):
+    """Fire when a new deal is first submitted — email ASP Core."""
+    subject = f"IAP Deal Submitted: {deal.get('custName', 'New Deal')}"
+    team = deal.get('team', [{}])
+    submitter_name = team[0].get('name', 'A submitter') if team else 'A submitter'
+    rebate = float(deal.get('rebate', 0))
+    body = f"""Hi Yasmine and Jeanine,
+
+A new IAP deal has been submitted and is awaiting ASP Core review.
+
+Deal details:
+- Customer: {deal.get('custName', '')}
+- Submitted by: {submitter_name}
+- Activity Type: {deal.get('actType', '')}
+- ACE Opportunity ID: {deal.get('aceID', 'Pending')}
+- Estimated Benefit: ${rebate:,.2f}
+
+Please log in to the IAP Workflow to review and approve:
+{APP_URL}
+
+{time.strftime('%B %d, %Y')}
+"""
+    send_email(['yasmine@cloudzero.ca', 'reidelj@amazon.com'], subject, body)
+
 def lambda_handler(event, context):
     headers = {
         'Access-Control-Allow-Origin': '*',
@@ -163,6 +187,10 @@ def lambda_handler(event, context):
                 notify_tcc(deal)
             elif curr_stage == 'approved':
                 notify_submitter_approved(deal)
+
+            # Fire email when a new deal is first submitted
+            if body.get('submitted'):
+                notify_submitted(deal)
 
             return ok(headers, {'saved': True, 'id': deal['id']})
 

@@ -1878,7 +1878,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
         <div class="btn-row">
           <button class="btn btn-primary" onclick="goStep(2)">Continue → Customer Profile</button>
           <button class="btn btn-secondary" onclick="saveDraft()">Save Draft</button>
-          <button class="btn btn-aws" onclick="exportIPIC()">⬇ Export IPIC / Smartsheet Row</button>
+          <button class="btn btn-aws" onclick="exportIPIC()">Export IPIC / Smartsheet Row</button>
         </div>
         </div><!-- /aws-specialist-view -->
       </div><!-- /step1 -->
@@ -2036,7 +2036,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
         <div style="border:1px solid #e0e7ff;border-radius:8px;margin-bottom:16px;overflow:hidden">
           <div style="background:linear-gradient(135deg,#001f5c,#003087);color:#fff;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="toggleCEGuide()">
             <div>
-              <div style="font-weight:700;font-size:.82rem">📊 Cost Explorer Guide — How to Pull the Baseline & POP</div>
+              <div style="font-weight:700;font-size:.82rem">Cost Explorer Guide — How to Pull the Baseline &amp; POP</div>
               <div style="font-size:.68rem;opacity:.8;margin-top:2px">Step-by-step · Customer sends directly to TCC and Intel · AWS cannot forward this data</div>
             </div>
             <span id="ce-guide-arrow" style="font-size:1rem;transition:.2s">▼</span>
@@ -2048,10 +2048,10 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
                 <div style="font-size:.68rem;font-weight:700;color:#001f5c;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Step-by-Step: Pulling the Baseline</div>
                 <ol style="font-size:.74rem;color:#444;line-height:2;padding-left:16px;margin:0">
                   <li>AWS Console → Billing & Cost Management → Cost Explorer</li>
-                  <li>Set <strong>Service</strong> filter to <strong>EC2</strong></li>
+                  <li>Set <strong>Service</strong> filter to <strong>EC2, RDS, ElastiCache, OpenSearch</strong></li>
                   <li>Group by <strong>Instance Type</strong></li>
                   <li>Set date range to <strong>last 3–12 months</strong></li>
-                  <li>Filter to Intel families: <strong>m8i, c8i, r8i, x8i</strong> only<br><span style="color:#e53e3e;font-size:.68rem">⚠ Exclude Trainium (Trn) and Graviton (Arm)</span></li>
+                  <li>Filter to Intel families: <strong>m8i, c8i, r8i, x8i</strong> only<br><span style="color:#e53e3e;font-size:.68rem">Exclude Trainium (Trn) and Graviton (Arm)</span></li>
                   <li><strong>Save this filter</strong> as a named report — reuse each quarter</li>
                   <li>Export as <strong>CSV or screenshot</strong></li>
                   <li>Customer emails export <strong>directly to TCC and Intel</strong></li>
@@ -2060,7 +2060,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
               <div>
                 <div style="font-size:.68rem;font-weight:700;color:#001f5c;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Quarterly POP — Same Steps, New Date Range</div>
                 <div style="background:#f0f7f0;border-radius:6px;padding:10px;border:1px solid #86efac;margin-bottom:8px">
-                  <div style="font-size:.7rem;color:#166534;font-weight:700;margin-bottom:4px">💡 Pro Tip: Save the Filter</div>
+                  <div style="font-size:.7rem;color:#166534;font-weight:700;margin-bottom:4px">Pro Tip: Save the Filter</div>
                   <div style="font-size:.7rem;color:#444;line-height:1.6">When pulling the baseline, save the Cost Explorer filter configuration as a named saved report. For each quarterly POP, the customer reopens the same report, updates only the date range, and exports. A 5-step setup becomes a 1-click action every quarter.</div>
                 </div>
                 <div style="font-size:.7rem;color:#444;line-height:1.8">
@@ -2073,7 +2073,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
             </div>
 
             <div style="border-top:1px solid #e0e7ff;padding-top:12px">
-              <div style="font-size:.68rem;font-weight:700;color:#001f5c;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">📧 Customer Submission Email Template</div>
+              <div style="font-size:.68rem;font-weight:700;color:#001f5c;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Customer Submission Email Template</div>
               <div style="background:#f8f8f8;border:1px solid #ddd;border-radius:6px;padding:12px;font-family:monospace;font-size:.72rem;line-height:1.8;position:relative">
                 <button onclick="copyCETemplate()" style="position:absolute;top:8px;right:8px;background:#003087;color:#fff;border:none;border-radius:4px;padding:3px 8px;font-size:.65rem;cursor:pointer">Copy</button>
                 <div id="ce-email-template">To: jbarksdale@thechannelcompany.com<br>
@@ -2122,7 +2122,7 @@ Please confirm receipt.<br>
           <div style="display:flex;gap:0;margin-bottom:16px;border:1px solid var(--border);border-radius:6px;overflow:hidden">
             <button id="method-btn-1" onclick="setBaselineMethod(1)"
               style="flex:1;padding:10px;font-family:Arial,sans-serif;font-size:.75rem;font-weight:700;border:none;background:var(--intel);color:#fff;cursor:pointer;border-right:1px solid rgba(255,255,255,.2)">
-              📊 Cost Explorer
+              Cost Explorer
             </button>
             <button id="method-btn-2" onclick="setBaselineMethod(2)"
               style="flex:1;padding:10px;font-family:Arial,sans-serif;font-size:.75rem;font-weight:700;border:none;background:var(--bg);color:var(--ink2);cursor:pointer">
@@ -2472,7 +2472,7 @@ Please confirm receipt.<br>
         <div class="btn-row">
           <button class="btn btn-secondary" onclick="goStep(6)">← Back</button>
           <button class="btn btn-success" onclick="submitDeal()">✓ Submit to Core</button>
-          <button class="btn btn-aws" onclick="exportIPIC()">⬇ Export IPIC Row</button>
+          <button class="btn btn-aws" onclick="exportIPIC()">Export IPIC Row</button>
           <button class="btn btn-secondary" onclick="downloadSOWWord()">📄 Download SOW as Word</button>
         </div>
       </div>
@@ -2512,7 +2512,7 @@ Please confirm receipt.<br>
         <div class="btn-row">
           <button class="btn btn-secondary" onclick="goStep(5)">← Back</button>
           <button class="btn btn-success" onclick="submitDeal()">✓ Submit to Core</button>
-          <button class="btn btn-aws" onclick="exportIPIC()">⬇ Export IPIC Row</button>
+          <button class="btn btn-aws" onclick="exportIPIC()">Export IPIC Row</button>
           <button class="btn btn-secondary" onclick="downloadSOWWord()">📄 Download SOW as Word</button>
           <button class="btn btn-secondary" onclick="downloadRoadmapWord()">📋 Download Roadmap as Word</button>
         </div>
@@ -2536,7 +2536,7 @@ Please confirm receipt.<br>
 
         <div class="section-card">
           <div class="section-card-title">All Deals</div>
-        <button class="btn btn-aws btn-sm" onclick="downloadDealsCSV()" style="margin-bottom:12px">⬇ Download Deals (Excel)</button>
+        <button class="btn btn-aws btn-sm" onclick="downloadDealsCSV()" style="margin-bottom:12px">Download Deals (Excel)</button>
           <table class="deals-table">
             <thead>
               <tr>
@@ -3599,7 +3599,7 @@ async function sendIntelChat(){
           }
         }
       } else if(data.error) {
-        responseText = '⚠ ' + data.error;
+        responseText = '' + data.error;
       } else {
         // Last resort: find any string field that looks like a response
         const keys = ['text', 'output', 'result', 'body', 'reply'];
@@ -3692,6 +3692,21 @@ function showFillGuide(){
         <div style="margin-bottom:12px"><div style="font-size:.82rem;font-weight:700;color:#fff;margin-bottom:3px">Customer</div><div style="font-size:.78rem;color:rgba(255,255,255,.7);line-height:1.65">Share current spend via a Cost Explorer export sent directly to Intel and TCC. Projected spend on Gen 8 Intel instances sets the annual target. Intel funds up to 4.5% of that target, distributed quarterly as milestones are reached. Funding begins at Q1.</div></div>
         <div style="margin-bottom:12px"><div style="font-size:.82rem;font-weight:700;color:#fff;margin-bottom:3px">Intel Seller</div><div style="font-size:.78rem;color:rgba(255,255,255,.7);line-height:1.65">Baseline comes from the customer Cost Explorer, sent directly to TCC. Target ARR derives from the Pricing Calculator on the Gen 8 Intel instances selected. Payments follow the weighted 10/20/30/40 schedule. Instance family selection drives deal value.</div></div>
         <div><div style="font-size:.82rem;font-weight:700;color:#fff;margin-bottom:3px">AWS Rep (Account Manager / SA)</div><div style="font-size:.78rem;color:rgba(255,255,255,.7);line-height:1.65">Cost Explorer sets the before, the Pricing Calculator builds the after, and the delta drives the Intel rebate. AWS never transfers data to Intel. The AWS role is advising on instance selection and building the estimate. There is no compliance exposure when the customer retains data ownership.</div></div>
+      </div>
+
+      <div style="margin-top:18px">
+        <div style="font-size:.7rem;color:#FF9900;text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin-bottom:10px">Setting the Target — AWS Pricing Calculator</div>
+        <div style="font-size:.78rem;color:rgba(255,255,255,.7);line-height:1.7">Open Billing then Budgets and Planning then Pricing Calculator. Create a workload estimate using the target Gen 8 Intel instances: select type, size, instance count, and region for each workload. Note the monthly total, then paste it into the Monthly Spend Post-Migration field. The tool derives Target ARR, WNE, monthly Intel benefit, and expected ROI.</div>
+      </div>
+
+      <div style="margin-top:18px">
+        <div style="font-size:.7rem;color:#FF9900;text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin-bottom:10px">Tips to Run It Smoothly</div>
+        <div style="font-size:.78rem;color:rgba(255,255,255,.7);line-height:1.8">Record a short Cost Explorer walkthrough at kickoff (navigate, apply filters, set date range, export) and send it to the customer so each quarterly submission is expected before it is requested. Save the Cost Explorer filter as a named report so each later pull is one action. Set shared calendar reminders 30 days before each quarterly claim deadline for all parties. Provide the customer a ready-to-send submission email at kickoff with the TCC address, subject line, and body, so they only attach the export and send.</div>
+      </div>
+
+      <div style="background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.3);border-radius:8px;padding:14px 16px;margin-top:18px">
+        <div style="font-size:.7rem;color:#fb923c;text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin-bottom:8px">Guardrails</div>
+        <div style="font-size:.78rem;color:rgba(255,255,255,.7);line-height:1.8">AWS does not share or forward Cost Explorer data to Intel or TCC; the customer sends it directly. Apply the rebate to post-discount ARR, not list price. Count only Intel i-suffix families (m8i, c8i, r8i, x8i); Trainium and Graviton are excluded. The calculator figure is the ceiling (WNE), not a guaranteed payout. Q4 requires at least one full billing cycle at 75 percent or more run-rate, not a single-day spike.</div>
       </div>
     </div>`;
   document.body.appendChild(o);
@@ -4192,7 +4207,7 @@ async function renderApprovalQueue(){
           <div class="approval-grid-item"><label>Submitter</label><div class="val">${(deal.team&&deal.team[0])?deal.team[0].name:deal.fhName||'—'}</div></div>
           <div class="approval-grid-item"><label>AWS Region</label><div class="val">${deal.awsRegion||'—'}</div></div>
           <div class="approval-grid-item"><label>Expected ROI (10x)</label><div class="val" style="color:var(--green)">${fmt((deal.rebate||totPay)*10)}</div></div>
-          <div class="approval-grid-item"><label>Cost Explorer</label><div class="val">${deal.ceFileName?'<span style="color:var(--green)">✓ '+deal.ceFileName+'</span>':'<span style="color:var(--red)">⚠ Not attached</span>'}</div></div>
+          <div class="approval-grid-item"><label>Cost Explorer</label><div class="val">${deal.ceFileName?'<span style="color:var(--green)">✓ '+deal.ceFileName+'</span>':'<span style="color:var(--red)">Not attached</span>'}</div></div>
         </div>
         ${myTier==='tcc'?`
         <div class="pop-check">
@@ -4201,7 +4216,7 @@ async function renderApprovalQueue(){
             <button class="pop-btn ${deal.popAvailable==='yes'?'pop-yes-active':''}" onclick="setPOP('${deal.id}','yes')">✓ Yes — POP Received</button>
             <button class="pop-btn ${deal.popAvailable==='no'?'pop-no-active':''}" onclick="setPOP('${deal.id}','no')">✗ No — Request from Submitter</button>
           </div>
-          ${deal.popAvailable==='no'?`<div class="pop-warn">⚠ POP missing. <a href="#" onclick="emailSubmitterForPOP('${deal.id}');return false">Send email to ${(deal.team&&deal.team[0])?deal.team[0].name:deal.fhName||'submitter'}</a> &nbsp;|&nbsp; <a href="#" onclick="draftPOPWithNova('${deal.id}');return false">✦ Draft with Nova</a></div>`:''}
+          ${deal.popAvailable==='no'?`<div class="pop-warn">POP missing. <a href="#" onclick="emailSubmitterForPOP('${deal.id}');return false">Send email to ${(deal.team&&deal.team[0])?deal.team[0].name:deal.fhName||'submitter'}</a> &nbsp;|&nbsp; <a href="#" onclick="draftPOPWithNova('${deal.id}');return false">✦ Draft with Nova</a></div>`:''}
           ${deal.popAvailable==='yes'?`<div class="pop-ok">✓ POP confirmed — cleared for payment processing</div>`:''}
         </div>`:''}
         ${deal.workload?`<div style="margin-top:10px;font-size:.73rem;color:var(--ink2);font-family:Arial,sans-serif;padding-top:8px;border-top:1px solid var(--border2)">${deal.workload}</div>`:''}
@@ -4258,7 +4273,7 @@ async function _disabledRunSOWCheck(){
     }
     if(res.warnings && res.warnings.length>0){
       html+=`<div class="nova-issues"><strong>Warnings:</strong><ul>`;
-      res.warnings.forEach(w=>{ html+=`<li>⚠ ${w}</li>`; });
+      res.warnings.forEach(w=>{ html+=`<li>${w}</li>`; });
       html+=`</ul></div>`;
     }
     if(res.recommendation){
@@ -4309,7 +4324,7 @@ async function draftPOPWithNova(dealId){
       <div class="nova-draft-header">
         <span>✦ Nova Draft — Ready to Send</span>
         <div style="display:flex;gap:8px">
-          <button class="btn btn-nova btn-sm" onclick="sendPOPEmail('${encodeURIComponent(emailText)}','${submitterEmail}','${subj}')">📧 Open in Email</button>
+          <button class="btn btn-nova btn-sm" onclick="sendPOPEmail('${encodeURIComponent(emailText)}','${submitterEmail}','${subj}')">Open in Email</button>
           <button class="btn btn-secondary btn-sm" onclick="document.getElementById('nova-pop-draft-${dealId}').remove()">✕</button>
         </div>
       </div>
@@ -4561,7 +4576,7 @@ const API_URL = 'https://4y8bpdbupd.execute-api.ca-central-1.amazonaws.com';
 const INTEL_PRICING_URL = API_URL + '/intel/price';
 const INTEL_PRICING_KEY = 'intel-arch-7f3a9c2e8b14d05f6a1e9d7c3b8f240a';
 
-async function apiSaveDeal(deal, prevStage, nextStage){
+async function apiSaveDeal(deal, prevStage, nextStage, submitted){
   if(!API_URL) return null;
   try{
     // Update stage on deal object before sending
@@ -4571,6 +4586,7 @@ async function apiSaveDeal(deal, prevStage, nextStage){
     else if(nextStage==='approved') deal.status='Approved';
     const payload = {deal};
     if(prevStage) payload.prevStage = prevStage;
+    if(submitted) payload.submitted = true;
     const r = await fetch(API_URL+'/deal', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
     return await r.json();
   }catch(e){ console.error('API save failed', e); return null; }
@@ -4897,7 +4913,7 @@ async function submitDeal(){
   const data=getCurrentDealData();
   data.status='Submitted to Core';
   data.approvalStage='core';
-  const apiResult = await apiSaveDeal(data);
+  const apiResult = await apiSaveDeal(data, '', '', true);
   alert(apiResult && apiResult.saved
     ? 'Deal submitted and saved to the cloud database.'
     : 'Deal submission failed. Please try again.');
