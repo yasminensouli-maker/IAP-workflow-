@@ -164,6 +164,63 @@ AUDITED_FIELDS = ['status', 'dne', 'migTargetDate', 'migStart', 'closeDate', 'ac
                   'aceID', 'paymentOption', 'winWire', 'targetArr', 'actType', 'custName',
                   'partnerName', 'dealName']
 
+# ── SMARTSHEET (token lives in Secrets Manager, never in code or chat) ──
+SMARTSHEET_SECRET = os.environ.get('SMARTSHEET_SECRET', 'iap/smartsheet-token')
+SMARTSHEET_SHEET_ID = os.environ.get('SMARTSHEET_SHEET_ID', '')
+_ss_token_cache = {'token': None}
+
+def get_smartsheet_token():
+    if _ss_token_cache['token']:
+        return _ss_token_cache['token']
+    try:
+        sm = boto3.client('secretsmanager', region_name='ca-central-1')
+        val = sm.get_secret_value(SecretId=SMARTSHEET_SECRET)
+        _ss_token_cache['token'] = json.loads(val['SecretString']).get('token')
+        return _ss_token_cache['token']
+    except Exception as e:
+        print(f"Smartsheet token unavailable: {str(e)}")
+        return None
+
+def push_to_smartsheet(deal):
+    """Add the deal as a row. Returns a human-readable sync status stored on the deal."""
+    token = get_smartsheet_token()
+    if not token:
+        return 'Not synced — token not configured in Secrets Manager'
+    if not SMARTSHEET_SHEET_ID:
+        return 'Not synced — SMARTSHEET_SHEET_ID env var not set'
+    import urllib.request as _ur
+    base = f"https://api.smartsheet.com/2.0/sheets/{SMARTSHEET_SHEET_ID}"
+    hdrs = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'}
+    try:
+        req = _ur.Request(base + '?pageSize=1', headers=hdrs)
+        with _ur.urlopen(req, timeout=15) as r:
+            sheet = json.loads(r.read().decode())
+        cols = {c['title']: c['id'] for c in sheet.get('columns', [])}
+        # Map to whatever columns the sheet actually has — tolerant by title
+        candidates = {
+            'IPIC Activity #': deal.get('ipicNum', ''),
+            'Activity Name': deal.get('dealName', '') or ('IAP - ' + deal.get('custName', '')),
+            'Deal Name': deal.get('dealName', ''), 'Customer': deal.get('custName', ''),
+            'Partner': deal.get('partnerName', ''), 'ACE ID': deal.get('aceID', ''),
+            'ACE Opportunity ID': deal.get('aceID', ''),
+            'Deal Type': deal.get('actType', ''), 'Target ARR': deal.get('targetArr', 0),
+            'DNE': deal.get('dne', 0), 'Payment Option': deal.get('paymentOption', ''),
+            'Migration Start': deal.get('migStart', ''), 'Status': deal.get('status', ''),
+            'Win Wire': 'Yes' if deal.get('winWire') else 'No',
+        }
+        cells = [{'columnId': cols[k], 'value': v} for k, v in candidates.items() if k in cols and v != '']
+        if not cells:
+            return 'Not synced — sheet columns do not match expected titles'
+        payload = json.dumps({'toBottom': True, 'cells': cells}).encode()
+        req = _ur.Request(base + '/rows', data=payload, headers=hdrs, method='POST')
+        with _ur.urlopen(req, timeout=15) as r:
+            resp = json.loads(r.read().decode())
+        row_id = (resp.get('result') or {}).get('id', '')
+        return f'Synced to Smartsheet — row {row_id}'
+    except Exception as e:
+        print(f"Smartsheet push failed: {str(e)}")
+        return f'Sync failed — {str(e)[:120]}'
+
 def lambda_handler(event, context):
     headers = {
         'Access-Control-Allow-Origin': '*',
@@ -220,6 +277,7 @@ def lambda_handler(event, context):
                 deal['status'] = curr_status = 'Submitted'
                 deal['submittedAt'] = now_utc()
                 notify_submitted(deal)
+                deal['smartsheetSync'] = push_to_smartsheet(deal)
             elif prev_status != curr_status:
                 if curr_status == 'Approved (DNE Set)':
                     notify_intel(deal)

@@ -1439,16 +1439,16 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
         <button class="nav-item active" id="nav1" onclick="goStep(1)">
           <span class="step-num" id="snum1">1</span>Deal Information
         </button>
-        <button class="nav-item" id="nav2" onclick="goStep(2)">
+        <button class="nav-item" id="nav2" style="display:none" onclick="goStep(2)">
           <span class="step-num" id="snum2">2</span>Customer Profile
         </button>
-        <button class="nav-item" id="nav3" onclick="goStep(3)">
-          <span class="step-num" id="snum3">3</span>IAP Calculator
-        </button>
+        
         
         <button class="nav-item" id="nav5" onclick="goStep(5)">
           <span class="step-num" id="snum5">5</span>ACE / SFDC
         </button>
+        <button class="nav-item" id="nav3" onclick="goStep(3)">
+          <span class="step-num" id="snum3">3</span>Resources — Calculators</button>
         <button class="nav-item" id="nav6" onclick="goStep(6)">
           <span class="step-num" id="snum6">6</span>Generate SOW
         </button>
@@ -1505,7 +1505,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
       <div class="step-panel active" id="step1">
         <div class="step-header">
           <div class="step-badge">Step 01</div>
-          <div class="step-title">Deal Information</div>
+          <div class="step-title">Deal Info</div>
           <div class="step-desc" id="step1-desc">Capture the deal details to route this opportunity through the Intel × AWS co-investment program.</div>
         </div>
 
@@ -1722,7 +1722,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
           </div>
 
           <div class="btn-row">
-            <button class="btn btn-primary" onclick="syncIntelSellerFields(); goStep(2)">Continue → Customer Profile</button>
+            <button class="btn btn-primary" onclick="syncIntelSellerFields(); goStep(4)">Continue → Sales Play</button>
             <button class="btn btn-secondary" onclick="saveDraft()">Save Draft</button>
           </div>
         </div>
@@ -1798,10 +1798,10 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
             <div class="f-group">
               <label>Migration End Date <span class="req">*</span></label>
               <input type="date" id="deal-close">
-              <span class="hint">Final claim = end date + 30 days</span>
+              <span class="hint">Approximate is fine — dates can be amended after submission. Program maximum: one year.</span>
             </div>
             <div class="f-group">
-              <label>AWS Segment <span class="req">*</span></label>
+              <label>AWS Segment</label>
               <select id="deal-segment">
                 <option value="">— Segment —</option>
                 <option>CSD</option>
@@ -1812,6 +1812,26 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
                 <option>SUP</option>
               </select>
             </div>
+            <div class="f-group">
+              <label>Intel Segment</label>
+              <select id="intel-segment">
+                <option value="">— Select —</option>
+                <option>Global Enterprise</option>
+                <option>Large Enterprise</option>
+                <option>Mid-Market Enterprise</option>
+                <option>Small and Medium Business</option>
+                <option>Financial Services Industry</option>
+                <option>Healthcare and Life Sciences</option>
+                <option>Public Sector and Government</option>
+                <option>Education Sector</option>
+                <option>Manufacturing and Industrial</option>
+                <option>Retail and Hospitality</option>
+                <option>On-Premises Infrastructure Buyers</option>
+                <option>Hybrid and Multi-Cloud Consumers</option>
+                <option>Managed Service Provider Dependent</option>
+              </select>
+            </div>
+
             <div class="f-group">
               <label>IAP Program Type <span class="req">*</span></label>
               <select id="deal-program">
@@ -1878,7 +1898,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
         </div>
 
         <div class="btn-row">
-          <button class="btn btn-primary" onclick="goStep(2)">Continue → Customer Profile</button>
+          <button class="btn btn-primary" onclick="goStep(4)">Continue → Sales Play</button>
           <button class="btn btn-secondary" onclick="saveDraft()">Save Draft</button>
           <button class="btn btn-aws" onclick="exportIPIC()">Export IPIC / Smartsheet Row</button>
         </div>
@@ -1886,14 +1906,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
       </div><!-- /step1 -->
 
       <!-- ── STEP 2: CUSTOMER PROFILE ── -->
-      <div class="step-panel" id="step2">
-        <div class="step-header">
-          <div class="step-badge">Step 02</div>
-          <div class="step-title">Customer Profile</div>
-          <div class="step-desc">Document the end customer and AWS account context. This feeds the SOW, ACE submission, and the benefit calculation baseline.</div>
-        </div>
-
-        <div class="section-card">
+     <div class="section-card">
           <div class="section-card-title">End Customer</div>
           <div class="form-grid">
             <div class="f-group">
@@ -1902,14 +1915,14 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
             </div>
             <div class="f-group">
               <label>Include as Win Wire</label>
-              <select id="win-wire"><option value="">No</option><option value="yes">Yes</option></select>
+              <select id="win-wire"><option value="yes" selected>Yes</option><option value="">No</option></select>
               <span class="hint">Win Wire deals are aggregated and exportable to Excel</span>
             </div>
             <div class="f-group">
               <label>Customer Legal Name <span class="req">*</span></label>
               <input type="text" id="cust-name" placeholder="e.g. Acme Corporation Ltd.">
             </div>
-            <div class="f-group">
+            <div class="f-group" style="display:none">
               <label>AWS Account ID</label>
               <input type="text" id="cust-acct" placeholder="12-digit account ID" maxlength="12"
                 oninput="validateAcct(this)">
@@ -1949,7 +1962,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
                 <label style="display:flex;align-items:center;gap:4px;font-size:.75rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer"><input type="checkbox" value="Other"> Other</label>
               </div>
             </div>
-            <div class="f-group">
+            <div class="f-group" style="display:none">
               <label>Primary AWS Region</label>
               <select id="cust-awsregion">
                 <option value="">— AWS Region —</option>
@@ -2029,19 +2042,43 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
           </div>
         </div>
 
-        <div class="btn-row">
-          <button class="btn btn-secondary" onclick="goStep(1)">← Back</button>
-          <button class="btn btn-primary" onclick="goStep(3)">Continue → IAP Calculator</button>
-        </div>
-      </div>
+        
 
       <!-- ── STEP 3: IAP CALCULATOR ── -->
+ <div class="step-panel" id="step2" style="display:none"></div>
       <div class="step-panel" id="step3">
         <div class="step-header">
           <div class="step-badge">Step 03</div>
-          <div class="step-title">IAP Funding Calculator</div>
+          <div class="step-title">Resources — IAP Calculator &amp; Simple Monthly</div>
           <div class="step-desc">Enter the baseline (Cost Explorer) and target post-migration spend (Simple Monthly). Intel pays 4.5% or 1% of total target ARR. Monthly breakdown required for POP. ★</div>
         </div>
+        <div class="section-card">
+          <div class="section-card-title">Migration Path &amp; Discount Model</div>
+          <div class="form-grid">
+            <div class="f-group">
+              <label>Migrating From</label>
+              <input type="text" id="mig-from" placeholder="e.g. on-prem VMware, m5, Graviton, other cloud">
+              <span class="hint">Current environment or instance families</span>
+            </div>
+            <div class="f-group">
+              <label>Migrating To — 8th Gen Intel <span class="req">*</span></label>
+              <select id="mig-to">
+                <option value="">— Select 8th Gen Target —</option>
+                <option>m8i / m8i-flex — General Purpose</option>
+                <option>c8i / c8i-flex — Compute Optimized</option>
+                <option>r8i / r8i-flex — Memory Optimized</option>
+                <option>x8i — Extra Large Memory</option>
+              </select>
+              <span class="hint">Program eligibility requires a Gen 8 Intel target</span>
+            </div>
+            <div class="f-group">
+              <label>Discount Model (%)</label>
+              <input type="number" id="discount-model" placeholder="e.g. 30" min="0" max="100" value="30">
+              <span class="hint">Blended discount budget applied to Target ARR. Use the Intel Pricing tab to pull live instance pricing for an informed estimate.</span>
+            </div>
+          </div>
+        </div>
+
 
         <!-- ── COST EXPLORER GUIDE ── -->
         <div style="border:1px solid #e0e7ff;border-radius:8px;margin-bottom:16px;overflow:hidden">
@@ -2181,15 +2218,17 @@ Please confirm receipt.<br>
               </div>
             </div>
             <div style="font-size:.68rem;color:var(--ink3)">
-              Try: "Price m8i.large us-east-1" · "IAP rate for c8i migration" · "m8i vs m7i savings" · "r8i.8xlarge Canada pricing"
+              Ask anything about Intel instance pricing — it answers with live data. Try: "Price m8i.large us-east-1" · "m8i vs m7i savings" · "What does an r8i.8xlarge run in Canada?"
             </div>
           </div>
         </div>
+        <div style="display:none">
         <div class="fleet-container" id="fleet-container">
           <!-- Fleet rows injected by JS -->
         </div>
 
         <button class="btn btn-secondary btn-sm" onclick="addFleet()">+ Add Fleet</button>
+        </div>
 
         <!-- Simple Monthly ★ -->
         <div class="section-card mt16" id="simple-monthly-card" style="border:2px solid #FCD34D;background:#FFFBEB">
@@ -2265,8 +2304,8 @@ Please confirm receipt.<br>
         </div>
 
         <div class="btn-row">
-          <button class="btn btn-secondary" onclick="goStep(2)">← Back</button>
-          <button class="btn btn-primary" onclick="goStep(5)">Continue → ACE / SFDC</button>
+          <button class="btn btn-secondary" onclick="goStep(5)">← Back</button>
+          <button class="btn btn-primary" onclick="goStep(6)">Continue → Deal Summary</button>
         </div>
       </div>
 
@@ -2328,14 +2367,14 @@ Please confirm receipt.<br>
           <div class="section-card-title">Opportunity IDs — provide at least one</div>
           <div class="form-grid">
             <div class="f-group">
-              <label>ACE Opportunity ID</label>
+              <label>ACE Opportunity ID <span class="req">*</span></label>
               <input type="text" id="ace-id" placeholder="O-XXXXXXXXXX" oninput="validateACE(this)" class="mono">
               <span class="hint" id="ace-hint">Format: O- followed by alphanumeric (e.g. O-AB12345678)</span>
             </div>
             <div class="f-group">
-              <label>ACE / SFDC Amount ($) <span class="req">*</span></label>
-              <input type="number" id="ace-amount" placeholder="Annual opportunity amount" min="0">
-              <span class="hint">Must match the deal Target ARR. Submission blocks on mismatch.</span>
+              <label>ACE ARR ($) <span class="req">*</span></label>
+              <input type="number" id="ace-amount" placeholder="Derived from Simple Monthly × 12" min="0" oninput="this.dataset.userEdited=1">
+              <span class="hint" id="ace-arr-hint">Derived from the Simple Monthly Target (monthly × 12). Attach the Simple Monthly Calculator or confirm this figure.</span>
             </div>
             <div class="f-group">
               <label>Deal Type <span class="req">*</span></label>
@@ -2348,11 +2387,6 @@ Please confirm receipt.<br>
               <span class="hint">All payments are consumption-based. TCC manages disbursements.</span>
             </div>
             <div class="f-group">
-              <label>Migration Target Date <span class="req">*</span></label>
-              <input type="date" id="mig-target-date">
-              <span class="hint">Editable post-submission by authorized users. All edits are logged.</span>
-            </div>
-            <div class="f-group">
               <label>Simple Monthly Calculator <span class="req">*</span></label>
               <input type="file" id="smc-upload" accept=".csv,.png,.jpg,.jpeg,.pdf,.xlsx" onchange="handleSMCUpload(this)">
               <span class="hint" id="smc-status">Required. Submission blocks without it. Cost Explorer is NOT required at submission.</span>
@@ -2360,22 +2394,9 @@ Please confirm receipt.<br>
             <div class="f-group">
               <label>SFDC / CRM Opportunity ID</label>
               <input type="text" id="sfdc-id" placeholder="0060X000XXXXXXXXXX" class="mono">
-              <span class="hint">Salesforce 18-char opportunity ID — either this or ACE ID is sufficient</span>
+              <span class="hint">Salesforce 18-char opportunity ID (optional). ACE ID is required — deals must be registered on ACE.</span>
             </div>
-            <div class="f-group">
-              <label>Has this been pushed to ACE?</label>
-              <div style="display:flex;gap:16px;margin-top:6px;flex-wrap:wrap">
-                <label style="display:flex;align-items:center;gap:6px;font-size:.8rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer">
-                  <input type="radio" name="ace-pushed" value="yes" onchange="updateACEStatus()"> Yes — approved in ACE
-                </label>
-                <label style="display:flex;align-items:center;gap:6px;font-size:.8rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer">
-                  <input type="radio" name="ace-pushed" value="pending" onchange="updateACEStatus()"> Submitted — pending ACE approval
-                </label>
-                <label style="display:flex;align-items:center;gap:6px;font-size:.8rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer">
-                  <input type="radio" name="ace-pushed" value="no" onchange="updateACEStatus()"> Not yet — will create ACE opportunity
-                </label>
-              </div>
-            </div>
+            
             <div class="f-group">
               <label>ACE Co-Sell Stage</label>
               <select id="ace-stage">
@@ -2410,7 +2431,7 @@ Please confirm receipt.<br>
 
         <div class="btn-row">
           <button class="btn btn-secondary" onclick="goStep(4)">← Back</button>
-          <button class="btn btn-primary" onclick="goStep(6)">Generate SOW →</button>
+          <button class="btn btn-primary" onclick="goStep(3)">Continue → Resources</button>
         </div>
       </div>
 
@@ -3169,12 +3190,15 @@ function calcSimpleMonthly(){
   const firstFleet = fleets[0];
   const rate = (firstFleet && firstFleet.type==='mod') ? 0.01 : 0.045;
   const rateLabel = rate===0.01 ? '1% (Optimize)' : '4.5% (Migrate / Modernize)';
-  const eligibleARR = targetARR * 0.70;
+  const discPct = Math.min(Math.max(parseFloat((document.getElementById('discount-model')||{}).value)||30,0),100);
+  const eligibleARR = targetARR * (1 - discPct/100);
   const totalBenefit = eligibleARR * rate;
   const monthlyBenefit = totalBenefit / 12;
   const modCap = rate===0.01 ? Math.min(totalBenefit, 250000) : totalBenefit;
   window._computedDNE = modCap;
   window._computedTargetARR = targetARR;
+  const aceArrEl=document.getElementById('ace-amount');
+  if(aceArrEl && !aceArrEl.dataset.userEdited) aceArrEl.value=Math.round(targetARR);
 
   annualEl.textContent = fmt(targetARR);
   benefitEl.textContent = fmt(monthlyBenefit);
@@ -3182,7 +3206,7 @@ function calcSimpleMonthly(){
   breakdownEl.innerHTML =
     '<strong>DNE calculation:</strong><br>' +
     'Monthly target: ' + fmt(monthly) + ' &nbsp;×&nbsp; 12 = Target ARR: ' + fmt(targetARR) + '<br>' +
-    'Blended discount budget: ' + fmt(targetARR) + ' &nbsp;×&nbsp; 70% = Eligible base: ' + fmt(eligibleARR) + '<br>' +
+    'Blended discount budget: ' + fmt(targetARR) + ' &nbsp;×&nbsp; ' + (100-discPct) + '% = Eligible base: ' + fmt(eligibleARR) + '<br>' +
     'Intel rate: ' + rateLabel + ' &nbsp;×&nbsp; ' + fmt(eligibleARR) + ' = <strong>DNE: ' + fmt(modCap) + '</strong><br>' +
     'Monthly Intel benefit: ' + fmt(modCap) + ' ÷ 12 = ' + fmt(monthlyBenefit) + '/month<br>' +
     '<span style="color:#92400e;font-size:.68rem">DNE is the Do Not Exceed ceiling, not a guaranteed payout. 75% of target ARR is treated as full completion. Cost Explorer POP is collected by TCC after SOW signing.</span>';
@@ -3983,6 +4007,10 @@ function validateAcct(el){
 
 /* ── SOW GENERATION ──────────────────────────────────────────── */
 function generateSOW(){
+  if(!(currentUser && (currentUser.tier==='tcc' || currentUser.tier==='admin'))){
+    alert('SOW generation is restricted to The Channel Company. TCC generates and amends the SOW once Intel leadership has approved.');
+    return;
+  }
   // Pull from SOW detail fields (Step 7) first, fall back to earlier steps
   const custLegal   = v('sow-cust-legal')     || v('cust-name') || v('cust-name-intel') || '[Customer Legal Name]';
   const activityName = v('sow-activity-name') || 'IAP – ' + (v('cust-name')||v('cust-name-intel')||'Customer');
@@ -4276,6 +4304,7 @@ async function renderApprovalQueue(){
           <div class="approval-grid-item"><label>Simple Monthly Calc</label><div class="val">${deal.smcFileName?'<span style="color:var(--green)">✓ '+deal.smcFileName+'</span>':'<span style="color:var(--red)">Not attached</span>'}</div></div>
           <div class="approval-grid-item"><label>Payment Option</label><div class="val">${deal.paymentOption||'—'}</div></div>
           <div class="approval-grid-item"><label>Win Wire</label><div class="val">${deal.winWire?'Yes':'No'}</div></div>
+          <div class="approval-grid-item"><label>Smartsheet</label><div class="val" style="font-size:.68rem">${deal.smartsheetSync||'—'}</div></div>
           <div class="approval-grid-item"><label>DNE</label><div class="val" style="color:var(--intel)">${deal.dne?fmt(deal.dne):'Not set'}</div></div>
         </div>
         ${myTier==='core'?`
@@ -4752,7 +4781,8 @@ function getCurrentDealData(){
     aceAmount:parseFloat(v('ace-amount'))||0,
     actType:v('prd-deal-type')||v('activity-type'),
     paymentOption:v('payment-option'),
-    migTargetDate:v('mig-target-date'),
+    migTargetDate:v('mig-start'),
+    migFrom:v('mig-from'),migTo:v('mig-to'),discountModel:parseFloat(v('discount-model'))||30,intelSegment:v('intel-segment'),
     smcFileName: smcFileName || '',
     smcS3Key: smcS3Key || '',
     targetArr: window._computedTargetARR || 0,
@@ -5078,30 +5108,71 @@ async function exportWinWires(){
   XLSX.writeFile(wb,'IAP-Win-Wires-'+new Date().toISOString().slice(0,10)+'.xlsx');
 }
 
-async function submitDeal(){
-  const data=getCurrentDealData();
-  // PRD Stage 1 validation — hard blocks
-  const missing=[];
-  if(!data.dealName) missing.push('Deal name');
-  if(!data.custName) missing.push('Customer name');
+function dealChecklist(data){
+  // Critical items are called out; user may still override and submit
+  const critical=[], missing=[];
+  if(!data.dealName) critical.push('Deal name');
+  if(!data.custName) critical.push('Customer name');
+  if(!data.aceID) critical.push('ACE Opportunity ID — deals must be registered on ACE');
+  if(!data.smcFileName && !(data.aceAmount>0)) critical.push('Simple Monthly Calculator attachment or a confirmed ACE ARR');
   if(!data.partnerName) missing.push('Partner name');
-  if(!data.aceID && !data.sfdcID) missing.push('ACE / SFDC Opportunity ID');
   if(!data.actType) missing.push('Deal type');
   if(!data.paymentOption) missing.push('Payment option');
-  if(!data.migTargetDate) missing.push('Migration target date');
-  if(missing.length){ alert('Cannot submit. Required: '+missing.join(', ')); return; }
-  if(!data.smcFileName){ alert('Cannot submit. The Simple Monthly Calculator attachment is required.'); return; }
-  if(data.aceAmount && data.targetArr && Math.abs(data.aceAmount-data.targetArr)/data.targetArr > 0.005){
-    alert('Cannot submit. ACE / SFDC amount ('+data.aceAmount.toLocaleString()+') must match the deal Target ARR ('+Math.round(data.targetArr).toLocaleString()+'). Correct one of the two.');
-    return;
+  if(!data.migStart) missing.push('Migration start date');
+  if(!data.migTo) missing.push('8th Gen migration target');
+  // One-year hard program limit
+  if(data.migStart && data.closeDate){
+    const days=(new Date(data.closeDate)-new Date(data.migStart))/86400000;
+    if(days>366) critical.push('Migration window exceeds one year — the program maximum is 12 months');
   }
+  return {critical, missing};
+}
+
+function showSubmitSummary(){
+  const data=getCurrentDealData();
+  const {critical, missing}=dealChecklist(data);
+  let html='<div style="font-weight:700;font-size:1rem;margin-bottom:10px;color:#0A1628">Review before you submit</div>';
+  html+='<div style="font-size:.8rem;color:#333;line-height:1.7;margin-bottom:12px">'+
+    '<strong>'+(data.dealName||'[Deal name pending]')+'</strong> · '+(data.custName||'[Customer pending]')+
+    '<br>Type: '+(data.actType||'—')+' · Payment: '+(data.paymentOption||'—')+' · Target ARR: '+fmt(data.targetArr||0)+' · DNE est.: '+fmt(data.dne||0)+
+    '<br>Win Wire: '+(data.winWire?'Yes':'No')+' · ACE: '+(data.aceID||'—')+'</div>';
+  if(critical.length) html+='<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:10px 12px;margin-bottom:8px"><div style="font-size:.72rem;font-weight:700;color:#b91c1c;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Critical — expected before internal review</div><div style="font-size:.78rem;color:#7f1d1d;line-height:1.6">'+critical.join('<br>')+'</div></div>';
+  if(missing.length) html+='<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 12px;margin-bottom:8px"><div style="font-size:.72rem;font-weight:700;color:#92400e;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Missing — can be amended later</div><div style="font-size:.78rem;color:#78350f;line-height:1.6">'+missing.join('<br>')+'</div></div>';
+  if(!critical.length&&!missing.length) html+='<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:10px 12px;margin-bottom:8px;font-size:.8rem;color:#166534">Everything required is in place.</div>';
+  html+='<div style="display:flex;gap:10px;margin-top:14px;justify-content:flex-end">'+
+    '<button class="btn btn-secondary" onclick="closeSubmitModal()">Go back and edit</button>'+
+    '<button class="btn btn-primary" onclick="finalizeSubmit()">'+(critical.length?'Submit anyway':'Submit deal')+'</button></div>';
+  let m=document.getElementById('submit-modal');
+  if(!m){
+    m=document.createElement('div'); m.id='submit-modal';
+    m.style.cssText='position:fixed;inset:0;background:rgba(10,22,40,.55);display:flex;align-items:center;justify-content:center;z-index:9000';
+    m.innerHTML='<div id="submit-modal-box" style="background:#fff;border-radius:14px;max-width:560px;width:92%;padding:24px 26px;box-shadow:0 24px 64px rgba(0,0,0,.3);max-height:82vh;overflow:auto"></div>';
+    document.body.appendChild(m);
+  }
+  m.style.display='flex';
+  document.getElementById('submit-modal-box').innerHTML=html;
+}
+function closeSubmitModal(){ const m=document.getElementById('submit-modal'); if(m) m.style.display='none'; }
+
+async function finalizeSubmit(){
+  const data=getCurrentDealData();
   data.status='Submitted';
   data.approvalStage='core';
-  const apiResult = await apiSaveDeal(data, '', '', true);
-  alert(apiResult && apiResult.saved
-    ? 'Deal submitted. Internal review has been notified by email.'
-    : 'Deal submission failed. Please try again.');
+  const box=document.getElementById('submit-modal-box');
+  box.innerHTML='<div style="text-align:center;padding:26px 8px;font-size:.85rem;color:#555">Submitting…</div>';
+  const apiResult=await apiSaveDeal(data,'','',true);
+  if(apiResult&&apiResult.saved){
+    box.innerHTML='<div style="text-align:center;padding:18px 8px">'+
+      '<div style="width:52px;height:52px;border-radius:50%;background:#f0fdf4;border:2px solid #86efac;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;color:#16a34a">✓</div>'+
+      '<div style="font-weight:700;font-size:1.05rem;color:#0A1628;margin-bottom:6px">Thank you for taking the time.</div>'+
+      '<div style="font-size:.82rem;color:#555;line-height:1.7;max-width:400px;margin:0 auto">Your deal has been submitted to the Intel Accelerate Program. The internal review team has been notified by email and will set the DNE. You can follow progress in the Pipeline.</div>'+
+      '<div style="margin-top:16px"><button class="btn btn-primary" onclick="closeSubmitModal();goStep(7)">View Pipeline</button></div></div>';
+  }else{
+    box.innerHTML='<div style="text-align:center;padding:18px 8px"><div style="font-weight:700;color:#b91c1c;margin-bottom:6px">Submission failed</div><div style="font-size:.8rem;color:#555">Please try again. If it persists, your session may need a refresh.</div><div style="margin-top:14px"><button class="btn btn-secondary" onclick="closeSubmitModal()">Close</button></div></div>';
+  }
 }
+
+async function submitDeal(){ showSubmitSummary(); }
 
 async function loadDealById(id){
   const deals = await loadPipelineDealsFromCloud();
