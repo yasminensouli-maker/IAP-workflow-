@@ -1300,6 +1300,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
 
 </style>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 
@@ -1323,7 +1324,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
     <div style="text-align:center;margin-bottom:30px">
       <div style="font-size:.65rem;color:#FF9900;text-transform:uppercase;letter-spacing:.18em;font-weight:700;margin-bottom:12px">20+ Years of Joint Engineering</div>
       <h1 style="font-size:2rem;font-weight:900;color:#fff;margin:0 0 14px 0;line-height:1.2">Intel and AWS are moving<br>the industry forward together.</h1>
-      <p style="font-size:.88rem;color:rgba(255,255,255,.65);line-height:1.8;margin:0 auto;max-width:580px">Intel Xeon 6 processors are custom-engineered exclusively for AWS — available on no other hyperscaler. The Intel Acceleration Program provides resources to support the most strategic customer migrations and modernizations, funded directly by Intel so AWS sellers accelerate deals without touching quota.</p>
+      <p style="font-size:.88rem;color:rgba(255,255,255,.65);line-height:1.8;margin:0 auto;max-width:580px">Intel Xeon 6 processors are custom-engineered exclusively for AWS — available on no other hyperscaler. The Intel Accelerate Program provides resources to support the most strategic customer migrations and modernizations, funded directly by Intel so AWS sellers accelerate deals without touching quota.</p>
     </div>
 
     <!-- Three pillars -->
@@ -1344,7 +1345,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
 
     <!-- IAP Programs -->
     <div style="background:rgba(0,104,181,.12);border:1px solid rgba(0,104,181,.3);border-radius:8px;padding:16px;margin-bottom:20px">
-      <div style="font-size:.63rem;color:#60a5fa;text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin-bottom:12px">Intel Acceleration Program — IAP 2026</div>
+      <div style="font-size:.63rem;color:#60a5fa;text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin-bottom:12px">Intel Accelerate Program — IAP 2026</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
         <div>
           <div style="font-size:.75rem;color:#FF9900;font-weight:700;margin-bottom:5px">Program 1 — Migration</div>
@@ -1385,7 +1386,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
       </button>
     </div>
 
-    <div style="text-align:center;font-size:.6rem;color:rgba(255,255,255,.2)">Intel Acceleration Program 2026 · Managed by ASP Core · Confidential — Authorized Users Only</div>
+    <div style="text-align:center;font-size:.6rem;color:rgba(255,255,255,.2)">Intel Accelerate Program 2026 · Managed by ASP Core · Confidential — Authorized Users Only</div>
   </div>
 </div>
 
@@ -1395,7 +1396,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
       <img src="logo.png" alt="Intel × AWS">
     </div>
     <h1>Deal Desk</h1>
-    <p>Intel Acceleration Program · Restricted Access</p>
+    <p>Intel Accelerate Program · Restricted Access</p>
     <div class="login-form">
       <label>Email Address</label>
       <input type="email" id="login-email" placeholder="email address" autocomplete="email" onkeydown="if(event.key==='Enter')doLogin()">
@@ -1849,6 +1850,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
               <select id="activity-type">
                 <option value="">— Select —</option>
                 <option>Migration</option>
+                <option>Modernize</option>
                 <option>Proof of Concept</option>
                 <option>Incentive</option>
                 <option>Third Party Event</option>
@@ -1894,6 +1896,15 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
         <div class="section-card">
           <div class="section-card-title">End Customer</div>
           <div class="form-grid">
+            <div class="f-group">
+              <label>Deal Name <span class="req">*</span></label>
+              <input type="text" id="deal-name" placeholder="e.g. Acme SAP Migration to m8i">
+            </div>
+            <div class="f-group">
+              <label>Include as Win Wire</label>
+              <select id="win-wire"><option value="">No</option><option value="yes">Yes</option></select>
+              <span class="hint">Win Wire deals are aggregated and exportable to Excel</span>
+            </div>
             <div class="f-group">
               <label>Customer Legal Name <span class="req">*</span></label>
               <input type="text" id="cust-name" placeholder="e.g. Acme Corporation Ltd.">
@@ -2322,6 +2333,31 @@ Please confirm receipt.<br>
               <span class="hint" id="ace-hint">Format: O- followed by alphanumeric (e.g. O-AB12345678)</span>
             </div>
             <div class="f-group">
+              <label>ACE / SFDC Amount ($) <span class="req">*</span></label>
+              <input type="number" id="ace-amount" placeholder="Annual opportunity amount" min="0">
+              <span class="hint">Must match the deal Target ARR. Submission blocks on mismatch.</span>
+            </div>
+            <div class="f-group">
+              <label>Deal Type <span class="req">*</span></label>
+              <select id="prd-deal-type"><option value="">— Select —</option><option>Migrate</option><option>Modernize</option><option>Optimize</option></select>
+              <span class="hint">Migrate / Modernize 4.5%. Optimize 1%, capped $250,000.</span>
+            </div>
+            <div class="f-group">
+              <label>Payment Option <span class="req">*</span></label>
+              <select id="payment-option"><option value="">— Select —</option><option>Quarterly (10/20/30/40)</option><option>Milestone (25/50/75)</option><option>Lump Sum (at 75%+)</option></select>
+              <span class="hint">All payments are consumption-based. TCC manages disbursements.</span>
+            </div>
+            <div class="f-group">
+              <label>Migration Target Date <span class="req">*</span></label>
+              <input type="date" id="mig-target-date">
+              <span class="hint">Editable post-submission by authorized users. All edits are logged.</span>
+            </div>
+            <div class="f-group">
+              <label>Simple Monthly Calculator <span class="req">*</span></label>
+              <input type="file" id="smc-upload" accept=".csv,.png,.jpg,.jpeg,.pdf,.xlsx" onchange="handleSMCUpload(this)">
+              <span class="hint" id="smc-status">Required. Submission blocks without it. Cost Explorer is NOT required at submission.</span>
+            </div>
+            <div class="f-group">
               <label>SFDC / CRM Opportunity ID</label>
               <input type="text" id="sfdc-id" placeholder="0060X000XXXXXXXXXX" class="mono">
               <span class="hint">Salesforce 18-char opportunity ID — either this or ACE ID is sufficient</span>
@@ -2447,7 +2483,7 @@ Please confirm receipt.<br>
         </div>
 
         <div class="alert alert-info" style="margin-bottom:14px">
-          <strong>Payment flows through The Channel Company.</strong> Cost Explorer is provided by the customer directly to Intel and The Channel Company — AWS does not share data and does not appear as a party to the payment.
+          <strong>This is an Intel program.</strong> Payment flows through The Channel Company. Cost Explorer data is being shared with Intel (agreed with Intel) — provided by Intel or the customer directly after SOW signing. AWS does not share data and does not appear as a party to the payment.
         </div>
 
         <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
@@ -2486,7 +2522,7 @@ Please confirm receipt.<br>
         </div>
 
         <div class="alert alert-info" style="margin-bottom:14px">
-          <strong>Payment:</strong> This SOW is executed between The Channel Company and the benefit recipient. Cost Explorer is provided by the customer directly to Intel and The Channel Company — AWS does not share data and does not appear as a party to the payment.
+          <strong>Payment:</strong> This is an Intel program. This SOW is executed between The Channel Company and the benefit recipient. Cost Explorer data is being shared with Intel (agreed with Intel) — collected by TCC after SOW signing. AWS does not share data and does not appear as a party to the payment.
         </div>
 
         <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
@@ -2522,7 +2558,7 @@ Please confirm receipt.<br>
       <div class="step-panel" id="step7">
         <div class="step-header">
           <div class="step-badge">Admin View</div>
-          <div class="step-title">Pipeline Dashboard</div>
+          <div class="step-title">Pipeline Dashboard <button class="btn btn-secondary btn-sm" style="margin-left:12px;vertical-align:middle" onclick="exportWinWires()">Export Win Wires (Excel)</button></div>
           <div class="step-desc">All deals submitted through the IAP workflow tool. Visible to CloudZero Admin and AWS field only.</div>
         </div>
 
@@ -2592,6 +2628,7 @@ const USERS = {
   // ASP Core approvers
   'yasmine@cloudzero.ca':       { pass:'CZ@dmin1', tier:'admin',   name:'Yasmine',         label:'CloudZero Admin',  approver:'core' },
   'hisham@cloudzero.ca':        { pass:'CZ@dmin1', tier:'admin',   name:'Hisham',          label:'CloudZero Admin',  approver:'core' },
+  // Chris (internal review) — add row when email confirmed; also set CHRIS_EMAIL env var on iap-backend
   'reidelj@amazon.com':         { pass:'Core2026', tier:'core',    name:'Jeanine Reidel',  label:'ASP Core',         approver:'core' },
   // Intel Field (submitter)
   'seller@intel.com':           { pass:'Intel2026', tier:'intel', name:'Intel Field', label:'Intel Field' },
@@ -2973,6 +3010,21 @@ function setFleetType(id, type){
 }
 
 let ceFileName = '';
+let smcFileName = '';
+let smcS3Key = '';
+async function handleSMCUpload(input){
+  const file = input.files && input.files[0];
+  const status = document.getElementById('smc-status');
+  if(!file){ smcFileName=''; status.textContent='Required. Submission blocks without it.'; return; }
+  smcFileName = file.name;
+  status.textContent = 'Attached: ' + file.name;
+  try{
+    const b64 = await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result.split(',')[1]);r.onerror=rej;r.readAsDataURL(file);});
+    const resp = await fetch(API_URL+'/upload',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({filename:file.name,data:b64,dealId:'pending',kind:'simple-monthly-calc'})});
+    const j = await resp.json();
+    if(j.uploaded){ smcS3Key = j.key; status.textContent = 'Attached and uploaded: ' + file.name; }
+  }catch(e){ console.error('SMC upload failed', e); }
+}
 let ceS3Key = '';
 let baselineMethod = 1;
 
@@ -3067,8 +3119,9 @@ function calcFleet(id){
   const actualARR = listVal * (1 - discRate);
   // Per-fleet rates: Migrate 4.5% | Optimize 1% NTE $250k
   const rebateRate = fleet.type==='mod' ? 0.01 : 0.045;
-  let rebate = actualARR * rebateRate;
-  let nteCap = listVal * rebateRate; // Not to Exceed from list price
+  // PRD: DNE base is post-blended-discount (70% of ARR)
+  let rebate = actualARR * 0.70 * rebateRate;
+  let nteCap = listVal * 0.70 * rebateRate; // Not to Exceed from list price
   if(fleet.type==='mod' && nteCap > 250000) nteCap = 250000;
   fleet.nteCap = nteCap;
   if(rebate > nteCap) rebate = nteCap;
@@ -3112,23 +3165,27 @@ function calcSimpleMonthly(){
   }
 
   const targetARR = monthly * 12;
-  // Determine rate from first fleet type (default migrate)
+  // DNE = Target ARR x 70% (30% blended discount budget) x rate — PRD Stage 2
   const firstFleet = fleets[0];
   const rate = (firstFleet && firstFleet.type==='mod') ? 0.01 : 0.045;
-  const rateLabel = rate===0.01 ? '1% (Optimize)' : '4.5% (Migrate)';
-  const totalBenefit = targetARR * rate;
+  const rateLabel = rate===0.01 ? '1% (Optimize)' : '4.5% (Migrate / Modernize)';
+  const eligibleARR = targetARR * 0.70;
+  const totalBenefit = eligibleARR * rate;
   const monthlyBenefit = totalBenefit / 12;
   const modCap = rate===0.01 ? Math.min(totalBenefit, 250000) : totalBenefit;
+  window._computedDNE = modCap;
+  window._computedTargetARR = targetARR;
 
   annualEl.textContent = fmt(targetARR);
   benefitEl.textContent = fmt(monthlyBenefit);
 
   breakdownEl.innerHTML =
-    '<strong>Calculation breakdown:</strong><br>' +
+    '<strong>DNE calculation:</strong><br>' +
     'Monthly target: ' + fmt(monthly) + ' &nbsp;×&nbsp; 12 = Target ARR: ' + fmt(targetARR) + '<br>' +
-    'Intel rate: ' + rateLabel + ' &nbsp;×&nbsp; ' + fmt(targetARR) + ' = Total benefit: ' + fmt(modCap) + '<br>' +
-    'Monthly Intel benefit: ' + fmt(modCap) + ' ÷ 12 = <strong>' + fmt(monthlyBenefit) + '/month</strong><br>' +
-    '<span style="color:#92400e;font-size:.68rem">POP: Customer must provide Cost Explorer showing ≥75% of ' + fmt(targetARR) + ' target ARR achieved before TCC processes final payment.</span>';
+    'Blended discount budget: ' + fmt(targetARR) + ' &nbsp;×&nbsp; 70% = Eligible base: ' + fmt(eligibleARR) + '<br>' +
+    'Intel rate: ' + rateLabel + ' &nbsp;×&nbsp; ' + fmt(eligibleARR) + ' = <strong>DNE: ' + fmt(modCap) + '</strong><br>' +
+    'Monthly Intel benefit: ' + fmt(modCap) + ' ÷ 12 = ' + fmt(monthlyBenefit) + '/month<br>' +
+    '<span style="color:#92400e;font-size:.68rem">DNE is the Do Not Exceed ceiling, not a guaranteed payout. 75% of target ARR is treated as full completion. Cost Explorer POP is collected by TCC after SOW signing.</span>';
   breakdownEl.style.display = 'block';
 
   // Sync to fleet rebate totals for SOW
@@ -3838,7 +3895,7 @@ CONTACTS
   TCC:              Jacob Barksdale (jbarksdale@thechannelcompany.com)
 
 =========================================
-Intel Acceleration Program · Managed by ASP Core
+Intel Accelerate Program · Managed by ASP Core
 Intel × AWS Co-Sell Program · Confidential`;
 
   const blob = new Blob([guide], {type: 'text/plain'});
@@ -4107,10 +4164,18 @@ function generateSOW(){
 </div>
 
 <div style="margin-top:24px;padding:12px;background:var(--bg);border-radius:6px;border:1px solid var(--border);font-size:.68rem;color:var(--ink3);text-align:center">
-  Intel × AWS · Intel Acceleration Program · Confidential · intel.com/aws · aws.amazon.com/intel
+  Intel × AWS · Intel Accelerate Program · Confidential · intel.com/aws · aws.amazon.com/intel
 </div>`;
 
   document.getElementById('sow-inner').innerHTML = html;
+  // PRD Stage 4: version every SOW generation against the deal record
+  try{
+    const dealId = window._loadedDealId || '';
+    if(dealId && API_URL){
+      fetch(API_URL+'/sow-version',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({dealId:dealId,requestedBy:(typeof currentUser!=='undefined'&&currentUser)?currentUser.name+' ('+currentUser.email+')':'',content:'SOW generated for '+custLegal+' — '+activityName})});
+    }
+  }catch(e){ console.error('SOW version log failed', e); }
 }
 
 function generatePOPSchedule(cadence){
@@ -4147,10 +4212,10 @@ async function getApprovalStage(deal){
 }
 
 function getApprovalLabel(stage){
-  if(stage==='core') return '<span class="approval-stage stage-core">Awaiting ASP Core</span>';
-  if(stage==='intel') return '<span class="approval-stage stage-intel">Awaiting Intel</span>';
-  if(stage==='tcc') return '<span class="approval-stage stage-tcc">Awaiting TCC</span>';
-  if(stage==='approved') return '<span class="approval-stage stage-approved">Fully Approved</span>';
+  if(stage==='core') return '<span class="approval-stage stage-core">Under Review</span>';
+  if(stage==='intel') return '<span class="approval-stage stage-intel">Approved (DNE Set) — Awaiting Intel</span>';
+  if(stage==='tcc') return '<span class="approval-stage stage-tcc">Intel Leadership Approved — SOW Pending</span>';
+  if(stage==='approved') return '<span class="approval-stage stage-approved">SOW Issued</span>';
   return stage;
 }
 
@@ -4207,8 +4272,39 @@ async function renderApprovalQueue(){
           <div class="approval-grid-item"><label>Submitter</label><div class="val">${(deal.team&&deal.team[0])?deal.team[0].name:deal.fhName||'—'}</div></div>
           <div class="approval-grid-item"><label>AWS Region</label><div class="val">${deal.awsRegion||'—'}</div></div>
           <div class="approval-grid-item"><label>Expected ROI (10x)</label><div class="val" style="color:var(--green)">${fmt((deal.rebate||totPay)*10)}</div></div>
-          <div class="approval-grid-item"><label>Cost Explorer</label><div class="val">${deal.ceFileName?'<span style="color:var(--green)">✓ '+deal.ceFileName+'</span>':'<span style="color:var(--red)">Not attached</span>'}</div></div>
+          <div class="approval-grid-item"><label>Cost Explorer</label><div class="val">${deal.ceFileName?'<span style="color:var(--green)">✓ '+deal.ceFileName+'</span>':'<span style="color:var(--ink3)">Post-SOW (TCC collects)</span>'}</div></div>
+          <div class="approval-grid-item"><label>Simple Monthly Calc</label><div class="val">${deal.smcFileName?'<span style="color:var(--green)">✓ '+deal.smcFileName+'</span>':'<span style="color:var(--red)">Not attached</span>'}</div></div>
+          <div class="approval-grid-item"><label>Payment Option</label><div class="val">${deal.paymentOption||'—'}</div></div>
+          <div class="approval-grid-item"><label>Win Wire</label><div class="val">${deal.winWire?'Yes':'No'}</div></div>
+          <div class="approval-grid-item"><label>DNE</label><div class="val" style="color:var(--intel)">${deal.dne?fmt(deal.dne):'Not set'}</div></div>
         </div>
+        ${myTier==='core'?`
+        <div style="background:#f0f5ff;border:1px solid #c7d7f5;border-radius:8px;padding:10px 12px;margin-top:10px">
+          <div style="font-size:.7rem;font-weight:700;color:#001f5c;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Set DNE — required before approval</div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <input type="number" id="dne-arr-${deal.id}" placeholder="Target ARR ($)" value="${deal.targetArr||''}" style="width:170px;padding:6px 8px;border:1px solid #c7d7f5;border-radius:6px;font-size:.78rem">
+            <button class="btn btn-secondary btn-sm" onclick="setDNE('${deal.id}')">Calculate + Save DNE</button>
+            <span id="dne-out-${deal.id}" style="font-size:.78rem;font-weight:700;color:#0068B5">${deal.dne?('DNE: '+fmt(deal.dne)):''}</span>
+          </div>
+          <div style="font-size:.68rem;color:#555;margin-top:5px">DNE = Target ARR × 70% (30% blended discount) × ${(deal.actType||'').startsWith('Opt')?'1% (cap $250K)':'4.5%'}</div>
+        </div>`:''}
+        ${myTier==='intel'?`
+        <div style="background:#fff8f0;border:1px solid #fed7aa;border-radius:8px;padding:10px 12px;margin-top:10px">
+          <div style="font-size:.7rem;font-weight:700;color:#c2410c;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Ask a question — logged and emailed to the review team</div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input type="text" id="q-${deal.id}" placeholder="Type your question" style="flex:1;padding:6px 8px;border:1px solid #fed7aa;border-radius:6px;font-size:.78rem">
+            <button class="btn btn-secondary btn-sm" onclick="askQuestion('${deal.id}')">Send Question</button>
+          </div>
+        </div>`:''}
+        ${(deal.qaLog&&deal.qaLog.length)?`<div style="margin-top:8px;font-size:.72rem;color:var(--ink2)"><strong>Q&amp;A log:</strong> ${deal.qaLog.map(q=>'<div style="margin-top:3px">['+q.at.slice(0,10)+'] '+(q.type==='question'?'Q':'A')+' ('+q.by+'): '+q.text+'</div>').join('')}</div>`:''}
+        ${canEditDeal()?`
+        <div style="display:flex;gap:8px;align-items:center;margin-top:10px;font-size:.75rem">
+          <span style="color:var(--ink3)">Edit migration target date:</span>
+          <input type="date" id="edit-mig-${deal.id}" value="${deal.migTargetDate||''}" style="padding:4px 6px;border:1px solid var(--border2);border-radius:6px;font-size:.75rem">
+          <button class="btn btn-secondary btn-sm" onclick="saveMigDate('${deal.id}')">Save</button>
+          <span style="color:var(--ink3);font-size:.68rem">Logged to the audit trail</span>
+        </div>`:''}
+        ${(deal.auditLog&&deal.auditLog.length)?`<details style="margin-top:8px;font-size:.7rem;color:var(--ink2)"><summary style="cursor:pointer">Audit trail (${deal.auditLog.length})</summary>${deal.auditLog.slice(-10).map(a=>'<div style="margin-top:3px">['+a.at+'] '+a.by+' changed '+a.field+': '+a.old+' → '+a.new+'</div>').join('')}</details>`:''}
         ${myTier==='tcc'?`
         <div class="pop-check">
           <div class="pop-check-label">POP Available from Customer?</div>
@@ -4381,6 +4477,10 @@ async function approveDeal(id){
   const deal=deals.find(d=>d.id===id);
   if(!deal) return;
   const stage=deal.approvalStage||'core';
+  if(stage==='core' && !(parseFloat(deal.dne)>0)){
+    alert('Set and save the DNE before approving. The DNE routes to Intel leadership with the deal.');
+    return;
+  }
   const next=stage==='core'?'intel':stage==='intel'?'tcc':'approved';
   deal['approvedBy_'+stage]=currentUser.name+' · '+new Date().toLocaleDateString();
   await apiSaveDeal(deal, stage, next);  // pass prev+next stage so Lambda fires SES
@@ -4579,14 +4679,15 @@ const INTEL_PRICING_KEY = 'intel-arch-7f3a9c2e8b14d05f6a1e9d7c3b8f240a';
 async function apiSaveDeal(deal, prevStage, nextStage, submitted){
   if(!API_URL) return null;
   try{
-    // Update stage on deal object before sending
+    // Update stage on deal object before sending — PRD status names
     if(nextStage) deal.approvalStage = nextStage;
-    if(nextStage==='intel') deal.status='Intel Review';
-    else if(nextStage==='tcc') deal.status='Onboarding w/ TCC';
-    else if(nextStage==='approved') deal.status='Approved';
+    if(nextStage==='intel') deal.status='Approved (DNE Set)';
+    else if(nextStage==='tcc') deal.status='Intel Leadership Approved';
+    else if(nextStage==='approved') deal.status='SOW Issued';
     const payload = {deal};
     if(prevStage) payload.prevStage = prevStage;
     if(submitted) payload.submitted = true;
+    payload.editor = (typeof currentUser!=='undefined' && currentUser) ? currentUser.email : '';
     const r = await fetch(API_URL+'/deal', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
     return await r.json();
   }catch(e){ console.error('API save failed', e); return null; }
@@ -4646,6 +4747,16 @@ function getCurrentDealData(){
     expectedROI:fleets.reduce((s,f)=>s+(f.rebate||0),0)*10,
     ceFileName: ceFileName || '',
     ceS3Key: ceS3Key || '',
+    dealName:v('deal-name'),
+    winWire:v('win-wire')==='yes',
+    aceAmount:parseFloat(v('ace-amount'))||0,
+    actType:v('prd-deal-type')||v('activity-type'),
+    paymentOption:v('payment-option'),
+    migTargetDate:v('mig-target-date'),
+    smcFileName: smcFileName || '',
+    smcS3Key: smcS3Key || '',
+    targetArr: window._computedTargetARR || 0,
+    dne: window._computedDNE || 0,
     popAvailable:null,
     approvalStage:'core',
   };
@@ -4693,7 +4804,7 @@ function downloadSOWWord(){
     + '\\paperw12240\\paperh15840\\margl1080\\margr1080\\margt1080\\margb1080\n'
     + '\\f0\\fs20\n'
     + '{\\b\\fs36\\qc STATEMENT OF WORK\\par}\n'
-    + '{\\fs22\\qc\\cf1 Intel Acceleration Program \u00b7 The Channel Company\\par}\n'
+    + '{\\fs22\\qc\\cf1 Intel Accelerate Program \u00b7 The Channel Company\\par}\n'
     + '{\\b\\fs24\\qc Customer: '+e(d.custName||'[Customer]')+'\\par}\n'
     + '{\\fs18\\qc Date: '+today+'   |   IPIC: '+e(d.ipicNum||'Pending')+'   |   ACE: '+e(d.aceID||'Pending')+'\\par}\n'
     + '\\par\\pard\\brdrb\\brdrs\\brdrw10\\par\n'
@@ -4796,7 +4907,7 @@ function downloadRoadmapWord(){
     + '{'+e(d.custName||'[Customer]')+'\\tab\\tab '+e((team[0]||{}).name||'[Specialist]')+'\\par}\n'
     + '\\par\\par\n'
     + '{Signature & Date: _______________________\\tab Signature & Date: _______________________\\par}\n'
-    + '{\\fs16 The Channel Company \u00b7 Intel Acceleration Program \u00b7 CONFIDENTIAL\\par}\n'
+    + '{\\fs16 The Channel Company \u00b7 Intel Accelerate Program \u00b7 CONFIDENTIAL\\par}\n'
     + '}';
 
   var blob = new Blob([rtf], {type:'application/rtf'});
@@ -4909,20 +5020,93 @@ function exportIPIC(){
   URL.revokeObjectURL(url);
 }
 
+function canEditDeal(){
+  // PRD Section 6: Jacob and Yasmine only
+  if(typeof currentUser==='undefined'||!currentUser) return false;
+  return ['yasmine@cloudzero.ca','jacobx.barksdale@intel.com'].includes(currentUser.email);
+}
+
+async function setDNE(id){
+  const arr=parseFloat(document.getElementById('dne-arr-'+id).value)||0;
+  if(arr<=0){ alert('Enter the Target ARR first.'); return; }
+  const deals=await loadPipelineDealsFromCloud();
+  const deal=deals.find(d=>d.id===id);
+  if(!deal) return;
+  const isOpt=(deal.actType||'').startsWith('Opt');
+  let dne=arr*0.70*(isOpt?0.01:0.045);
+  if(isOpt&&dne>250000) dne=250000;
+  deal.targetArr=arr; deal.dne=Math.round(dne*100)/100;
+  deal.status='Under Review';
+  await apiSaveDeal(deal);
+  const out=document.getElementById('dne-out-'+id);
+  if(out) out.textContent='DNE: '+fmt(deal.dne)+' — saved';
+}
+
+async function askQuestion(id){
+  const q=(document.getElementById('q-'+id).value||'').trim();
+  if(!q){ alert('Type a question first.'); return; }
+  try{
+    const r=await fetch(API_URL+'/question',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({dealId:id,question:q,askedBy:currentUser?currentUser.name+' ('+currentUser.email+')':''})});
+    const j=await r.json();
+    alert(j.logged?'Question logged and emailed to the review team.':'Failed to send question.');
+    renderApprovalQueue&&renderApprovalQueue();
+  }catch(e){ alert('Failed to send question.'); }
+}
+
+async function saveMigDate(id){
+  const val=document.getElementById('edit-mig-'+id).value;
+  if(!val) return;
+  const deals=await loadPipelineDealsFromCloud();
+  const deal=deals.find(d=>d.id===id);
+  if(!deal) return;
+  deal.migTargetDate=val;
+  await apiSaveDeal(deal);
+  alert('Migration target date updated. The change is logged to the audit trail.');
+}
+
+async function exportWinWires(){
+  const deals=await loadPipelineDealsFromCloud();
+  const ww=deals.filter(d=>d.winWire);
+  if(!ww.length){ alert('No Win Wire deals to export.'); return; }
+  const rows=ww.map(d=>({DealName:d.dealName||'',Customer:d.custName||'',Partner:d.partnerName||'',
+    ACE_ID:d.aceID||'',DealType:d.actType||'',TargetARR:d.targetArr||0,DNE:d.dne||0,
+    PaymentOption:d.paymentOption||'',MigrationTargetDate:d.migTargetDate||'',Status:d.status||'',Submitted:d.submittedAt||''}));
+  const ws=XLSX.utils.json_to_sheet(rows);
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'Win Wires');
+  XLSX.writeFile(wb,'IAP-Win-Wires-'+new Date().toISOString().slice(0,10)+'.xlsx');
+}
+
 async function submitDeal(){
   const data=getCurrentDealData();
-  data.status='Submitted to Core';
+  // PRD Stage 1 validation — hard blocks
+  const missing=[];
+  if(!data.dealName) missing.push('Deal name');
+  if(!data.custName) missing.push('Customer name');
+  if(!data.partnerName) missing.push('Partner name');
+  if(!data.aceID && !data.sfdcID) missing.push('ACE / SFDC Opportunity ID');
+  if(!data.actType) missing.push('Deal type');
+  if(!data.paymentOption) missing.push('Payment option');
+  if(!data.migTargetDate) missing.push('Migration target date');
+  if(missing.length){ alert('Cannot submit. Required: '+missing.join(', ')); return; }
+  if(!data.smcFileName){ alert('Cannot submit. The Simple Monthly Calculator attachment is required.'); return; }
+  if(data.aceAmount && data.targetArr && Math.abs(data.aceAmount-data.targetArr)/data.targetArr > 0.005){
+    alert('Cannot submit. ACE / SFDC amount ('+data.aceAmount.toLocaleString()+') must match the deal Target ARR ('+Math.round(data.targetArr).toLocaleString()+'). Correct one of the two.');
+    return;
+  }
+  data.status='Submitted';
   data.approvalStage='core';
   const apiResult = await apiSaveDeal(data, '', '', true);
   alert(apiResult && apiResult.saved
-    ? 'Deal submitted and saved to the cloud database.'
+    ? 'Deal submitted. Internal review has been notified by email.'
     : 'Deal submission failed. Please try again.');
 }
 
 async function loadDealById(id){
   const deals = await loadPipelineDealsFromCloud();
   const deal=deals.find(d=>d.id===id);
-  if(deal){restoreDeal(deal);goStep(1);}
+  if(deal){window._loadedDealId=deal.id;restoreDeal(deal);goStep(1);}
 }
 
 function restoreDeal(d){
