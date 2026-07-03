@@ -3,6 +3,7 @@ import base64
 import boto3
 import time
 import os
+import re
 from datetime import datetime, timezone
 
 dynamodb = boto3.resource('dynamodb')
@@ -412,6 +413,67 @@ def lambda_handler(event, context):
             s3.put_object(Bucket=BUCKET, Key=key, Body=base64.b64decode(filedata),
                           ServerSideEncryption='AES256')
             return ok(headers, {'uploaded': True, 'key': key})
+
+        # ── AI: DOCUMENT AUTOFILL (any upload -> structured deal fields) ──
+        if path == '/ai/extract' and method == 'POST':
+            filename = body.get('filename', 'document')
+            file_b64 = body.get('data', '')
+            mime = body.get('mimeType', 'application/pdf')
+            if not file_b64:
+                return ok(headers, {'result': {'error': 'no file data received'}})
+            raw_bytes = base64.b64decode(file_b64)
+            doc_name = re.sub(r'[^a-zA-Z0-9\-_. ]', '_', filename)[:50] or 'document'
+
+            prompt_text = """You are extracting deal information from an uploaded document for an Intel Accelerate Program (IAP) deal intake form.
+
+Read the document carefully, including any email threads, tables, or slides. Extract only what is actually present — never invent or estimate a value that isn't stated.
+
+Return ONLY valid JSON, no other text, no markdown fences, in this exact shape:
+{
+  "dealName": "", "custName": "", "partnerName": "",
+  "actType": "one of: Migrate, Modernize, Optimize, or empty if unclear",
+  "aceID": "", "targetArr": null, "migStart": "", "closeDate": "",
+  "confidence": {"dealName":"high|medium|low","custName":"high|medium|low","partnerName":"high|medium|low","actType":"high|medium|low","aceID":"high|medium|low","targetArr":"high|medium|low","migStart":"high|medium|low","closeDate":"high|medium|low"},
+  "flags": ["plain-sentence notes on contradictions, revisions across the document, or ambiguity worth a human checking"],
+  "missingForARR": ["if targetArr could not be found or computed, list the specific facts still needed to get one — e.g. current AWS EC2 monthly spend on the target instance family, a Pricing Calculator estimate for the post-migration instances, or confirmation of what AWS services (vs. a managed third-party service like SAP RISE) actually carry the spend. Be concrete, not generic. Empty array if targetArr was found."]
+}
+
+Dates should be ISO format (YYYY-MM-DD) if a specific date is stated, otherwise leave empty. targetArr should be a number (no currency symbols or commas) only if an actual dollar figure is present — do not calculate or infer one from technical sizing data. If the document has nothing relevant to a field, leave it empty or null and mark its confidence "low". Flag anything that changes value across the document (e.g. a number revised in a later message) rather than silently picking one.
+
+Note on managed/ISV deployments (e.g. SAP RISE, other managed private cloud editions): these frequently run on AWS infrastructure even though a third party like SAP manages and bills for the service — the deployment region and instance-level detail in the document (not the billing relationship) determines AWS eligibility. Do not assume a managed service is ineligible. If the document names an AWS region or shows memory/compute sizing without naming specific AWS EC2 instance types, say in missingForARR that the AWS EC2 instance types and pricing equivalent to the stated sizing still need to be identified (e.g. via AWS Pricing Calculator) — this is a translation gap, not a disqualification."""
+
+            content_block = {"text": prompt_text}
+            if mime.startswith('image/'):
+                img_fmt = mime.split('/')[-1].replace('jpg', 'jpeg')
+                doc_block = {"image": {"format": img_fmt, "source": {"bytes": raw_bytes}}}
+            else:
+                fmt_map = {
+                    'application/pdf': 'pdf', 'text/plain': 'txt', 'text/csv': 'csv',
+                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
+                    'application/msword': 'doc',
+                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'xlsx',
+                    'application/vnd.ms-excel': 'xls', 'text/html': 'html', 'text/markdown': 'md'
+                }
+                doc_fmt = fmt_map.get(mime, 'pdf')
+                doc_block = {"document": {"format": doc_fmt, "name": doc_name, "source": {"bytes": raw_bytes}}}
+
+            try:
+                response = bedrock.converse(
+                    modelId=NOVA_MODEL,
+                    messages=[{"role": "user", "content": [doc_block, content_block]}],
+                    inferenceConfig={"maxTokens": 900, "temperature": 0.1}
+                )
+                text = response['output']['message']['content'][0]['text'].strip()
+                if '```' in text:
+                    text = text.split('```')[1]
+                    if text.startswith('json'):
+                        text = text[4:]
+                    text = text.strip()
+                result = json.loads(text)
+            except Exception as e:
+                print(f"Extraction error: {str(e)}")
+                result = {'error': f'Could not read this file: {str(e)[:150]}'}
+            return ok(headers, {'result': result})
 
         # ── AI: SOW CHECKER (kept) ──
         if path == '/ai/sow-check' and method == 'POST':
