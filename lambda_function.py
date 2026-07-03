@@ -15,6 +15,7 @@ bedrock = boto3.client('bedrock-runtime', region_name='ca-central-1')
 TABLE = os.environ.get('TABLE', 'iap-deals')
 BUCKET = os.environ.get('BUCKET', '')
 NOVA_MODEL = os.environ.get('NOVA_MODEL', 'amazon.nova-2-lite-v1:0')
+NOVA_EXTRACT_MODEL = os.environ.get('NOVA_EXTRACT_MODEL', 'us.amazon.nova-lite-v1:0')
 FROM_EMAIL = os.environ.get('FROM_EMAIL', 'yasmine@cloudzero.ca')
 APP_URL = os.environ.get('APP_URL', 'https://main.dgxv59n7ru973.amplifyapp.com')
 
@@ -183,7 +184,13 @@ def get_smartsheet_token():
         return None
 
 def push_to_smartsheet(deal):
-    """Add the deal as a row. Returns a human-readable sync status stored on the deal."""
+    """Add the deal as a row on the IAP Project Intake Sheet.
+    Submitter-derivable fields are populated now. TCC-owned fields
+    (IPIC #, Activity Type, POP dates, Claim Quarter, Intel Budget Year,
+    Contribution/Claimed/Paid/Remaining amounts, POP Received) are left
+    unset so TCC fills them directly in Smartsheet post-submission.
+    Column matching is tolerant by title — only columns that actually
+    exist on the sheet get written to."""
     token = get_smartsheet_token()
     if not token:
         return 'Not synced — token not configured in Secrets Manager'
@@ -197,19 +204,62 @@ def push_to_smartsheet(deal):
         with _ur.urlopen(req, timeout=15) as r:
             sheet = json.loads(r.read().decode())
         cols = {c['title']: c['id'] for c in sheet.get('columns', [])}
-        # Map to whatever columns the sheet actually has — tolerant by title
+
+        team = deal.get('team', [{}])
+        submitter = team[0] if team else {}
+        service_arr = (
+            float(deal.get('arrEc2', 0) or 0) + float(deal.get('arrRds', 0) or 0) +
+            float(deal.get('arrElastiCache', 0) or 0) + float(deal.get('arrOpenSearch', 0) or 0)
+        )
+        infra_arr = service_arr or float(deal.get('targetArr', 0) or 0)
+        instances_used = deal.get('migTo', '') or ', '.join(
+            f.get('instance', '') for f in deal.get('fleets', []) if f.get('instance'))
+        is_migration = 'Yes' if str(deal.get('actType', '')).lower() in ('migrate', 'migration') else \
+                       ('No' if deal.get('actType') else '')
+
+        # Submitter-derivable fields — written now
         candidates = {
-            'IPIC Activity #': deal.get('ipicNum', ''),
             'Activity Name': deal.get('dealName', '') or ('IAP - ' + deal.get('custName', '')),
+            'IPIC Activity Description': deal.get('summaryText', '') or deal.get('projectDescription', ''),
+            'Description': deal.get('summaryText', '') or deal.get('projectDescription', ''),
+            'Migration Project Description': deal.get('projectDescription', ''),
+            'Start Date': deal.get('migStart', ''),
+            'End Date': deal.get('closeDate', '') or deal.get('migTargetDate', ''),
+            'Partner or End Customer Name': deal.get('custName', ''),
+            'Status': deal.get('status', ''),
+            'Intake Entry Date': deal.get('submittedAt', '')[:10] if deal.get('submittedAt') else '',
+            'Submitter Name': submitter.get('name', ''),
+            'Submitter Email': submitter.get('email', ''),
+            'Intel Rep Name': deal.get('intelRepName', ''),
+            'AWS Rep Name': deal.get('awsRepName', ''),
+            'Workload': deal.get('workload', '') or deal.get('custWorkload', ''),
+            'Workload Selection': deal.get('workload', ''),
+            'POP Available': 'No',
+            'AWS Instances Used': instances_used,
+            'Region/Country of Execution': deal.get('awsRegion', ''),
+            'Cost of Infrastructure (ARR)': infra_arr,
+            'Cost of Migration (Engineering Work)': float(deal.get('migrationCost', 0) or 0),
+            'Requested funding amount': float(deal.get('dne', 0) or 0),
+            'Funding amount not to exceed': float(deal.get('dne', 0) or 0),
+            'Is this for a Migration activity?': is_migration,
+            'Is this a migration activity?': is_migration,
+            'Link to AWS Pricing Calculator': deal.get('pricingCalcLink', ''),
+            'Expected ROI': deal.get('expectedRoi', ''),
+            'AWS Alignment': deal.get('awsRegion', ''),
+            'ACE Opportunity ID': deal.get('aceID', ''),
+            'SFDC Opportunity ID': deal.get('sfdcID', ''),
+            'Opportunity ID': deal.get('aceID', '') or deal.get('sfdcID', ''),
+            # Legacy/simple sheet column names, kept for tolerance
             'Deal Name': deal.get('dealName', ''), 'Customer': deal.get('custName', ''),
             'Partner': deal.get('partnerName', ''), 'ACE ID': deal.get('aceID', ''),
-            'ACE Opportunity ID': deal.get('aceID', ''),
             'Deal Type': deal.get('actType', ''), 'Target ARR': deal.get('targetArr', 0),
             'DNE': deal.get('dne', 0), 'Payment Option': deal.get('paymentOption', ''),
-            'Migration Start': deal.get('migStart', ''), 'Status': deal.get('status', ''),
+            'Migration Start': deal.get('migStart', ''),
             'Win Wire': 'Yes' if deal.get('winWire') else 'No',
+            'IPIC Activity #': deal.get('ipicNum', ''),
         }
-        cells = [{'columnId': cols[k], 'value': v} for k, v in candidates.items() if k in cols and v != '']
+        cells = [{'columnId': cols[k], 'value': v} for k, v in candidates.items()
+                 if k in cols and v not in ('', None, 0)]
         if not cells:
             return 'Not synced — sheet columns do not match expected titles'
         payload = json.dumps({'toBottom': True, 'cells': cells}).encode()
@@ -459,7 +509,7 @@ Note on managed/ISV deployments (e.g. SAP RISE, other managed private cloud edit
 
             try:
                 response = bedrock.converse(
-                    modelId=NOVA_MODEL,
+                    modelId=NOVA_EXTRACT_MODEL,
                     messages=[{"role": "user", "content": [doc_block, content_block]}],
                     inferenceConfig={"maxTokens": 900, "temperature": 0.1}
                 )

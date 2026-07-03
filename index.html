@@ -1458,6 +1458,9 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
         <button class="nav-item" id="nav3" onclick="goStep(3)">
           <span class="step-num" id="snum3">⊞</span>Calculators — IAP &amp; Simple Monthly
         </button>
+        <button class="nav-item" onclick="goStep(3);setTimeout(()=>{setBaselineMethod(2);document.getElementById('baseline-method-2').scrollIntoView({behavior:'smooth',block:'start'});},80)">
+          <span class="step-num">$</span>Intel Instance Pricing (Live)
+        </button>
         <button class="nav-item" onclick="downloadWorkflowGuide()">
           <span class="step-num">⇩</span>Instructions — Download Guide
         </button>
@@ -1975,46 +1978,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
                 <label style="display:flex;align-items:center;gap:4px;font-size:.75rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer"><input type="checkbox" value="Other"> Other</label>
               </div>
             </div>
-            <div class="f-group" style="display:none">
-              <label>Primary AWS Region</label>
-              <select id="cust-awsregion">
-                <option value="">— AWS Region —</option>
-                <option>us-east-1 (N. Virginia)</option>
-                <option>us-east-2 (Ohio)</option>
-                <option>us-west-1 (N. California)</option>
-                <option>us-west-2 (Oregon)</option>
-                <option>ca-central-1 (Canada Central)</option>
-                <option>ca-west-1 (Calgary)</option>
-                <option>mx-central-1 (Mexico)</option>
-                <option>sa-east-1 (São Paulo)</option>
-                <option>eu-west-1 (Ireland)</option>
-                <option>eu-west-2 (London)</option>
-                <option>eu-west-3 (Paris)</option>
-                <option>eu-central-1 (Frankfurt)</option>
-                <option>eu-central-2 (Zurich)</option>
-                <option>eu-north-1 (Stockholm)</option>
-                <option>eu-south-1 (Milan)</option>
-                <option>eu-south-2 (Spain)</option>
-                <option>il-central-1 (Tel Aviv)</option>
-                <option>me-south-1 (Bahrain)</option>
-                <option>me-central-1 (UAE)</option>
-                <option>af-south-1 (Cape Town)</option>
-                <option>ap-south-1 (Mumbai)</option>
-                <option>ap-south-2 (Hyderabad)</option>
-                <option>ap-southeast-1 (Singapore)</option>
-                <option>ap-southeast-2 (Sydney)</option>
-                <option>ap-southeast-3 (Jakarta)</option>
-                <option>ap-southeast-4 (Melbourne)</option>
-                <option>ap-southeast-5 (Malaysia)</option>
-                <option>ap-southeast-7 (Thailand)</option>
-                <option>ap-northeast-1 (Tokyo)</option>
-                <option>ap-northeast-2 (Seoul)</option>
-                <option>ap-northeast-3 (Osaka)</option>
-                <option>ap-east-1 (Hong Kong)</option>
-                <option>ap-east-2 (Taipei)</option>
-                <option>Other / Multi-Region</option>
-              </select>
-            </div>
+            
             <div class="f-group">
               <label>Benefit Recipient</label>
               <select id="cust-recipient">
@@ -2047,6 +2011,23 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
                 <option>Consulting Partner</option>
                 <option>Other</option>
               </select>
+            </div>
+            <div class="f-group">
+              <label>Intel Rep Name</label>
+              <input type="text" id="intel-rep-name" placeholder="e.g. Akanksha Bilani">
+            </div>
+            <div class="f-group">
+              <label>AWS Rep Name</label>
+              <input type="text" id="aws-rep-name" placeholder="e.g. your name">
+            </div>
+            <div class="f-group">
+              <label>Cost of Migration — Engineering ($)</label>
+              <input type="number" id="migration-cost" placeholder="0" min="0">
+              <span class="hint">Professional services / engineering effort, separate from infrastructure ARR</span>
+            </div>
+            <div class="f-group">
+              <label>Link to AWS Pricing Calculator</label>
+              <input type="text" id="pricing-calc-link" placeholder="https://calculator.aws/#/estimate?id=...">
             </div>
             <div class="f-group span2">
               <label>Partner Role in Deal</label>
@@ -2382,6 +2363,59 @@ Please confirm receipt.<br>
         </div>
 
         <div class="section-card">
+          <div class="section-card-title">AWS Consumption — powers ACE ARR</div>
+          <div style="font-size:.75rem;color:var(--ink3);margin-bottom:10px">ACE ARR above is the sum of these four services. Fill what applies; leave the rest at 0.</div>
+          <div class="form-grid">
+            <div class="f-group">
+              <label>EC2 ARR ($)</label>
+              <input type="number" id="arr-ec2" placeholder="0" min="0" oninput="recalcAceFromServices()">
+            </div>
+            <div class="f-group">
+              <label>RDS ARR ($)</label>
+              <input type="number" id="arr-rds" placeholder="0" min="0" oninput="recalcAceFromServices()">
+            </div>
+            <div class="f-group">
+              <label>ElastiCache ARR ($)</label>
+              <input type="number" id="arr-elasticache" placeholder="0" min="0" oninput="recalcAceFromServices()">
+            </div>
+            <div class="f-group">
+              <label>OpenSearch ARR ($)</label>
+              <input type="number" id="arr-opensearch" placeholder="0" min="0" oninput="recalcAceFromServices()">
+            </div>
+            <div class="f-group">
+              <label>AWS Region</label>
+              <select id="cust-awsregion">
+                <option value="">— AWS Region —</option>
+                <option>us-east-1 (N. Virginia)</option>
+                <option>us-east-2 (Ohio)</option>
+                <option>us-west-1 (N. California)</option>
+                <option>us-west-2 (Oregon)</option>
+                <option>ca-central-1 (Canada Central)</option>
+                <option>ca-west-1 (Calgary)</option>
+                <option>mx-central-1 (Mexico)</option>
+                <option>sa-east-1 (São Paulo)</option>
+                <option>eu-west-1 (Ireland)</option>
+                <option>eu-west-2 (London)</option>
+                <option>eu-west-3 (Paris)</option>
+                <option>eu-central-1 (Frankfurt)</option>
+                <option>eu-central-2 (Zurich)</option>
+                <option>eu-north-1 (Stockholm)</option>
+                <option>ap-southeast-1 (Singapore)</option>
+                <option>ap-southeast-2 (Sydney)</option>
+                <option>ap-northeast-1 (Tokyo)</option>
+                <option>ap-south-1 (Mumbai)</option>
+                <option>Multi-region</option>
+              </select>
+            </div>
+            <div class="f-group">
+              <label>Customer AWS Discount (EDP) %</label>
+              <input type="number" id="cust-edp-discount" value="10" min="0" max="40" step="0.5">
+              <span class="hint">AWS EDP typically runs 6–25% depending on commitment size and term. 10% is a mid-range default — replace with the customer's actual rate if known.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-card">
           <div class="section-card-title">ACE Co-Sell Summary (Copy for ACE)</div>
           <div id="ace-summary-box" style="background:var(--bg);border-radius:var(--radius);padding:14px 16px;font-family:'Courier New',monospace;font-size:.72rem;line-height:1.7;white-space:pre-wrap;min-height:80px;color:var(--ink2)">
             Fill in the steps above to generate the ACE co-sell summary.
@@ -2389,10 +2423,6 @@ Please confirm receipt.<br>
           <button class="btn btn-secondary btn-sm mt8" onclick="copyACESummary()">📋 Copy Summary</button>
         </div>
 
-        <div class="btn-row">
-          <button class="btn btn-secondary" onclick="goStep(4)">← Back</button>
-          <button class="btn btn-primary" onclick="goStep(6)">Continue → Deal Summary</button>
-        </div>
       </div>
 
       <!-- ── STEP 5.5: SUMMARY ── injected as step 6, SOW becomes step 7 -->
@@ -2472,6 +2502,7 @@ Please confirm receipt.<br>
               <div><div style="font-size:.62rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.08em">Payment</div><div id="crm-pay" style="font-size:.95rem;font-weight:700">—</div></div>
               <div><div style="font-size:.62rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.08em">ACE ID</div><div id="crm-ace" style="font-size:.95rem;font-weight:700">—</div></div>
               <div><div style="font-size:.62rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.08em">Win Wire</div><div id="crm-ww" style="font-size:.95rem;font-weight:700">—</div></div>
+              <div><div style="font-size:.62rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.08em">Expected ROI</div><div id="crm-roi" style="font-size:.95rem;font-weight:700;color:#86efac">—</div></div>
             </div>
           </div>
           <div style="padding:12px 22px;display:flex;gap:10px;flex-wrap:wrap;border-top:1px solid var(--border)">
@@ -2491,8 +2522,9 @@ Please confirm receipt.<br>
         </div>
 
         <div class="btn-row">
-          <button class="btn btn-secondary" onclick="goStep(5)">← Back</button>
-          <button class="btn btn-primary" onclick="gotoSOW()">Generate SOW →</button>
+          <button class="btn btn-secondary" onclick="goStep(1)">← Back to Deal Info</button>
+          <button class="btn btn-success" onclick="submitDeal()" style="font-size:.92rem;padding:12px 26px">✓ Submit Deal</button>
+          <button class="btn btn-secondary" onclick="gotoSOW()">Generate SOW (TCC) →</button>
         </div>
       </div>
 
@@ -2563,54 +2595,13 @@ Please confirm receipt.<br>
         </div>
 
         <div class="btn-row">
-          <button class="btn btn-secondary" onclick="goStep(6)">← Back</button>
-          <button class="btn btn-success" onclick="submitDeal()">✓ Submit to Core</button>
+          <button class="btn btn-secondary" onclick="goStep(6)">← Back to Deal Record</button>
           <button class="btn btn-aws" onclick="exportIPIC()">Export IPIC Row</button>
           <button class="btn btn-secondary" onclick="downloadSOWWord()">📄 Download SOW as Word</button>
         </div>
       </div>
 
-      <!-- ── OLD STEP 6: SOW (kept as fallback, hidden) ── -->
-      <div class="step-panel" id="step6-old" style="display:none">
-        <div class="step-header">
-          <div class="step-badge">Step 06</div>
-          <div class="step-title">Statement of Work</div>
-          <div class="step-desc">Review and generate the SOW. Payment flows through The Channel Company. Download or print from this page.</div>
-        </div>
-
-        <div class="alert alert-info" style="margin-bottom:14px">
-          <strong>Payment:</strong> This is an Intel program. This SOW is executed between The Channel Company and the benefit recipient. Cost Explorer data is being shared with Intel (agreed with Intel) — collected by TCC after SOW signing. AWS does not share data and does not appear as a party to the payment.
-        </div>
-
-        <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
-          <button class="btn btn-primary" onclick="generateSOW()">⚡ Generate SOW</button>
-          <button class="btn btn-secondary" onclick="downloadSOWWord()">📄 Save as Word</button>
-          <button class="btn btn-secondary" onclick="window.print()">🖨 Print / Save PDF</button>
-          <button class="btn btn-secondary" onclick="copySOWText()">📋 Copy Text</button>
-          
-        </div>
-
-        <!-- Nova SOW Check Result -->
-        
-
-        <div class="sow-document" id="sow-document">
-          <div class="sow-watermark">CONFIDENTIAL</div>
-          <div class="sow-inner" id="sow-inner">
-            <div style="text-align:center;padding:40px;color:var(--ink3);font-family:'Arial',sans-serif;font-size:.8rem">
-              Click <strong>Generate SOW</strong> to populate this document.
-            </div>
-          </div>
-        </div>
-
-        <div class="btn-row">
-          <button class="btn btn-secondary" onclick="goStep(5)">← Back</button>
-          <button class="btn btn-success" onclick="submitDeal()">✓ Submit to Core</button>
-          <button class="btn btn-aws" onclick="exportIPIC()">Export IPIC Row</button>
-          <button class="btn btn-secondary" onclick="downloadSOWWord()">📄 Download SOW as Word</button>
-          <button class="btn btn-secondary" onclick="downloadRoadmapWord()">📋 Download Roadmap as Word</button>
-        </div>
-      </div>
-
+      <!-- step6-old removed: was dead duplicate SOW panel -->
       <!-- ── STEP 7: PIPELINE (Admin only) ── -->
       <div class="step-panel" id="step7">
         <div class="step-header">
@@ -3076,6 +3067,16 @@ const AUTOFILL_LABELS = {
   dealName:'Deal Name', custName:'Customer', partnerName:'Partner', actType:'Deal Type',
   aceID:'ACE Opportunity ID', targetArr:'Target ARR', migStart:'Migration Start', closeDate:'Close Date'
 };
+
+function recalcAceFromServices(){
+  const ec2=parseFloat(document.getElementById('arr-ec2').value)||0;
+  const rds=parseFloat(document.getElementById('arr-rds').value)||0;
+  const ec=parseFloat(document.getElementById('arr-elasticache').value)||0;
+  const os=parseFloat(document.getElementById('arr-opensearch').value)||0;
+  const sum=ec2+rds+ec+os;
+  const aceEl=document.getElementById('ace-amount');
+  if(sum>0){ aceEl.value=Math.round(sum); aceEl.dataset.userEdited=1; }
+}
 
 async function handleAutofillUpload(input){
   const file = input.files && input.files[0];
@@ -4915,6 +4916,11 @@ function getCurrentDealData(){
     paymentOption:v('payment-option'),
     migTargetDate:v('mig-start'),
     migFrom:v('mig-from'),migTo:v('mig-to'),discountModel:parseFloat(v('discount-model'))||30,intelSegment:v('intel-segment'),
+    arrEc2:parseFloat(v('arr-ec2'))||0, arrRds:parseFloat(v('arr-rds'))||0,
+    arrElastiCache:parseFloat(v('arr-elasticache'))||0, arrOpenSearch:parseFloat(v('arr-opensearch'))||0,
+    awsRegion:v('cust-awsregion'), custEdpDiscount:parseFloat(v('cust-edp-discount'))||10,
+    intelRepName:v('intel-rep-name'), awsRepName:v('aws-rep-name'),
+    migrationCost:parseFloat(v('migration-cost'))||0, pricingCalcLink:v('pricing-calc-link'),
     smcFileName: smcFileName || '',
     smcS3Key: smcS3Key || '',
     targetArr: window._computedTargetARR || 0,
@@ -5321,6 +5327,12 @@ function refreshCRMHeader(){
   set('crm-pay', (d.paymentOption||'').split(' ')[0]);
   set('crm-ace', d.aceID);
   set('crm-ww', d.winWire?'Yes':'No');
+  if(d.dne && d.migrationCost>0){
+    const roi=((d.dne - d.migrationCost)/d.migrationCost*100);
+    set('crm-roi', roi.toFixed(0)+'% (DNE vs. migration cost)');
+  } else {
+    set('crm-roi', d.migrationCost?'Add DNE to calculate':'Add migration cost to calculate');
+  }
   const st=document.getElementById('crm-stage'); if(st) st.textContent=d.status||'Draft';
 }
 
@@ -5549,17 +5561,11 @@ function initApp(){
   <button class="mobile-nav-btn" onclick="goStep(1)" id="mnav1">
     <span class="nav-icon">📋</span>Deal
   </button>
-  <button class="mobile-nav-btn" onclick="goStep(2)" id="mnav2">
-    <span class="nav-icon">👤</span>Customer
-  </button>
   <button class="mobile-nav-btn" onclick="goStep(3)" id="mnav3">
     <span class="nav-icon">🧮</span>Calc
   </button>
-  <button class="mobile-nav-btn" onclick="goStep(5)" id="mnav5">
-    <span class="nav-icon">🔗</span>ACE
-  </button>
   <button class="mobile-nav-btn" onclick="goStep(6)" id="mnav6">
-    <span class="nav-icon">📄</span>SOW
+    <span class="nav-icon">📄</span>Review
   </button>
   <button class="mobile-nav-btn" onclick="goStep(7)" id="mnav7" style="display:none">
     <span class="nav-icon">★</span>Pipeline
