@@ -476,7 +476,7 @@ def lambda_handler(event, context):
             if not file_b64:
                 return ok(headers, {'result': {'error': 'no file data received'}})
             raw_bytes = base64.b64decode(file_b64)
-            doc_name = re.sub(r'[^a-zA-Z0-9\-_. ]', '_', filename)[:50] or 'document'
+            doc_name = re.sub(r'[^a-zA-Z0-9\s()\[\]-]', ' ', filename.rsplit('.', 1)[0])[:50].strip() or 'document'
 
             prompt_text = """You are extracting deal information from an uploaded document for an Intel Accelerate Program (IAP) deal intake form.
 
@@ -620,7 +620,7 @@ Key facts:
 - Maximum duration 12 months, one calendar year
 - Cost Explorer is collected by TCC after SOW signing, shared by Intel or the customer directly. AWS cannot access or transfer it.
 - Simple Monthly Calculator attachment is required at submission. ACE amount must match deal amount.
-- Eligible: {', '.join(ELIGIBLE_FAMILIES)} (i-suffix Intel families) on EC2, RDS, ElastiCache, OpenSearch. Graviton and Trainium excluded.
+- Eligible: {', '.join(ELIGIBLE_FAMILIES)} (i-suffix Intel families) on EC2, RDS, ElastiCache, OpenSearch. Non-Intel families excluded.
 - Flow: Submitted > Under Review (Yasmine/Chris/Jeanine set DNE) > Intel Leadership Approved (one of Akanksha/Deep/Brendan) > SOW Issued (TCC) > In Progress > Complete
 
 Context: step {context_data.get('currentStep', 'unknown')}, customer {context_data.get('custName', 'not set')}, type {context_data.get('actType', 'not set')}

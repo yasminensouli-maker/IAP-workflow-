@@ -1475,7 +1475,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
           <div class="tenet-item"><strong>Actual Spend</strong>Rebate applies to post-discount ARR on Intel instances across EC2, RDS, ElastiCache, and OpenSearch, never list price.</div>
           <div class="tenet-item"><strong>TCC Channel</strong>Intel funds TCC · The Channel Company disburses to partner or customer. AWS does not participate in payment.</div>
           <div class="tenet-item"><strong>POP Required</strong>Proof of Performance due before claim date or rolls to next cycle.</div>
-          <div class="tenet-item"><strong>Intel Xeon 6</strong>Eligible instances must be Intel-optimized. Trainium and Graviton workloads are excluded.</div>
+          <div class="tenet-item"><strong>Intel Xeon 6</strong>Eligible instances must be Intel-optimized. Non-Intel accelerator and CPU families are excluded.</div>
         </div>
       </div>
 
@@ -1610,7 +1610,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
                   <option>On-premises (colocation)</option>
                   <option>AWS — prior generation Intel (m6i, c6i, r6i)</option>
                   <option>AWS — 7th gen Intel (m7i, c7i, r7i)</option>
-                  <option>AWS — AMD or Graviton instances</option>
+                  <option>AWS — non-Intel instances (AMD/Arm)</option>
                   <option>Another cloud (Azure, GCP, OCI)</option>
                   <option>Mixed / Hybrid</option>
                 </select>
@@ -1757,6 +1757,76 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
         </div>
 
         <div class="section-card">
+          <div class="section-card-title">End Customer</div>
+          <div class="form-grid">
+            <div class="f-group">
+              <label>Deal Name <span class="req">*</span></label>
+              <input type="text" id="deal-name" placeholder="e.g. Acme SAP Migration to m8i">
+            </div>
+            <div class="f-group">
+              <label>Include as Win Wire</label>
+              <select id="win-wire"><option value="yes" selected>Yes</option><option value="">No</option></select>
+              <span class="hint">Win Wire deals are aggregated and exportable to Excel</span>
+            </div>
+            <div class="f-group">
+              <label>Customer Legal Name <span class="req">*</span></label>
+              <input type="text" id="cust-name" placeholder="e.g. Acme Corporation Ltd.">
+            </div>
+            <div class="f-group" style="display:none">
+              <label>AWS Account ID</label>
+              <input type="text" id="cust-acct" placeholder="12-digit account ID" maxlength="12"
+                oninput="validateAcct(this)">
+              <span class="hint">Used to verify EC2 spend in Cost Explorer</span>
+            </div>
+            <div class="f-group span2">
+              <label>Customer Industry</label>
+              <select id="cust-industry">
+                <option value="">— Select Industry —</option>
+                <option>Financial Services</option>
+                <option>Healthcare &amp; Life Sciences</option>
+                <option>Manufacturing</option>
+                <option>Media &amp; Entertainment</option>
+                <option>Retail &amp; CPG</option>
+                <option>Technology / ISV</option>
+                <option>Telecommunications</option>
+                <option>Energy &amp; Utilities</option>
+                <option>Public Sector / Government</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="f-group span2">
+              <label>Workload Selection (check all that apply)</label>
+              <div id="workload-checks" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px">
+                <label style="display:flex;align-items:center;gap:4px;font-size:.75rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer"><input type="checkbox" value="Database/Data Platforms" style="accent-color:var(--intel)"> Database / Data Platforms</label>
+                <label style="display:flex;align-items:center;gap:4px;font-size:.75rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer"><input type="checkbox" value="GenAI"> GenAI</label>
+                <label style="display:flex;align-items:center;gap:4px;font-size:.75rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer"><input type="checkbox" value="AI Inference"> AI / AI Inference</label>
+                <label style="display:flex;align-items:center;gap:4px;font-size:.75rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer"><input type="checkbox" value="SAP"> SAP</label>
+                <label style="display:flex;align-items:center;gap:4px;font-size:.75rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer"><input type="checkbox" value="Accelerated Compute"> Accelerated Compute</label>
+                <label style="display:flex;align-items:center;gap:4px;font-size:.75rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer"><input type="checkbox" value="Mainframe"> Mainframe</label>
+                <label style="display:flex;align-items:center;gap:4px;font-size:.75rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer"><input type="checkbox" value="VMware"> VMware</label>
+                <label style="display:flex;align-items:center;gap:4px;font-size:.75rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer"><input type="checkbox" value="SQL"> SQL</label>
+                <label style="display:flex;align-items:center;gap:4px;font-size:.75rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer"><input type="checkbox" value="Epic Health Records"> Epic Health Records</label>
+                <label style="display:flex;align-items:center;gap:4px;font-size:.75rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer"><input type="checkbox" value="Other"> Other</label>
+              </div>
+            </div>
+            <div class="f-group span2">
+              <label>Workload Description</label>
+              <textarea id="cust-workload" placeholder="You selected the workload(s) above — describe the specifics, e.g. SAP on EC2, GenAI inference on C8i instances..."></textarea>
+            </div>
+            
+            <div class="f-group">
+              <label>Benefit Recipient</label>
+              <select id="cust-recipient">
+                <option>Customer (end customer receives benefit)</option>
+                <option>Partner (SI or ISV receives benefit)</option>
+                <option>Split (customer + partner)</option>
+              </select>
+              <span class="hint">Determines TCC disbursement target</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-card">
           <div class="section-card-title">Deal Origination</div>
           <div class="form-grid">
             <div class="f-group">
@@ -1864,6 +1934,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
                 <option>Semi-Annual</option>
                 <option>Annual</option>
               </select>
+              <span class="hint">How often TCC disburses payment. Different from Payment Option below, which sets the milestone structure.</span>
             </div>
             <div class="f-group">
               <label>Deal Status</label>
@@ -1913,77 +1984,80 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
           </div>
         </div>
 
-
-
-      <!-- ── STEP 2: CUSTOMER PROFILE ── -->
-     <div class="section-card">
-          <div class="section-card-title">End Customer</div>
+        <div class="section-card">
+          <div class="section-card-title">AWS ARR Breakdown</div>
+          <div style="font-size:.75rem;color:var(--ink3);margin-bottom:10px">Break down the total ARR across these eligible services. The four numbers below sum automatically into the ACE ARR field.</div>
           <div class="form-grid">
             <div class="f-group">
-              <label>Deal Name <span class="req">*</span></label>
-              <input type="text" id="deal-name" placeholder="e.g. Acme SAP Migration to m8i">
+              <label>EC2 ARR ($)</label>
+              <input type="number" id="arr-ec2" placeholder="0" min="0" oninput="recalcAceFromServices()">
             </div>
             <div class="f-group">
-              <label>Include as Win Wire</label>
-              <select id="win-wire"><option value="yes" selected>Yes</option><option value="">No</option></select>
-              <span class="hint">Win Wire deals are aggregated and exportable to Excel</span>
+              <label>RDS ARR ($)</label>
+              <input type="number" id="arr-rds" placeholder="0" min="0" oninput="recalcAceFromServices()">
             </div>
             <div class="f-group">
-              <label>Customer Legal Name <span class="req">*</span></label>
-              <input type="text" id="cust-name" placeholder="e.g. Acme Corporation Ltd.">
+              <label>ElastiCache ARR ($)</label>
+              <input type="number" id="arr-elasticache" placeholder="0" min="0" oninput="recalcAceFromServices()">
             </div>
-            <div class="f-group" style="display:none">
-              <label>AWS Account ID</label>
-              <input type="text" id="cust-acct" placeholder="12-digit account ID" maxlength="12"
-                oninput="validateAcct(this)">
-              <span class="hint">Used to verify EC2 spend in Cost Explorer</span>
+            <div class="f-group">
+              <label>OpenSearch ARR ($)</label>
+              <input type="number" id="arr-opensearch" placeholder="0" min="0" oninput="recalcAceFromServices()">
             </div>
-            <div class="f-group span2">
-              <label>Customer Industry</label>
-              <select id="cust-industry">
-                <option value="">— Select Industry —</option>
-                <option>Financial Services</option>
-                <option>Healthcare &amp; Life Sciences</option>
-                <option>Manufacturing</option>
-                <option>Media &amp; Entertainment</option>
-                <option>Retail &amp; CPG</option>
-                <option>Technology / ISV</option>
-                <option>Telecommunications</option>
-                <option>Energy &amp; Utilities</option>
-                <option>Public Sector / Government</option>
-                <option>Other</option>
+          </div>
+          <div id="arr-visual" style="margin-top:6px">
+            <div style="height:20px;border-radius:5px;overflow:hidden;display:flex;background:var(--bg);border:1px solid var(--border2)">
+              <div id="arr-bar-ec2" style="background:#0068B5;width:0%"></div>
+              <div id="arr-bar-rds" style="background:#FF9900;width:0%"></div>
+              <div id="arr-bar-ec" style="background:#16a34a;width:0%"></div>
+              <div id="arr-bar-os" style="background:#7c3aed;width:0%"></div>
+            </div>
+            <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:6px;font-size:.7rem;color:var(--ink2)">
+              <span><span style="display:inline-block;width:8px;height:8px;background:#0068B5;border-radius:2px;margin-right:4px"></span>EC2</span>
+              <span><span style="display:inline-block;width:8px;height:8px;background:#FF9900;border-radius:2px;margin-right:4px"></span>RDS</span>
+              <span><span style="display:inline-block;width:8px;height:8px;background:#16a34a;border-radius:2px;margin-right:4px"></span>ElastiCache</span>
+              <span><span style="display:inline-block;width:8px;height:8px;background:#7c3aed;border-radius:2px;margin-right:4px"></span>OpenSearch</span>
+            </div>
+            <div id="arr-total-line" style="font-size:.78rem;color:var(--ink2);margin-top:8px">Total: $0 — enter figures above</div>
+          </div>
+          <div class="form-grid" style="margin-top:14px">
+            <div class="f-group">
+              <label>AWS Region</label>
+              <select id="cust-awsregion">
+                <option value="">— AWS Region —</option>
+                <option>us-east-1 (N. Virginia)</option>
+                <option>us-east-2 (Ohio)</option>
+                <option>us-west-1 (N. California)</option>
+                <option>us-west-2 (Oregon)</option>
+                <option>ca-central-1 (Canada Central)</option>
+                <option>ca-west-1 (Calgary)</option>
+                <option>mx-central-1 (Mexico)</option>
+                <option>sa-east-1 (São Paulo)</option>
+                <option>eu-west-1 (Ireland)</option>
+                <option>eu-west-2 (London)</option>
+                <option>eu-west-3 (Paris)</option>
+                <option>eu-central-1 (Frankfurt)</option>
+                <option>eu-central-2 (Zurich)</option>
+                <option>eu-north-1 (Stockholm)</option>
+                <option>ap-southeast-1 (Singapore)</option>
+                <option>ap-southeast-2 (Sydney)</option>
+                <option>ap-northeast-1 (Tokyo)</option>
+                <option>ap-south-1 (Mumbai)</option>
+                <option>Multi-region</option>
               </select>
             </div>
-            <div class="f-group span2">
-              <label>Workload Description</label>
-              <textarea id="cust-workload" placeholder="Describe the Intel-eligible workload(s) — e.g. SAP on EC2, GenAI inference on C8i instances..."></textarea>
-            </div>
-            <div class="f-group span2">
-              <label>Workload Selection (check all that apply)</label>
-              <div id="workload-checks" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px">
-                <label style="display:flex;align-items:center;gap:4px;font-size:.75rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer"><input type="checkbox" value="Database/Data Platforms" style="accent-color:var(--intel)"> Database / Data Platforms</label>
-                <label style="display:flex;align-items:center;gap:4px;font-size:.75rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer"><input type="checkbox" value="GenAI"> GenAI</label>
-                <label style="display:flex;align-items:center;gap:4px;font-size:.75rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer"><input type="checkbox" value="SAP"> SAP</label>
-                <label style="display:flex;align-items:center;gap:4px;font-size:.75rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer"><input type="checkbox" value="Accelerated Compute"> Accelerated Compute</label>
-                <label style="display:flex;align-items:center;gap:4px;font-size:.75rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer"><input type="checkbox" value="Mainframe"> Mainframe</label>
-                <label style="display:flex;align-items:center;gap:4px;font-size:.75rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer"><input type="checkbox" value="VMware"> VMware</label>
-                <label style="display:flex;align-items:center;gap:4px;font-size:.75rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer"><input type="checkbox" value="SQL"> SQL</label>
-                <label style="display:flex;align-items:center;gap:4px;font-size:.75rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer"><input type="checkbox" value="Epic Health Records"> Epic Health Records</label>
-                <label style="display:flex;align-items:center;gap:4px;font-size:.75rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer"><input type="checkbox" value="Other"> Other</label>
-              </div>
-            </div>
-            
             <div class="f-group">
-              <label>Benefit Recipient</label>
-              <select id="cust-recipient">
-                <option>Customer (end customer receives benefit)</option>
-                <option>Partner (SI or ISV receives benefit)</option>
-                <option>Split (customer + partner)</option>
-              </select>
-              <span class="hint">Determines TCC disbursement target</span>
+              <label>Customer AWS Discount (EDP) %</label>
+              <input type="number" id="cust-edp-discount" value="10" min="0" max="40" step="0.5">
+              <span class="hint">AWS EDP typically runs 6–25% depending on commitment size and term. 10% is a mid-range default — replace with the customer's actual rate if known.</span>
             </div>
           </div>
         </div>
+
+
+
+      <!-- ── STEP 2: CUSTOMER PROFILE ── -->
+     
 
         <div class="section-card">
           <div class="section-card-title">Partner Context (if applicable)</div>
@@ -2054,6 +2128,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
             <div class="f-group">
               <label>Payment Option <span class="req">*</span></label>
               <select id="payment-option"><option value="">— Select —</option><option>Quarterly (10/20/30/40)</option><option>Milestone (25/50/75)</option><option>Lump Sum (at 75%+)</option></select>
+              <span class="hint">The milestone/payout structure. Different from Payment Cadence in Deal Metadata, which sets how often TCC pays.</span>
               <span class="hint">All payments are consumption-based. TCC manages disbursements.</span>
             </div>
             <div class="f-group">
@@ -2091,58 +2166,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
           </div>
         </div>
 
-        <div class="section-card">
-          <div class="section-card-title">AWS Consumption — powers ACE ARR</div>
-          <div style="font-size:.75rem;color:var(--ink3);margin-bottom:10px">ACE ARR above is the sum of these four services. Fill what applies; leave the rest at 0.</div>
-          <div class="form-grid">
-            <div class="f-group">
-              <label>EC2 ARR ($)</label>
-              <input type="number" id="arr-ec2" placeholder="0" min="0" oninput="recalcAceFromServices()">
-            </div>
-            <div class="f-group">
-              <label>RDS ARR ($)</label>
-              <input type="number" id="arr-rds" placeholder="0" min="0" oninput="recalcAceFromServices()">
-            </div>
-            <div class="f-group">
-              <label>ElastiCache ARR ($)</label>
-              <input type="number" id="arr-elasticache" placeholder="0" min="0" oninput="recalcAceFromServices()">
-            </div>
-            <div class="f-group">
-              <label>OpenSearch ARR ($)</label>
-              <input type="number" id="arr-opensearch" placeholder="0" min="0" oninput="recalcAceFromServices()">
-            </div>
-            <div class="f-group">
-              <label>AWS Region</label>
-              <select id="cust-awsregion">
-                <option value="">— AWS Region —</option>
-                <option>us-east-1 (N. Virginia)</option>
-                <option>us-east-2 (Ohio)</option>
-                <option>us-west-1 (N. California)</option>
-                <option>us-west-2 (Oregon)</option>
-                <option>ca-central-1 (Canada Central)</option>
-                <option>ca-west-1 (Calgary)</option>
-                <option>mx-central-1 (Mexico)</option>
-                <option>sa-east-1 (São Paulo)</option>
-                <option>eu-west-1 (Ireland)</option>
-                <option>eu-west-2 (London)</option>
-                <option>eu-west-3 (Paris)</option>
-                <option>eu-central-1 (Frankfurt)</option>
-                <option>eu-central-2 (Zurich)</option>
-                <option>eu-north-1 (Stockholm)</option>
-                <option>ap-southeast-1 (Singapore)</option>
-                <option>ap-southeast-2 (Sydney)</option>
-                <option>ap-northeast-1 (Tokyo)</option>
-                <option>ap-south-1 (Mumbai)</option>
-                <option>Multi-region</option>
-              </select>
-            </div>
-            <div class="f-group">
-              <label>Customer AWS Discount (EDP) %</label>
-              <input type="number" id="cust-edp-discount" value="10" min="0" max="40" step="0.5">
-              <span class="hint">AWS EDP typically runs 6–25% depending on commitment size and term. 10% is a mid-range default — replace with the customer's actual rate if known.</span>
-            </div>
-          </div>
-        </div>
+        
 
         <div class="section-card">
           <div class="section-card-title">ACE Co-Sell Summary (Copy for ACE)</div>
@@ -2175,7 +2199,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
           <div class="form-grid">
             <div class="f-group">
               <label>Migrating From</label>
-              <input type="text" id="mig-from" placeholder="e.g. on-prem VMware, m5, Graviton, other cloud">
+              <input type="text" id="mig-from" placeholder="e.g. on-prem VMware, m5, other cloud">
               <span class="hint">Current environment or instance families</span>
             </div>
             <div class="f-group">
@@ -2217,7 +2241,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
                   <li>Set <strong>Service</strong> filter to <strong>EC2, RDS, ElastiCache, OpenSearch</strong></li>
                   <li>Group by <strong>Instance Type</strong></li>
                   <li>Set date range to <strong>last 3–12 months</strong></li>
-                  <li>Filter to Intel families: <strong>m8i, c8i, r8i, x8i</strong> only<br><span style="color:#e53e3e;font-size:.68rem">Exclude Trainium (Trn) and Graviton (Arm)</span></li>
+                  <li>Filter to Intel families: <strong>m8i, c8i, r8i, x8i</strong> only<br><span style="color:#e53e3e;font-size:.68rem">Exclude non-Intel families</span></li>
                   <li><strong>Save this filter</strong> as a named report — reuse each quarter</li>
                   <li>Export as <strong>CSV or screenshot</strong></li>
                   <li>Customer emails export <strong>directly to TCC and Intel</strong></li>
@@ -2254,7 +2278,7 @@ Details:<br>
 - Program: [Migration 4.5% / Optimization 1%]<br>
 - Period covered: [Start Date] to [End Date]<br>
 - Intel instance families included: m8i, c8i, r8i, x8i<br>
-- Trainium and Graviton excluded from export<br>
+- Non-Intel families excluded from export<br>
 <br>
 The Cost Explorer export is attached as a CSV.<br>
 <br>
@@ -3061,7 +3085,34 @@ function recalcAceFromServices(){
   const os=parseFloat(document.getElementById('arr-opensearch').value)||0;
   const sum=ec2+rds+ec+os;
   const aceEl=document.getElementById('ace-amount');
-  if(sum>0){ aceEl.value=Math.round(sum); aceEl.dataset.userEdited=1; }
+  const fmtD=v=>'$'+Math.round(v).toLocaleString();
+  const bar={ec2:document.getElementById('arr-bar-ec2'),rds:document.getElementById('arr-bar-rds'),
+             ec:document.getElementById('arr-bar-ec'),os:document.getElementById('arr-bar-os')};
+  const totalLine=document.getElementById('arr-total-line');
+  if(sum>0){
+    bar.ec2.style.width=(ec2/sum*100)+'%';
+    bar.rds.style.width=(rds/sum*100)+'%';
+    bar.ec.style.width=(ec/sum*100)+'%';
+    bar.os.style.width=(os/sum*100)+'%';
+  } else {
+    bar.ec2.style.width=bar.rds.style.width=bar.ec.style.width=bar.os.style.width='0%';
+  }
+  if(totalLine){
+    const aceVal=parseFloat(aceEl.value)||0;
+    if(sum===0){
+      totalLine.textContent='Total: $0 — enter figures above';
+      totalLine.style.color='var(--ink2)';
+    } else if(aceEl.dataset.userEdited && Math.abs(aceVal-sum)/Math.max(sum,1) > 0.01){
+      totalLine.innerHTML='Total: '+fmtD(sum)+' — <strong style="color:#b91c1c">does not match ACE ARR ('+fmtD(aceVal)+')</strong>';
+      totalLine.style.color='#b91c1c';
+    } else {
+      totalLine.textContent='Total: '+fmtD(sum)+' — matches ACE ARR';
+      totalLine.style.color='#166534';
+    }
+  }
+  if(sum>0 && !(aceEl.dataset.userEdited && Math.abs((parseFloat(aceEl.value)||0)-sum)/Math.max(sum,1) > 0.01)){
+    aceEl.value=Math.round(sum);
+  }
 }
 
 async function handleAutofillUpload(input){
@@ -3904,7 +3955,7 @@ function showFillGuide(){
 
       <div style="background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.3);border-radius:8px;padding:14px 16px;margin-top:18px">
         <div style="font-size:.7rem;color:#fb923c;text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin-bottom:8px">Guardrails</div>
-        <div style="font-size:.78rem;color:rgba(255,255,255,.7);line-height:1.8">AWS does not share or forward Cost Explorer data to Intel or TCC; the customer sends it directly. Apply the rebate to post-discount ARR, not list price. Count only Intel i-suffix families (m8i, c8i, r8i, x8i); Trainium and Graviton are excluded. The calculator figure is the ceiling (WNE), not a guaranteed payout. Q4 requires at least one full billing cycle at 75 percent or more run-rate, not a single-day spike.</div>
+        <div style="font-size:.78rem;color:rgba(255,255,255,.7);line-height:1.8">AWS does not share or forward Cost Explorer data to Intel or TCC; the customer sends it directly. Apply the rebate to post-discount ARR, not list price. Count only Intel i-suffix families (m8i, c8i, r8i, x8i); non-Intel families are excluded. The calculator figure is the ceiling (WNE), not a guaranteed payout. Q4 requires at least one full billing cycle at 75 percent or more run-rate, not a single-day spike.</div>
       </div>
     </div>`;
   document.body.appendChild(o);
@@ -5479,6 +5530,29 @@ function addTeamMember(){
       <div style="padding-bottom:1px">
         ${id>1?`<button class="btn btn-danger btn-sm" onclick="removeTeamMember(${id})">✕</button>`:''}
       </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1.5fr;gap:10px;align-items:end;margin-top:8px">
+      <div class="f-group">
+        <label>Company</label>
+        <select id="tm${id}-company" style="font-size:.78rem">
+          <option value="">— Select —</option>
+          <option>Intel</option>
+          <option>AWS</option>
+          <option>Partner</option>
+        </select>
+      </div>
+      <div class="f-group">
+        <label>Submission Role</label>
+        <select id="tm${id}-subrole" style="font-size:.78rem">
+          <option value="submitter">Submitter — owns this deal</option>
+          <option value="admin">Admin — can edit</option>
+          <option value="contributor">Contributor — added for visibility</option>
+        </select>
+      </div>
+      <div class="f-group">
+        <label>Partner Company Name (if Partner)</label>
+        <input type="text" id="tm${id}-partner-company" placeholder="e.g. Capgemini Canada">
+      </div>
     </div>`;
   container.appendChild(div);
 }
@@ -5520,8 +5594,11 @@ function getTeamData(){
     const last=(document.getElementById('tm'+t.id+'-last')||{}).value||'';
     const email=(document.getElementById('tm'+t.id+'-email')||{}).value||'';
     const alias=(document.getElementById('tm'+t.id+'-alias')||{}).value||'';
+    const company=(document.getElementById('tm'+t.id+'-company')||{}).value||'';
+    const subrole=(document.getElementById('tm'+t.id+'-subrole')||{}).value||'submitter';
+    const partnerCompany=(document.getElementById('tm'+t.id+'-partner-company')||{}).value||'';
     const roleLabel=ROLES.find(r=>r.val===role)?.label||role;
-    return{id:t.id,role,roleLabel,first,last,email,alias,name:(first+' '+last).trim()};
+    return{id:t.id,role,roleLabel,first,last,email,alias,company,subrole,partnerCompany,name:(first+' '+last).trim()};
   }).filter(t=>t.name||t.email);
 }
 
@@ -5540,6 +5617,78 @@ function initApp(){
       handleEmailDomain(1);
     }
   }
+  enhanceAccordion();
+}
+
+// ── Collapsible sections with completion status (Deal Info only) ──
+function enhanceAccordion(){
+  const containers = ['aws-specialist-view','intel-seller-view'].map(id=>document.getElementById(id)).filter(Boolean);
+  containers.forEach(container=>{
+    container.querySelectorAll(':scope > .section-card').forEach(card=>{
+      if(card.dataset.accordionized) return;
+      card.dataset.accordionized='1';
+      const titleEl = card.querySelector('.section-card-title');
+      if(!titleEl) return;
+      const body=document.createElement('div');
+      body.className='accordion-body';
+      const toMove=[];
+      let el=titleEl.nextSibling;
+      while(el){ toMove.push(el); el=el.nextSibling; }
+      toMove.forEach(n=>body.appendChild(n));
+      card.appendChild(body);
+
+      const header=document.createElement('div');
+      header.style.cssText='display:flex;align-items:center;justify-content:space-between;cursor:pointer;gap:8px';
+      const pill=document.createElement('span');
+      pill.style.cssText='font-size:.66rem;font-weight:700;padding:2px 9px;border-radius:10px;white-space:nowrap;font-family:Arial,sans-serif';
+      const chev=document.createElement('span');
+      chev.textContent='▾';
+      chev.style.cssText='font-size:.8rem;color:var(--ink3);transition:transform .15s;flex-shrink:0';
+      titleEl.style.cssText=(titleEl.getAttribute('style')||'')+';margin-bottom:0';
+      titleEl.parentNode.insertBefore(header, titleEl);
+      header.appendChild(titleEl);
+      const right=document.createElement('div');
+      right.style.cssText='display:flex;align-items:center;gap:8px';
+      right.appendChild(pill); right.appendChild(chev);
+      header.appendChild(right);
+      header.addEventListener('click', ()=>{
+        const collapsed = body.style.display==='none';
+        body.style.display = collapsed? '' : 'none';
+        chev.style.transform = collapsed? 'rotate(0deg)' : 'rotate(-90deg)';
+      });
+      card._pill=pill;
+    });
+  });
+  refreshAccordionStatus();
+  const step1 = document.getElementById('step1');
+  if(step1 && !step1.dataset.delegated){
+    step1.dataset.delegated='1';
+    step1.addEventListener('input', refreshAccordionStatus);
+    step1.addEventListener('change', refreshAccordionStatus);
+  }
+}
+
+function refreshAccordionStatus(){
+  const containers = ['aws-specialist-view','intel-seller-view'].map(id=>document.getElementById(id)).filter(Boolean);
+  containers.forEach(container=>{
+    container.querySelectorAll(':scope > .section-card').forEach(card=>{
+      const pill=card._pill; if(!pill) return;
+      let total=0, filled=0;
+      card.querySelectorAll('.req').forEach(rs=>{
+        const fg = rs.closest('.f-group');
+        if(!fg) return;
+        const input = fg.querySelector('input,select,textarea');
+        if(!input) return;
+        total++;
+        if((input.value||'').toString().trim()) filled++;
+      });
+      if(total===0){ pill.style.display='none'; return; }
+      pill.style.display='inline-block';
+      if(filled===total){ pill.textContent='✓ Complete'; pill.style.background='#dcfce7'; pill.style.color='#166534'; }
+      else if(filled===0){ pill.textContent='○ Not started'; pill.style.background='#f1f5f9'; pill.style.color='#64748b'; }
+      else { pill.textContent='⚠ '+(total-filled)+' missing'; pill.style.background='#fef3c7'; pill.style.color='#92400e'; }
+    });
+  });
 }
 </script>
 <!-- Mobile bottom navigation -->
