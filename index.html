@@ -1386,7 +1386,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
       </button>
     </div>
 
-    <div style="text-align:center;font-size:.6rem;color:rgba(255,255,255,.2)">Intel Accelerate Program 2026 · Managed by ASP Core · Confidential — Authorized Users Only</div>
+    <div style="text-align:center;font-size:.6rem;color:rgba(255,255,255,.2)">Intel Accelerate Program 2026 · Managed by AWS Approval · Confidential — Authorized Users Only</div>
   </div>
 </div>
 
@@ -1434,6 +1434,22 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
 
     <!-- SIDEBAR -->
     <nav class="sidebar">
+      <div class="sidebar-section" style="background:linear-gradient(135deg,rgba(0,104,181,.12),rgba(255,153,0,.06));border:1px solid rgba(0,104,181,.35);border-radius:10px;padding:10px 8px;margin-bottom:16px">
+        <div class="sidebar-label" style="color:#4da3e8;font-weight:800;letter-spacing:.12em">Resources — Tools &amp; Help</div>
+        <button class="nav-item" id="nav3" onclick="goStep(3)">
+          <span class="step-num" id="snum3">⊞</span>Calculators — IAP &amp; Simple Monthly
+        </button>
+        <button class="nav-item" onclick="goStep(3);setTimeout(()=>{setBaselineMethod(2);document.getElementById('baseline-method-2').scrollIntoView({behavior:'smooth',block:'start'});},80)">
+          <span class="step-num">$</span>Ask Intel Anything
+        </button>
+        <button class="nav-item" onclick="downloadWorkflowGuide()">
+          <span class="step-num">⇩</span>Instructions — Download Guide
+        </button>
+        <button class="nav-item" onclick="showFillGuide()">
+          <span class="step-num">?</span>How to Fill This Out
+        </button>
+      </div>
+
       <div class="sidebar-section">
         <div class="sidebar-label">Workflow Steps</div>
         <button class="nav-item active" id="nav1" onclick="goStep(1)">
@@ -1453,21 +1469,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
         </button>
       </div>
 
-      <div class="sidebar-section" style="background:linear-gradient(135deg,rgba(0,104,181,.12),rgba(255,153,0,.06));border:1px solid rgba(0,104,181,.35);border-radius:10px;padding:10px 8px;margin-top:14px">
-        <div class="sidebar-label" style="color:#4da3e8;font-weight:800;letter-spacing:.12em">Resources — Tools &amp; Help</div>
-        <button class="nav-item" id="nav3" onclick="goStep(3)">
-          <span class="step-num" id="snum3">⊞</span>Calculators — IAP &amp; Simple Monthly
-        </button>
-        <button class="nav-item" onclick="goStep(3);setTimeout(()=>{setBaselineMethod(2);document.getElementById('baseline-method-2').scrollIntoView({behavior:'smooth',block:'start'});},80)">
-          <span class="step-num">$</span>Intel Instance Pricing (Live)
-        </button>
-        <button class="nav-item" onclick="downloadWorkflowGuide()">
-          <span class="step-num">⇩</span>Instructions — Download Guide
-        </button>
-        <button class="nav-item" onclick="showFillGuide()">
-          <span class="step-num">?</span>How to Fill This Out
-        </button>
-      </div>
+      
 
       <div class="sidebar-section">
         <div class="sidebar-label">Operating Tenets</div>
@@ -1483,7 +1485,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
         <div class="sidebar-label">Approval Flow</div>
         <div class="tenets">
           <div class="tenet-item"><strong>1 · Submit</strong>Deal submitted through this tool with Cost Explorer baseline.</div>
-          <div class="tenet-item"><strong>2 · ASP Core</strong>Yasmine Nsouli / Jeanine Reidel review and validate.</div>
+          <div class="tenet-item"><strong>2 · AWS Approval</strong>Yasmine Nsouli, Jeanine Reidel, and Chris Chlee (SA) review and validate.</div>
           <div class="tenet-item"><strong>3 · Intel Leadership</strong>Akanksha Bilani approves funding.</div>
           <div class="tenet-item"><strong>4 · TCC / IPIC</strong>TCC inputs into IPIC and generates the SOW.</div>
         </div>
@@ -1516,6 +1518,11 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
           <div class="step-badge">Step 01</div>
           <div class="step-title">Deal Info</div>
           <div class="step-desc" id="step1-desc">Capture the deal details to route this opportunity through the Intel × AWS co-investment program.</div>
+        </div>
+
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
+          <button class="btn btn-secondary btn-sm" onclick="downloadProgramOnePager()">⇩ Program Details (one-pager)</button>
+          <button class="btn btn-secondary btn-sm" onclick="downloadWorkflowOnePager()">⇩ Workflow — how a deal moves</button>
         </div>
 
         <div class="section-card" style="background:linear-gradient(135deg,#f0f5ff,#fff);border:1px solid #c7d7f5">
@@ -2047,10 +2054,30 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
               </select>
             </div>
             <div class="f-group">
-              <label>Customer AWS Discount (EDP) %</label>
-              <input type="number" id="cust-edp-discount" value="10" min="0" max="40" step="0.5">
-              <span class="hint">AWS EDP typically runs 6–25% depending on commitment size and term. 10% is a mid-range default — replace with the customer's actual rate if known.</span>
+              <label id="discount-field-label">Customer Pricing Benefit</label>
+              <select id="discount-mode" onchange="handleDiscountModeChange()" style="margin-bottom:6px">
+                <option value="blended">Blended (e.g. 1-yr or 3-yr reserved savings)</option>
+                <option value="ondemand">On-Demand (no commitment discount)</option>
+              </select>
+              <input type="number" id="cust-edp-discount" value="10" min="0" max="40" step="0.5" oninput="this.dataset.userEdited=1">
+              <select id="discount-verified" style="margin-top:6px">
+                <option value="verified">Verified with customer</option>
+                <option value="assumed">Assumed — must verify before final payment</option>
+              </select>
+              <span class="hint" id="discount-hint">AWS EDP typically runs 6–25% depending on commitment size and term. Do Not Exceed = Target ARR × this percentage.</span>
             </div>
+          </div>
+        </div>
+
+        <div class="section-card" id="program2-governance" style="display:none;background:#fef9f0;border:1px solid #fde68a">
+          <div class="section-card-title" style="color:#92400e">Program 2 — Governance Notes</div>
+          <div style="font-size:.78rem;color:#78350f;line-height:1.8">
+            Gen 8 only (m8i, c8i, r8i, x8i). Exceptions need written approval from Chris Chlee (SA) and Intel.<br>
+            Program max duration: 12 months.<br>
+            Target ARR can drop up to 25% without action; a decrease beyond 25% requires the SOW to be revised.<br>
+            "Sustained" at Q4 means at least one full 30-day billing cycle at ≥75% of target ARR on Gen 8.<br>
+            Early completion is rewarded — payments can accelerate with AWS + Intel approval. No clawback.<br>
+            Missed quarterly submission: 15-day grace period, then deferred to the next quarter.
           </div>
         </div>
 
@@ -2107,6 +2134,20 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
         
 
       
+      <div class="section-card" style="background:linear-gradient(135deg,#fff8f0,#fff);border:1px solid #fed7aa">
+          <div class="section-card-title">IAP Program</div>
+          <div class="form-grid">
+            <div class="f-group span2">
+              <label>Which program is this deal under? <span class="req">*</span></label>
+              <select id="iap-program" onchange="handleProgramChange()">
+                <option value="standard">Standard IAP — Migrate / Modernize (4.5%) / Optimize (1%, capped $250K)</option>
+                <option value="modernization">Program 2 — Modernization (Modernize 1% capped $250K · Migrate 4.5%)</option>
+              </select>
+              <span class="hint" id="program-hint">Standard program: Migrate and Modernize both pay 4.5%; Optimize pays 1% capped at $250,000. Program 2 flips this for Modernization deals specifically — see below once selected.</span>
+            </div>
+          </div>
+        </div>
+
       <div class="section-card">
           <div class="section-card-title">Opportunity IDs — provide at least one</div>
           <div class="form-grid">
@@ -2118,28 +2159,38 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
             <div class="f-group">
               <label>ACE ARR ($) <span class="req">*</span></label>
               <input type="number" id="ace-amount" placeholder="Derived from Simple Monthly × 12" min="0" oninput="this.dataset.userEdited=1">
-              <span class="hint" id="ace-arr-hint">Derived from the Simple Monthly Target (monthly × 12). Attach the Simple Monthly Calculator or confirm this figure.</span>
+              <span class="hint" id="ace-arr-hint">Derived from the Simple Monthly Target (monthly × 12). Open the calculator below to check the figure.</span>
             </div>
             <div class="f-group">
               <label>Deal Type <span class="req">*</span></label>
-              <select id="prd-deal-type"><option value="">— Select —</option><option>Migrate</option><option>Modernize</option><option>Optimize</option></select>
-              <span class="hint">Migrate / Modernize 4.5%. Optimize 1%, capped $250,000.</span>
+              <select id="prd-deal-type" onchange="handleProgramChange()"><option value="">— Select —</option><option>Migrate</option><option>Modernize</option><option id="opt-optimize">Optimize</option></select>
+              <span class="hint" id="deal-type-rate-hint">Migrate / Modernize 4.5%. Optimize 1%, capped $250,000.</span>
             </div>
             <div class="f-group">
               <label>Payment Option <span class="req">*</span></label>
-              <select id="payment-option"><option value="">— Select —</option><option>Quarterly (10/20/30/40)</option><option>Milestone (25/50/75)</option><option>Lump Sum (at 75%+)</option></select>
+              <select id="payment-option">
+                <option value="">— Select —</option>
+                <option>Quarterly (10/20/30/40)</option>
+                <option>Milestone (25/50/75)</option>
+                <option>Lump Sum (at 75%+)</option>
+                <option id="opt-mod-schedule">Modernization Milestones (15/15/20/50)</option>
+              </select>
               <span class="hint">The milestone/payout structure. Different from Payment Cadence in Deal Metadata, which sets how often TCC pays.</span>
               <span class="hint">All payments are consumption-based. TCC manages disbursements.</span>
             </div>
             <div class="f-group">
-              <label>Simple Monthly Calculator <span class="req">*</span></label>
-              <input type="file" id="smc-upload" accept=".csv,.png,.jpg,.jpeg,.pdf,.xlsx" onchange="handleSMCUpload(this)">
-              <span class="hint" id="smc-status">Required. Submission blocks without it. Cost Explorer is NOT required at submission.</span>
+              <label>Simple Monthly Calculator</label>
+              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                <a href="https://calculator.aws" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">Open AWS Pricing Calculator ↗</a>
+                <span style="font-size:.72rem;color:var(--ink3)">Look up the figures there, then enter them in AWS ARR Breakdown below — nothing here is auto-filled.</span>
+              </div>
+              <input type="file" id="smc-upload" accept=".csv,.png,.jpg,.jpeg,.pdf,.xlsx" onchange="handleSMCUpload(this)" style="margin-top:8px">
+              <span class="hint" id="smc-status">Optional — attach if you have a saved export. Cost Explorer is NOT required at submission.</span>
             </div>
             <div class="f-group">
               <label>SFDC / CRM Opportunity ID</label>
               <input type="text" id="sfdc-id" placeholder="0060X000XXXXXXXXXX" class="mono">
-              <span class="hint">Salesforce 18-char opportunity ID (optional). ACE ID is required — deals must be registered on ACE.</span>
+              <span class="hint">Salesforce 18-char opportunity ID (optional). ACE ID is required — deals must be registered on ACE. By providing this, the customer consents to sharing the SFDC deal via ACE.</span>
             </div>
             
             <div class="f-group">
@@ -2342,11 +2393,11 @@ Please confirm receipt.<br>
           <!-- Method 2: Intel Instance Pricing Chat -->
           <div id="baseline-method-2" style="display:none">
             <div class="alert alert-info" style="margin-bottom:12px">
-              <strong>Intel Pricing Assistant</strong> — ask about any 8th gen instance price, program rates, or regional availability. Powered by Intel's pricing API.
+              <strong>Ask Intel Anything</strong> — pricing, program rates, regional availability, whatever you need. Live data, plain answers.
             </div>
             <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:12px">
               <div id="intel-chat-messages" style="min-height:120px;max-height:280px;overflow-y:auto;padding:12px;background:#fafafa;font-size:.78rem;line-height:1.6">
-                <div style="color:var(--ink3);font-size:.72rem">Ask the Intel Pricing Assistant — e.g. "Price m8i.large in us-east-1" or "What is the IAP rate for r8i?" or "Compare m8i vs m7i cost"</div>
+                <div style="color:var(--ink3);font-size:.72rem">Ask Intel Anything — e.g. "Price m8i.large in us-east-1" or "What is the IAP rate for r8i?" or "Compare m8i vs m7i cost"</div>
               </div>
               <div style="display:flex;gap:8px;padding:8px;border-top:1px solid var(--border);background:#fff">
                 <input type="text" id="intel-chat-input"
@@ -2690,11 +2741,11 @@ const USERS = {
   // Tier 2 — AWS / CloudZero field
   'field@amazon.com':           { pass:'CZFIELD',  tier:'aws',     name:'AWS Field',       label:'AWS Field' },
   'pdm@amazon.com':             { pass:'CZFIELD',  tier:'aws',     name:'AWS PDM',         label:'AWS PDM' },
-  // ASP Core approvers
+  // AWS Approval reviewers
   'yasmine@cloudzero.ca':       { pass:'CZ@dmin1', tier:'admin',   name:'Yasmine',         label:'CloudZero Admin',  approver:'core' },
   'hisham@cloudzero.ca':        { pass:'CZ@dmin1', tier:'admin',   name:'Hisham',          label:'CloudZero Admin',  approver:'core' },
   // Chris (internal review) — add row when email confirmed; also set CHRIS_EMAIL env var on iap-backend
-  'reidelj@amazon.com':         { pass:'Core2026', tier:'core',    name:'Jeanine Reidel',  label:'ASP Core',         approver:'core' },
+  'reidelj@amazon.com':         { pass:'Core2026', tier:'core',    name:'Jeanine Reidel',  label:'AWS Approval',     approver:'core' },
   // Intel Field (submitter)
   'seller@intel.com':           { pass:'Intel2026', tier:'intel', name:'Intel Field', label:'Intel Field' },
   // Intel approvers
@@ -3078,6 +3129,59 @@ const AUTOFILL_LABELS = {
   aceID:'ACE Opportunity ID', targetArr:'Target ARR', migStart:'Migration Start', closeDate:'Close Date'
 };
 
+function computeRate(dealType, program){
+  const isOptimize = dealType === 'Optimize';
+  const isModernize = dealType === 'Modernize';
+  if(program === 'modernization'){
+    if(isModernize) return {rate:0.01, cap:250000, label:'1% (Modernize, Program 2 — capped $250,000)'};
+    return {rate:0.045, cap:null, label:'4.5% (Migrate, Program 2)'};
+  }
+  if(isOptimize) return {rate:0.01, cap:250000, label:'1% (Optimize — capped $250,000)'};
+  return {rate:0.045, cap:null, label:'4.5% (Migrate / Modernize)'};
+}
+
+function getRateInfo(){
+  const dealType = (document.getElementById('prd-deal-type')||{}).value || '';
+  const program = (document.getElementById('iap-program')||{}).value || 'standard';
+  return computeRate(dealType, program);
+}
+
+function handleProgramChange(){
+  const program = (document.getElementById('iap-program')||{}).value || 'standard';
+  const gov = document.getElementById('program2-governance');
+  const optOption = document.getElementById('opt-optimize');
+  const modSchedule = document.getElementById('opt-mod-schedule');
+  const rateHint = document.getElementById('deal-type-rate-hint');
+  const discountInput = document.getElementById('cust-edp-discount');
+  if(program === 'modernization'){
+    if(gov) gov.style.display = 'block';
+    if(optOption) optOption.disabled = true;
+    if(modSchedule) modSchedule.disabled = false;
+    if(rateHint) rateHint.textContent = 'Program 2: Modernize pays 1%, capped $250,000. Migrate pays 4.5%, no cap.';
+    if(discountInput && !discountInput.dataset.userEdited) discountInput.value = 20;
+  } else {
+    if(gov) gov.style.display = 'none';
+    if(optOption) optOption.disabled = false;
+    if(rateHint) rateHint.textContent = 'Migrate / Modernize 4.5%. Optimize 1%, capped $250,000.';
+    if(discountInput && !discountInput.dataset.userEdited) discountInput.value = 10;
+  }
+  recalcAceFromServices();
+}
+
+function handleDiscountModeChange(){
+  const mode = (document.getElementById('discount-mode')||{}).value;
+  const input = document.getElementById('cust-edp-discount');
+  if(mode === 'ondemand'){
+    input.dataset.prevValue = input.value;
+    input.value = 0;
+    input.disabled = true;
+  } else {
+    input.disabled = false;
+    if(input.dataset.prevValue) input.value = input.dataset.prevValue;
+  }
+  recalcAceFromServices();
+}
+
 function recalcAceFromServices(){
   const ec2=parseFloat(document.getElementById('arr-ec2').value)||0;
   const rds=parseFloat(document.getElementById('arr-rds').value)||0;
@@ -3354,15 +3458,14 @@ function calcSimpleMonthly(){
   }
 
   const targetARR = monthly * 12;
-  // DNE = Target ARR x 70% (30% blended discount budget) x rate — PRD Stage 2
-  const firstFleet = fleets[0];
-  const rate = (firstFleet && firstFleet.type==='mod') ? 0.01 : 0.045;
-  const rateLabel = rate===0.01 ? '1% (Optimize)' : '4.5% (Migrate / Modernize)';
+  const rateInfo = getRateInfo();
+  const rate = rateInfo.rate;
+  const rateLabel = rateInfo.label;
   const discPct = Math.min(Math.max(parseFloat((document.getElementById('discount-model')||{}).value)||30,0),100);
   const eligibleARR = targetARR * (1 - discPct/100);
   const totalBenefit = eligibleARR * rate;
   const monthlyBenefit = totalBenefit / 12;
-  const modCap = rate===0.01 ? Math.min(totalBenefit, 250000) : totalBenefit;
+  const modCap = rateInfo.cap ? Math.min(totalBenefit, rateInfo.cap) : totalBenefit;
   window._computedDNE = modCap;
   window._computedTargetARR = targetARR;
   const aceArrEl=document.getElementById('ace-amount');
@@ -3789,7 +3892,7 @@ async function sendIntelChat(){
   // Show user message
   messages.innerHTML += '<div style="margin-bottom:8px"><span style="background:var(--intel);color:#fff;padding:3px 8px;border-radius:10px;font-size:.72rem">' + msg + '</span></div>';
   input.value = '';
-  messages.innerHTML += '<div id="intel-typing" style="color:var(--ink3);font-size:.72rem;font-style:italic">Intel Pricing API is responding...</div>';
+  messages.innerHTML += '<div id="intel-typing" style="color:var(--ink3);font-size:.72rem;font-style:italic">Checking live Intel pricing…</div>';
   messages.scrollTop = messages.scrollHeight;
 
   try {
@@ -3927,7 +4030,7 @@ function showFillGuide(){
 
       <div style="margin-bottom:20px">
         <div style="font-size:.92rem;font-weight:700;color:#fff;margin-bottom:6px"><span style="color:#0068B5">5.</span> Generate SOW</div>
-        <div style="font-size:.82rem;color:rgba(255,255,255,.7);line-height:1.7">Review the populated figures, then generate the Statement of Work. The SOW routes through ASP Core, Intel leadership, and TCC for approval and disbursement.</div>
+        <div style="font-size:.82rem;color:rgba(255,255,255,.7);line-height:1.7">Review the populated figures, then generate the Statement of Work. The SOW routes through AWS Approval, Intel leadership, and TCC for approval and disbursement.</div>
       </div>
 
       <div style="background:rgba(0,104,181,.12);border:1px solid rgba(0,104,181,.3);border-radius:8px;padding:14px 16px;margin-top:8px">
@@ -3961,9 +4064,117 @@ function showFillGuide(){
   document.body.appendChild(o);
 }
 
+function openPrintableWindow(title, bodyHtml){
+  const w = window.open('', '_blank');
+  w.document.write(`<!DOCTYPE html><html><head><title>${title}</title>
+  <style>
+    @page{margin:0.6in}
+    body{font-family:Arial,Helvetica,sans-serif;color:#0A1628;max-width:780px;margin:0 auto;padding:24px;line-height:1.5}
+    h1{font-size:1.5rem;margin-bottom:2px}
+    .sub{color:#666;font-size:.85rem;margin-bottom:20px}
+    h2{font-size:.95rem;color:#0068B5;text-transform:uppercase;letter-spacing:.06em;border-bottom:2px solid #0068B5;padding-bottom:4px;margin-top:24px}
+    .card{background:#f7f9fc;border:1px solid #dbe4f0;border-radius:8px;padding:12px 16px;margin:10px 0}
+    .card strong{color:#0A1628}
+    table{width:100%;border-collapse:collapse;margin-top:8px}
+    td,th{text-align:left;padding:6px 8px;font-size:.85rem;border-bottom:1px solid #eee}
+    th{color:#0068B5;text-transform:uppercase;font-size:.7rem;letter-spacing:.05em}
+    .banner{background:linear-gradient(135deg,#0A1628,#12325e);color:#fff;padding:16px 20px;border-radius:8px;margin-bottom:20px}
+    .banner .tag{color:#FF9900;font-weight:700;font-size:.7rem;text-transform:uppercase;letter-spacing:.08em}
+    .no-print{margin-top:24px}
+    @media print{.no-print{display:none}}
+    button{background:#0068B5;color:#fff;border:none;border-radius:6px;padding:10px 18px;font-size:.85rem;cursor:pointer}
+  </style></head><body>${bodyHtml}
+  <div class="no-print"><button onclick="window.print()">Print / Save as PDF</button></div>
+  </body></html>`);
+  w.document.close();
+}
+
+function downloadProgramOnePager(){
+  const html = `
+    <div class="banner">
+      <div class="tag">Intel × AWS Co-Investment Program</div>
+      <h1 style="color:#fff;margin-top:4px">Program Details</h1>
+      <div style="color:rgba(255,255,255,.7);font-size:.85rem">One-page overview — what qualifies, what it pays, how it flows</div>
+    </div>
+
+    <h2>What This Funds</h2>
+    <div class="card">Intel and AWS co-invest in customer migrations and modernizations onto Intel Xeon 6 (8th Gen) instances — m8i, c8i, r8i, x8i — across EC2, RDS, ElastiCache, and OpenSearch. Non-Intel families are excluded.</div>
+
+    <h2>How Funding Is Calculated</h2>
+    <table>
+      <tr><th>Deal Type</th><th>Rate</th><th>Cap</th></tr>
+      <tr><td>Migrate</td><td>4.5% of post-discount ARR</td><td>—</td></tr>
+      <tr><td>Modernize</td><td>4.5% of post-discount ARR</td><td>—</td></tr>
+      <tr><td>Optimize</td><td>1% of post-discount ARR</td><td>$250,000</td></tr>
+    </table>
+    <div class="card" style="margin-top:10px">Rebate applies to <strong>actual spend</strong>, post-discount, never list price. The calculated figure is a Do Not Exceed (DNE) ceiling, not a guaranteed payout — actual disbursement follows Proof of Performance.</div>
+
+    <h2>Who Pays, Who Doesn't</h2>
+    <div class="card"><strong>Intel</strong> funds the program. <strong>TCC (The Channel Company)</strong> disburses to the partner or customer. <strong>AWS does not participate in payment</strong> and never shares customer cost data on the customer's behalf.</div>
+
+    <h2>Approval Path</h2>
+    <table>
+      <tr><th>Stage</th><th>Who</th><th>What Happens</th></tr>
+      <tr><td>1 · Submit</td><td>AWS/Intel/Partner submitter</td><td>Deal info, ARR breakdown, and consent submitted</td></tr>
+      <tr><td>2 · AWS Approval</td><td>Yasmine Nsouli, Jeanine Reidel, Chris Chlee (SA)</td><td>Review deal; Chris validates Simple Monthly figures</td></tr>
+      <tr><td>3 · Intel Leadership</td><td>Akanksha Bilani</td><td>Approves the funding amount</td></tr>
+      <tr><td>4 · TCC / IPIC</td><td>Jacob Barksdale</td><td>Logs into IPIC, generates the SOW, manages disbursement</td></tr>
+    </table>
+
+    <h2>Proof of Performance (POP)</h2>
+    <div class="card">Three things, collected after SOW signing, directly between TCC, the submitter, and the customer or partner: the <strong>BOM</strong>, the <strong>migration timeline</strong>, and a <strong>Cost Explorer export</strong> showing the actual instances running. AWS is never the party sharing customer cost data.</div>
+
+    <h2>The SOW Number</h2>
+    <div class="card">The Do Not Exceed figure on the SOW is the <strong>instance ARR × the blended discount</strong>, paid out on the agreed schedule (quarterly, milestone, or lump sum) once POP is confirmed.</div>
+  `;
+  openPrintableWindow('IAP Program Details', html);
+}
+
+function downloadWorkflowOnePager(){
+  const html = `
+    <div class="banner">
+      <div class="tag">Intel × AWS Co-Investment Program</div>
+      <h1 style="color:#fff;margin-top:4px">How a Deal Moves</h1>
+      <div style="color:rgba(255,255,255,.7);font-size:.85rem">Submitter workflow — what you provide, what happens next</div>
+    </div>
+
+    <h2>What the Submitter Provides</h2>
+    <div class="card">
+      <strong>Customer &amp; deal info</strong> — legal name, workload, segment.<br>
+      <strong>ACE / SFDC ID</strong> — with the customer's consent to share the SFDC deal via ACE.<br>
+      <strong>Anticipated ARR post-migration</strong> — split across EC2 / RDS / OpenSearch / ElastiCache, backed by the Simple Monthly Calculator.<br>
+      <strong>Discount model</strong> — on-demand or blended (blended defaults to 20%, editable per deal).<br>
+      <strong>Workload</strong> — what's running, what it's moving to.
+    </div>
+
+    <h2>The Two Value Stories to Capture</h2>
+    <table>
+      <tr><th>Path</th><th>What to Show</th></tr>
+      <tr><td>Modernize — old gen → Gen 8</td><td>Performance and efficiency gains moving existing Intel workloads to current-generation Xeon 6</td></tr>
+      <tr><td>Migrate — another platform → AWS</td><td>The case for moving off on-prem or another cloud onto Intel instances on AWS</td></tr>
+    </table>
+
+    <h2>Approval Path</h2>
+    <table>
+      <tr><th>Step</th><th>Stage</th></tr>
+      <tr><td>1</td><td>Submitted</td></tr>
+      <tr><td>2</td><td>AWS Approval review</td></tr>
+      <tr><td>3</td><td>Intel Leadership approval</td></tr>
+      <tr><td>4</td><td>TCC — SOW generated</td></tr>
+    </table>
+
+    <h2>Data Collection After SOW Signing</h2>
+    <div class="card">Proof of Performance flows directly between <strong>TCC, the submitter, and the customer or partner</strong> — never through AWS. Three pieces: the <strong>BOM</strong>, the <strong>migration timeline</strong>, and a <strong>Cost Explorer export</strong> of the actual running instances.</div>
+
+    <h2>What the SOW Pays</h2>
+    <div class="card">The Do Not Exceed number is <strong>instance ARR × blended discount</strong>, paid on the schedule set at submission.</div>
+  `;
+  openPrintableWindow('IAP Workflow Guide', html);
+}
+
 function downloadWorkflowGuide(){
   const guide = `INTEL × AWS — IAP WORKFLOW GUIDE
-Internal Reference · ASP Core
+Internal Reference · AWS Approval
 =========================================
 
 PROGRAM OVERVIEW
@@ -4033,7 +4244,7 @@ PROOF OF PERFORMANCE (POP)
 
 APPROVAL FLOW
   1. Submit         Partner or AWS Rep submits through the IAP tool
-  2. ASP Core       Yasmine Nsouli and Jeanine Reidel review and validate
+  2. AWS Approval   Yasmine Nsouli, Jeanine Reidel, and Chris Chlee (SA) review and validate
   3. Intel Leadership  Akanksha Bilani provides final funding approval
   4. TCC            The Channel Company generates the SOW and disburses payment
 
@@ -4082,12 +4293,12 @@ CUSTOMER EMAIL TEMPLATE — QUARTERLY POP SUBMISSION
   [Title] · [Company]
 
 CONTACTS
-  ASP Core:         Yasmine Nsouli / Jeanine Reidel (reidelj@amazon.com)
+  AWS Approval:     Yasmine Nsouli / Jeanine Reidel (reidelj@amazon.com) / Chris Chlee (SA)
   Intel Leadership: Akanksha Bilani
   TCC:              Jacob Barksdale (jbarksdale@thechannelcompany.com)
 
 =========================================
-Intel Accelerate Program · Managed by ASP Core
+Intel Accelerate Program · Managed by AWS Approval
 Intel × AWS Co-Sell Program · Confidential`;
 
   const blob = new Blob([guide], {type: 'text/plain'});
@@ -4201,16 +4412,16 @@ function generateSOW(){
   }
 
   // Funding
-  const progEl = document.getElementById('deal-program');
-  const progType = progEl?.value || (window._intelProgram||'migrate');
-  const rate = progType==='optimize' ? '1%' : '4.5%';
-  const rateLabel = progType==='optimize' ? '1% on consumption (NTE $250,000 USD)' : '4.5% on consumption';
+  const rateInfo = getRateInfo();
+  const rate = rateInfo.rate===0.01 ? '1%' : '4.5%';
+  const rateLabel = rateInfo.label;
+  const progType = (document.getElementById('prd-deal-type')||{}).value==='Optimize' ? 'optimize' : 'migrate';
 
   const smVal = parseFloat(document.getElementById('simple-monthly')?.value||0);
   const smARR = smVal * 12;
   const intelArr = parseFloat(document.getElementById('est-arr-intel')?.value||0);
   const baseARR = smARR || fleets.reduce((s,f)=>s+(f.actualARR||0),0) || intelArr;
-  const progRate = progType==='optimize' ? 0.01 : 0.045;
+  const progRate = rateInfo.rate;
   const fundingEst = progType==='optimize' ? Math.min(baseARR*0.01,250000) : baseARR*0.045;
   const fundingLabel = fundingEst > 0 ? '$' + fundingEst.toLocaleString('en-US',{maximumFractionDigits:0}) + ' USD' : '[To be determined based on Cost Explorer validation]';
 
@@ -4408,7 +4619,7 @@ async function getApprovalStage(deal){
 }
 
 function getApprovalLabel(stage){
-  if(stage==='core') return '<span class="approval-stage stage-core">Under Review</span>';
+  if(stage==='core') return '<span class="approval-stage stage-core">AWS Approval</span>';
   if(stage==='intel') return '<span class="approval-stage stage-intel">Approved (DNE Set) — Awaiting Intel</span>';
   if(stage==='tcc') return '<span class="approval-stage stage-tcc">Intel Leadership Approved — SOW Pending</span>';
   if(stage==='approved') return '<span class="approval-stage stage-approved">SOW Issued</span>';
@@ -4430,7 +4641,7 @@ async function renderApprovalQueue(){
   const title = document.getElementById('approval-title');
 
   badge.textContent = currentUser.label+' · Approval Queue';
-  title.textContent = myTier==='core'?'ASP Core Review':myTier==='intel'?'Intel Leadership Approval':'TCC — Ready for SOW';
+  title.textContent = myTier==='core'?'AWS Approval Review':myTier==='intel'?'Intel Leadership Approval':'TCC — Ready for SOW';
 
   const pending = deals.filter(d=>(d.approvalStage||'core')===myTier);
   const done = deals.filter(d=>(d.approvalStage||'core')!==myTier);
@@ -4691,7 +4902,7 @@ function notifyIntelApprovers(deal){
   const subject = encodeURIComponent('IAP Deal Pending Your Approval: '+(deal.custName||'New Deal'));
   const body = encodeURIComponent(
     'Hi Akanksha and Brendon,\n\n'+
-    'A deal has been approved by ASP Core and is now pending Intel Leadership approval.\n\n'+
+    'A deal has been approved by AWS Approval and is now pending Intel Leadership approval.\n\n'+
     'Deal details:\n'+
     '- Customer: '+(deal.custName||'')+'\n'+
     '- Activity Type: '+(deal.actType||'')+'\n'+
@@ -4705,7 +4916,7 @@ function notifyIntelApprovers(deal){
     'Akanksha: akanksha.r.bilani@intel.com / Intel2026\n'+
     'Brendon: brendon.roosken@intel.com / Intel2026\n'+
     'Deep: deep.grewal@intel.com / Intel2026\n\n'+
-    'Approved by: '+(currentUser.name||'ASP Core')+'\n'+
+    'Approved by: '+(currentUser.name||'AWS Approval')+'\n'+
     'Approval date: '+new Date().toLocaleDateString()
   );
   // Open email client with both Intel approvers
@@ -4716,7 +4927,7 @@ function notifyTCC(deal){
   const subject = encodeURIComponent('IAP Deal Ready for TCC Processing: '+(deal.custName||'New Deal'));
   const body = encodeURIComponent(
     'Hi Jacob,\n\n'+
-    'A deal has cleared both ASP Core and Intel Leadership approval and is ready for TCC processing.\n\n'+
+    'A deal has cleared both AWS Approval and Intel Leadership approval and is ready for TCC processing.\n\n'+
     'Deal details:\n'+
     '- Customer: '+(deal.custName||'')+'\n'+
     '- Activity Type: '+(deal.actType||'')+'\n'+
@@ -4957,6 +5168,8 @@ function getCurrentDealData(){
     arrElastiCache:parseFloat(v('arr-elasticache'))||0, arrOpenSearch:parseFloat(v('arr-opensearch'))||0,
     awsRegion:v('cust-awsregion'), custEdpDiscount:parseFloat(v('cust-edp-discount'))||10,
     intelRepName:v('intel-rep-name'), awsRepName:v('aws-rep-name'),
+    iapProgram:v('iap-program')||'standard', discountMode:v('discount-mode')||'blended',
+    discountVerified:v('discount-verified')||'assumed',
     migrationCost:parseFloat(v('migration-cost'))||0, pricingCalcLink:v('pricing-calc-link'),
     smcFileName: smcFileName || '',
     smcS3Key: smcS3Key || '',
@@ -5237,14 +5450,14 @@ async function setDNE(id){
   const deals=await loadPipelineDealsFromCloud();
   const deal=deals.find(d=>d.id===id);
   if(!deal) return;
-  const isOpt=(deal.actType||'').startsWith('Opt');
-  let dne=arr*0.70*(isOpt?0.01:0.045);
-  if(isOpt&&dne>250000) dne=250000;
+  const info=computeRate(deal.actType||'', deal.iapProgram||'standard');
+  let dne=arr*0.70*info.rate;
+  if(info.cap && dne>info.cap) dne=info.cap;
   deal.targetArr=arr; deal.dne=Math.round(dne*100)/100;
   deal.status='Under Review';
   await apiSaveDeal(deal);
   const out=document.getElementById('dne-out-'+id);
-  if(out) out.textContent='DNE: '+fmt(deal.dne)+' — saved';
+  if(out) out.textContent='DNE: '+fmt(deal.dne)+' — saved ('+info.label+')';
 }
 
 async function askQuestion(id){
@@ -5289,7 +5502,7 @@ function dealChecklist(data){
   if(!data.dealName) critical.push('Deal name');
   if(!data.custName) critical.push('Customer name');
   if(!data.aceID) critical.push('ACE Opportunity ID — deals must be registered on ACE');
-  if(!data.smcFileName && !(data.aceAmount>0)) critical.push('Simple Monthly Calculator attachment or a confirmed ACE ARR');
+  if(!(data.aceAmount>0)) critical.push('ACE ARR — look it up in AWS Pricing Calculator, then enter it');
   if(!data.partnerName) missing.push('Partner name');
   if(!data.actType) missing.push('Deal type');
   if(!data.paymentOption) missing.push('Payment option');

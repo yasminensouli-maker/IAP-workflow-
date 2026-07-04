@@ -1,4 +1,4 @@
-const CACHE = 'iap-v16';
+const CACHE = 'iap-v18';
 const ASSETS = [
   '/',
   '/index.html',

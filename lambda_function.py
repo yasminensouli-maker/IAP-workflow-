@@ -75,11 +75,18 @@ def log_email(deal, recipients, subject):
         'at': now_utc(), 'to': recipients, 'subject': subject
     })
 
-def compute_dne(target_arr, deal_type):
-    """PRD Stage 2: DNE = ARR x (1 - blended discount) x rate. Optimize capped."""
+def compute_dne(target_arr, deal_type, program='standard'):
+    """DNE = ARR x (1 - blended discount) x rate.
+    Standard program: Migrate/Modernize 4.5%, Optimize 1% capped $250K.
+    Program 2 (modernization): Modernize 1% capped $250K, Migrate 4.5% uncapped."""
     arr = float(target_arr or 0)
     eligible = arr * (1 - BLENDED_DISCOUNT)
-    if str(deal_type).lower().startswith('opt'):
+    dt = str(deal_type or '').lower()
+    if program == 'modernization':
+        if dt.startswith('mod'):
+            return min(eligible * RATE_OPTIMIZE, OPTIMIZE_CAP)
+        return eligible * RATE_MIGRATE
+    if dt.startswith('opt'):
         return min(eligible * RATE_OPTIMIZE, OPTIMIZE_CAP)
     return eligible * RATE_MIGRATE
 
@@ -261,6 +268,13 @@ def push_to_smartsheet(deal):
             'Migration Start': deal.get('migStart', ''),
             'Win Wire': 'Yes' if deal.get('winWire') else 'No',
             'IPIC Activity #': deal.get('ipicNum', ''),
+            # Program 2 tracking columns — TCC fills Q1-Q4 status and Total Paid after SOW signing
+            'SOW Date': '', 'Migration End': deal.get('closeDate', '') or deal.get('migTargetDate', ''),
+            'Q1 Status': '', 'Q2 Status': '', 'Q3 Status': '', 'Q4 Status': '',
+            'Total Paid': '', 'Notes': deal.get('notes', ''),
+            'IAP Program': 'Modernization (Program 2)' if deal.get('iapProgram') == 'modernization' else 'Standard',
+            'Customer Pricing Benefit': f"{deal.get('discountMode','blended').title()} {deal.get('cust_edp_discount', deal.get('custEdpDiscount',''))}%".strip(),
+            'Discount Verification': deal.get('discountVerified', ''),
         }
         cells = [{'columnId': cols[k], 'value': v} for k, v in candidates.items()
                  if k in cols and v not in ('', None, 0)]
@@ -352,7 +366,7 @@ def lambda_handler(event, context):
 
         # ── DNE CALC (server-side source of truth) ──
         if path == '/dne' and method == 'POST':
-            dne = compute_dne(body.get('targetArr', 0), body.get('dealType', 'Migrate'))
+            dne = compute_dne(body.get('targetArr', 0), body.get('dealType', 'Migrate'), body.get('program', 'standard'))
             return ok(headers, {'dne': round(dne, 2), 'blendedDiscount': BLENDED_DISCOUNT,
                                 'rateMigrate': RATE_MIGRATE, 'rateOptimize': RATE_OPTIMIZE,
                                 'optimizeCap': OPTIMIZE_CAP})
