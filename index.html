@@ -1445,7 +1445,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
         <button class="nav-item" id="nav6" onclick="goStep(6)">
           <span class="step-num" id="snum6">2</span>Review &amp; Submit
         </button>
-        <button class="nav-item" id="nav7" onclick="goStep(7)" style="display:none">
+        <button class="nav-item" id="nav9" onclick="goStep(9)" style="display:none">
           <span class="step-num" id="snum7">★</span>Pipeline
         </button>
         <button class="nav-item" id="nav-approval" onclick="goStep(8)" style="display:none">
@@ -1453,8 +1453,8 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
         </button>
       </div>
 
-      <div class="sidebar-section">
-        <div class="sidebar-label">Resources</div>
+      <div class="sidebar-section" style="background:linear-gradient(135deg,rgba(0,104,181,.12),rgba(255,153,0,.06));border:1px solid rgba(0,104,181,.35);border-radius:10px;padding:10px 8px;margin-top:14px">
+        <div class="sidebar-label" style="color:#4da3e8;font-weight:800;letter-spacing:.12em">Resources — Tools &amp; Help</div>
         <button class="nav-item" id="nav3" onclick="goStep(3)">
           <span class="step-num" id="snum3">⊞</span>Calculators — IAP &amp; Simple Monthly
         </button>
@@ -1913,13 +1913,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
           </div>
         </div>
 
-        <div class="btn-row">
-          <button class="btn btn-primary" onclick="goStep(6)">Continue → Review &amp; Submit</button>
-          <button class="btn btn-secondary" onclick="saveDraft()">Save Draft</button>
-          <button class="btn btn-aws" onclick="exportIPIC()">Export IPIC / Smartsheet Row</button>
-        </div>
-        </div><!-- /aws-specialist-view -->
-      </div><!-- /step1 -->
+
 
       <!-- ── STEP 2: CUSTOMER PROFILE ── -->
      <div class="section-card">
@@ -2037,6 +2031,136 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
         </div>
 
         
+
+      
+      <div class="section-card">
+          <div class="section-card-title">Opportunity IDs — provide at least one</div>
+          <div class="form-grid">
+            <div class="f-group">
+              <label>ACE Opportunity ID <span class="req">*</span></label>
+              <input type="text" id="ace-id" placeholder="O-XXXXXXXXXX" oninput="validateACE(this)" class="mono">
+              <span class="hint" id="ace-hint">Format: O- followed by alphanumeric (e.g. O-AB12345678)</span>
+            </div>
+            <div class="f-group">
+              <label>ACE ARR ($) <span class="req">*</span></label>
+              <input type="number" id="ace-amount" placeholder="Derived from Simple Monthly × 12" min="0" oninput="this.dataset.userEdited=1">
+              <span class="hint" id="ace-arr-hint">Derived from the Simple Monthly Target (monthly × 12). Attach the Simple Monthly Calculator or confirm this figure.</span>
+            </div>
+            <div class="f-group">
+              <label>Deal Type <span class="req">*</span></label>
+              <select id="prd-deal-type"><option value="">— Select —</option><option>Migrate</option><option>Modernize</option><option>Optimize</option></select>
+              <span class="hint">Migrate / Modernize 4.5%. Optimize 1%, capped $250,000.</span>
+            </div>
+            <div class="f-group">
+              <label>Payment Option <span class="req">*</span></label>
+              <select id="payment-option"><option value="">— Select —</option><option>Quarterly (10/20/30/40)</option><option>Milestone (25/50/75)</option><option>Lump Sum (at 75%+)</option></select>
+              <span class="hint">All payments are consumption-based. TCC manages disbursements.</span>
+            </div>
+            <div class="f-group">
+              <label>Simple Monthly Calculator <span class="req">*</span></label>
+              <input type="file" id="smc-upload" accept=".csv,.png,.jpg,.jpeg,.pdf,.xlsx" onchange="handleSMCUpload(this)">
+              <span class="hint" id="smc-status">Required. Submission blocks without it. Cost Explorer is NOT required at submission.</span>
+            </div>
+            <div class="f-group">
+              <label>SFDC / CRM Opportunity ID</label>
+              <input type="text" id="sfdc-id" placeholder="0060X000XXXXXXXXXX" class="mono">
+              <span class="hint">Salesforce 18-char opportunity ID (optional). ACE ID is required — deals must be registered on ACE.</span>
+            </div>
+            
+            <div class="f-group">
+              <label>ACE Co-Sell Stage</label>
+              <select id="ace-stage">
+                <option value="">— Select if known —</option>
+                <option>Prospect</option>
+                <option>Qualified</option>
+                <option>Technical Validation</option>
+                <option>Business Validation</option>
+                <option>Committed</option>
+                <option>Launched</option>
+              </select>
+            </div>
+            <div class="f-group">
+              <label>Campaign Code</label>
+              <input type="text" id="campaign-code" placeholder="e.g. IAP-2026-Q3-NAMER" class="mono">
+              <span class="hint">Intel campaign code if applicable</span>
+            </div>
+            <div class="f-group span2">
+              <label>Notes</label>
+              <textarea id="ace-notes" placeholder="Migration timeline, exec sponsor, competitive context..."></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-card-title">AWS Consumption — powers ACE ARR</div>
+          <div style="font-size:.75rem;color:var(--ink3);margin-bottom:10px">ACE ARR above is the sum of these four services. Fill what applies; leave the rest at 0.</div>
+          <div class="form-grid">
+            <div class="f-group">
+              <label>EC2 ARR ($)</label>
+              <input type="number" id="arr-ec2" placeholder="0" min="0" oninput="recalcAceFromServices()">
+            </div>
+            <div class="f-group">
+              <label>RDS ARR ($)</label>
+              <input type="number" id="arr-rds" placeholder="0" min="0" oninput="recalcAceFromServices()">
+            </div>
+            <div class="f-group">
+              <label>ElastiCache ARR ($)</label>
+              <input type="number" id="arr-elasticache" placeholder="0" min="0" oninput="recalcAceFromServices()">
+            </div>
+            <div class="f-group">
+              <label>OpenSearch ARR ($)</label>
+              <input type="number" id="arr-opensearch" placeholder="0" min="0" oninput="recalcAceFromServices()">
+            </div>
+            <div class="f-group">
+              <label>AWS Region</label>
+              <select id="cust-awsregion">
+                <option value="">— AWS Region —</option>
+                <option>us-east-1 (N. Virginia)</option>
+                <option>us-east-2 (Ohio)</option>
+                <option>us-west-1 (N. California)</option>
+                <option>us-west-2 (Oregon)</option>
+                <option>ca-central-1 (Canada Central)</option>
+                <option>ca-west-1 (Calgary)</option>
+                <option>mx-central-1 (Mexico)</option>
+                <option>sa-east-1 (São Paulo)</option>
+                <option>eu-west-1 (Ireland)</option>
+                <option>eu-west-2 (London)</option>
+                <option>eu-west-3 (Paris)</option>
+                <option>eu-central-1 (Frankfurt)</option>
+                <option>eu-central-2 (Zurich)</option>
+                <option>eu-north-1 (Stockholm)</option>
+                <option>ap-southeast-1 (Singapore)</option>
+                <option>ap-southeast-2 (Sydney)</option>
+                <option>ap-northeast-1 (Tokyo)</option>
+                <option>ap-south-1 (Mumbai)</option>
+                <option>Multi-region</option>
+              </select>
+            </div>
+            <div class="f-group">
+              <label>Customer AWS Discount (EDP) %</label>
+              <input type="number" id="cust-edp-discount" value="10" min="0" max="40" step="0.5">
+              <span class="hint">AWS EDP typically runs 6–25% depending on commitment size and term. 10% is a mid-range default — replace with the customer's actual rate if known.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-card-title">ACE Co-Sell Summary (Copy for ACE)</div>
+          <div id="ace-summary-box" style="background:var(--bg);border-radius:var(--radius);padding:14px 16px;font-family:'Courier New',monospace;font-size:.72rem;line-height:1.7;white-space:pre-wrap;min-height:80px;color:var(--ink2)">
+            Fill in the steps above to generate the ACE co-sell summary.
+          </div>
+          <button class="btn btn-secondary btn-sm mt8" onclick="copyACESummary()">📋 Copy Summary</button>
+        </div>
+
+      <!-- ── STEP 5.5: SUMMARY ── injected as step 6, SOW becomes step 7 -->
+      
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="goStep(6)">Continue → Deal Summary</button>
+          <button class="btn btn-secondary" onclick="saveDraft()">Save Draft</button>
+          <button class="btn btn-aws" onclick="exportIPIC()">Export IPIC / Smartsheet Row</button>
+        </div>
+        </div><!-- /aws-specialist-view -->
+      </div><!-- /step1 -->
 
       <!-- ── STEP 3: IAP CALCULATOR ── -->
  <div class="step-panel" id="step2" style="display:none"></div>
@@ -2304,128 +2428,7 @@ Please confirm receipt.<br>
       </div>
 
       <!-- ── STEP 4: SALES PLAY ── -->
-      <div class="step-panel"<div class="section-card">
-          <div class="section-card-title">Opportunity IDs — provide at least one</div>
-          <div class="form-grid">
-            <div class="f-group">
-              <label>ACE Opportunity ID <span class="req">*</span></label>
-              <input type="text" id="ace-id" placeholder="O-XXXXXXXXXX" oninput="validateACE(this)" class="mono">
-              <span class="hint" id="ace-hint">Format: O- followed by alphanumeric (e.g. O-AB12345678)</span>
-            </div>
-            <div class="f-group">
-              <label>ACE ARR ($) <span class="req">*</span></label>
-              <input type="number" id="ace-amount" placeholder="Derived from Simple Monthly × 12" min="0" oninput="this.dataset.userEdited=1">
-              <span class="hint" id="ace-arr-hint">Derived from the Simple Monthly Target (monthly × 12). Attach the Simple Monthly Calculator or confirm this figure.</span>
-            </div>
-            <div class="f-group">
-              <label>Deal Type <span class="req">*</span></label>
-              <select id="prd-deal-type"><option value="">— Select —</option><option>Migrate</option><option>Modernize</option><option>Optimize</option></select>
-              <span class="hint">Migrate / Modernize 4.5%. Optimize 1%, capped $250,000.</span>
-            </div>
-            <div class="f-group">
-              <label>Payment Option <span class="req">*</span></label>
-              <select id="payment-option"><option value="">— Select —</option><option>Quarterly (10/20/30/40)</option><option>Milestone (25/50/75)</option><option>Lump Sum (at 75%+)</option></select>
-              <span class="hint">All payments are consumption-based. TCC manages disbursements.</span>
-            </div>
-            <div class="f-group">
-              <label>Simple Monthly Calculator <span class="req">*</span></label>
-              <input type="file" id="smc-upload" accept=".csv,.png,.jpg,.jpeg,.pdf,.xlsx" onchange="handleSMCUpload(this)">
-              <span class="hint" id="smc-status">Required. Submission blocks without it. Cost Explorer is NOT required at submission.</span>
-            </div>
-            <div class="f-group">
-              <label>SFDC / CRM Opportunity ID</label>
-              <input type="text" id="sfdc-id" placeholder="0060X000XXXXXXXXXX" class="mono">
-              <span class="hint">Salesforce 18-char opportunity ID (optional). ACE ID is required — deals must be registered on ACE.</span>
-            </div>
-            
-            <div class="f-group">
-              <label>ACE Co-Sell Stage</label>
-              <select id="ace-stage">
-                <option value="">— Select if known —</option>
-                <option>Prospect</option>
-                <option>Qualified</option>
-                <option>Technical Validation</option>
-                <option>Business Validation</option>
-                <option>Committed</option>
-                <option>Launched</option>
-              </select>
-            </div>
-            <div class="f-group">
-              <label>Campaign Code</label>
-              <input type="text" id="campaign-code" placeholder="e.g. IAP-2026-Q3-NAMER" class="mono">
-              <span class="hint">Intel campaign code if applicable</span>
-            </div>
-            <div class="f-group span2">
-              <label>Notes</label>
-              <textarea id="ace-notes" placeholder="Migration timeline, exec sponsor, competitive context..."></textarea>
-            </div>
-          </div>
-        </div>
 
-        <div class="section-card">
-          <div class="section-card-title">AWS Consumption — powers ACE ARR</div>
-          <div style="font-size:.75rem;color:var(--ink3);margin-bottom:10px">ACE ARR above is the sum of these four services. Fill what applies; leave the rest at 0.</div>
-          <div class="form-grid">
-            <div class="f-group">
-              <label>EC2 ARR ($)</label>
-              <input type="number" id="arr-ec2" placeholder="0" min="0" oninput="recalcAceFromServices()">
-            </div>
-            <div class="f-group">
-              <label>RDS ARR ($)</label>
-              <input type="number" id="arr-rds" placeholder="0" min="0" oninput="recalcAceFromServices()">
-            </div>
-            <div class="f-group">
-              <label>ElastiCache ARR ($)</label>
-              <input type="number" id="arr-elasticache" placeholder="0" min="0" oninput="recalcAceFromServices()">
-            </div>
-            <div class="f-group">
-              <label>OpenSearch ARR ($)</label>
-              <input type="number" id="arr-opensearch" placeholder="0" min="0" oninput="recalcAceFromServices()">
-            </div>
-            <div class="f-group">
-              <label>AWS Region</label>
-              <select id="cust-awsregion">
-                <option value="">— AWS Region —</option>
-                <option>us-east-1 (N. Virginia)</option>
-                <option>us-east-2 (Ohio)</option>
-                <option>us-west-1 (N. California)</option>
-                <option>us-west-2 (Oregon)</option>
-                <option>ca-central-1 (Canada Central)</option>
-                <option>ca-west-1 (Calgary)</option>
-                <option>mx-central-1 (Mexico)</option>
-                <option>sa-east-1 (São Paulo)</option>
-                <option>eu-west-1 (Ireland)</option>
-                <option>eu-west-2 (London)</option>
-                <option>eu-west-3 (Paris)</option>
-                <option>eu-central-1 (Frankfurt)</option>
-                <option>eu-central-2 (Zurich)</option>
-                <option>eu-north-1 (Stockholm)</option>
-                <option>ap-southeast-1 (Singapore)</option>
-                <option>ap-southeast-2 (Sydney)</option>
-                <option>ap-northeast-1 (Tokyo)</option>
-                <option>ap-south-1 (Mumbai)</option>
-                <option>Multi-region</option>
-              </select>
-            </div>
-            <div class="f-group">
-              <label>Customer AWS Discount (EDP) %</label>
-              <input type="number" id="cust-edp-discount" value="10" min="0" max="40" step="0.5">
-              <span class="hint">AWS EDP typically runs 6–25% depending on commitment size and term. 10% is a mid-range default — replace with the customer's actual rate if known.</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="section-card">
-          <div class="section-card-title">ACE Co-Sell Summary (Copy for ACE)</div>
-          <div id="ace-summary-box" style="background:var(--bg);border-radius:var(--radius);padding:14px 16px;font-family:'Courier New',monospace;font-size:.72rem;line-height:1.7;white-space:pre-wrap;min-height:80px;color:var(--ink2)">
-            Fill in the steps above to generate the ACE co-sell summary.
-          </div>
-          <button class="btn btn-secondary btn-sm mt8" onclick="copyACESummary()">📋 Copy Summary</button>
-        </div>
-
-      </div>
-
-      <!-- ── STEP 5.5: SUMMARY ── injected as step 6, SOW becomes step 7 -->
       <div class="step-panel"
          id="step4">
         <div class="step-header">
@@ -2464,22 +2467,12 @@ Please confirm receipt.<br>
 
         <div class="btn-row">
           <button class="btn btn-secondary" onclick="goStep(1)">← Back</button>
-          <button class="btn btn-primary" onclick="goStep(5)">Continue → ACE / SFDC</button>
+          <button class="btn btn-primary" onclick="goStep(1)">Continue → Deal Info</button>
         </div>
       </div>
 
       <!-- ── STEP 5: ACE / SFDC ── -->
-      <div class="step-panel" id="step5">
-        <div class="step-header">
-          <div class="step-badge">Step 05</div>
-          <div class="step-title">ACE & Co-Sell Tracking</div>
-          <div class="step-desc">ACE connects this deal to net new AWS consumption tracking. Either ACE or SFDC ID is sufficient — both are not required. This is an AWS co-sell motion field, not a customer-facing requirement.</div>
-        </div>
-
-        <div class="alert alert-info">
-          <strong>What is ACE?</strong> ACE (AWS Customer Engagements) is AWS's co-sell system. When a deal is registered in ACE, AWS tracks it as net new utility — meaning new or incremental cloud consumption. This is what qualifies the deal for the IAP co-investment. You need either the ACE ID <em>or</em> the SFDC ID. If neither exists yet, your AWS counterpart creates the ACE opportunity and shares the ID.
-        </div>
-      id="step6">
+      <div class="step-panel" id="step6">
         <div class="step-header">
           <div class="step-badge">Step 06</div>
           <div class="step-title">Review &amp; Submit</div>
@@ -2603,7 +2596,7 @@ Please confirm receipt.<br>
 
       <!-- step6-old removed: was dead duplicate SOW panel -->
       <!-- ── STEP 7: PIPELINE (Admin only) ── -->
-      <div class="step-panel" id="step7">
+      <div class="step-panel" id="step9">
         <div class="step-header">
           <div class="step-badge">Admin View</div>
           <div class="step-title">Pipeline Dashboard <button class="btn btn-secondary btn-sm" style="margin-left:12px;vertical-align:middle" onclick="exportWinWires()">Export Win Wires (Excel)</button></div>
@@ -2709,9 +2702,9 @@ function doLogin(){
 
   // Show Pipeline for admin/aws; show Approval Queue for approvers
   if(currentUser.tier==='admin' || currentUser.tier==='aws'){
-    document.getElementById('nav7').style.display='flex';
-    const mn7=document.getElementById('mnav7');
-    if(mn7) mn7.style.display='flex';
+    document.getElementById('nav9').style.display='flex';
+    const mn9=document.getElementById('mnav9');
+    if(mn9) mn9.style.display='flex';
   }
   if(currentUser.approver){
     document.getElementById('nav-approval').style.display='flex';
@@ -2728,9 +2721,9 @@ function doLogin(){
 
   // Hide pipeline for intel sellers
   if(isIntelSeller){
-    document.getElementById('nav7').style.display='none';
-    const mn7=document.getElementById('mnav7');
-    if(mn7) mn7.style.display='none';
+    document.getElementById('nav9').style.display='none';
+    const mn9=document.getElementById('mnav9');
+    if(mn9) mn9.style.display='none';
   }
 
   initApp();
@@ -2763,12 +2756,7 @@ function goStep(n){
   document.querySelectorAll('.mobile-nav-btn').forEach(b=>b.classList.remove('active'));
   const mb=document.getElementById('mnav'+n);
   if(mb) mb.classList.add('active');
-  if(n===5){
-    const team=getTeamData();
-    const hasIntel=team.some(t=>t.role==='intel-seller'||t.role==='intel-specialist');
-    const rem=document.getElementById('intel-ace-reminder');
-    if(rem) rem.style.display=hasIntel?'block':'none';
-  }
+  if(n===1) renderACESummary();
   const panel = document.getElementById('step'+n);
   if(panel) panel.classList.add('active');
   const nav = document.getElementById('nav'+n);
@@ -2777,9 +2765,7 @@ function goStep(n){
   window.scrollTo(0,0);
 
   if(n===4) renderPlays();
-  if(n===5) renderACESummary();
-  if(n===6) generateSOW();
-  if(n===7) renderPipeline();
+  if(n===9) renderPipeline();
   if(n===8) renderApprovalQueue();
 }
 
@@ -5567,7 +5553,7 @@ function initApp(){
   <button class="mobile-nav-btn" onclick="goStep(6)" id="mnav6">
     <span class="nav-icon">📄</span>Review
   </button>
-  <button class="mobile-nav-btn" onclick="goStep(7)" id="mnav7" style="display:none">
+  <button class="mobile-nav-btn" onclick="goStep(9)" id="mnav9" style="display:none">
     <span class="nav-icon">★</span>Pipeline
   </button>
   <button class="mobile-nav-btn" onclick="goStep(8)" id="mnav8" style="display:none">
