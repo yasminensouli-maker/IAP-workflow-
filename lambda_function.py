@@ -26,7 +26,7 @@ APP_URL = os.environ.get('APP_URL', 'https://main.dgxv59n7ru973.amplifyapp.com')
 RATE_MIGRATE = float(os.environ.get('RATE_MIGRATE', '0.045'))      # Migrate / Modernize
 RATE_OPTIMIZE = float(os.environ.get('RATE_OPTIMIZE', '0.01'))
 OPTIMIZE_CAP = float(os.environ.get('OPTIMIZE_CAP', '250000'))
-BLENDED_DISCOUNT = float(os.environ.get('BLENDED_DISCOUNT', '0.30'))
+BLENDED_DISCOUNT = float(os.environ.get('BLENDED_DISCOUNT', '0.20'))
 REVIEW_REMINDER_DAYS = int(os.environ.get('REVIEW_REMINDER_DAYS', '5'))
 MILESTONE_LEAD_DAYS = int(os.environ.get('MILESTONE_LEAD_DAYS', '30'))
 
@@ -77,16 +77,13 @@ def log_email(deal, recipients, subject):
 
 def compute_dne(target_arr, deal_type, program='standard'):
     """DNE = ARR x (1 - blended discount) x rate.
-    Standard program: Migrate/Modernize 4.5%, Optimize 1% capped $250K.
-    Program 2 (modernization): Modernize 1% capped $250K, Migrate 4.5% uncapped."""
+    Migrate: 4.5%, uncapped. Modernize: 1%, capped $250K.
+    Same rate table for both Standard and Program 2 (Modernization) —
+    program only changes which governance/payment rules apply."""
     arr = float(target_arr or 0)
     eligible = arr * (1 - BLENDED_DISCOUNT)
     dt = str(deal_type or '').lower()
-    if program == 'modernization':
-        if dt.startswith('mod'):
-            return min(eligible * RATE_OPTIMIZE, OPTIMIZE_CAP)
-        return eligible * RATE_MIGRATE
-    if dt.startswith('opt'):
+    if dt.startswith('mod'):
         return min(eligible * RATE_OPTIMIZE, OPTIMIZE_CAP)
     return eligible * RATE_MIGRATE
 

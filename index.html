@@ -1434,13 +1434,15 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
 
     <!-- SIDEBAR -->
     <nav class="sidebar">
+      <button onclick="goStep(3);setTimeout(()=>{setBaselineMethod(2);document.getElementById('baseline-method-2').scrollIntoView({behavior:'smooth',block:'start'});},80)" style="display:block;width:100%;text-align:left;background:linear-gradient(135deg,#0068B5,#0A1628);border:none;border-radius:10px;padding:12px 14px;margin-bottom:14px;cursor:pointer;color:#fff">
+        <div style="font-size:.85rem;font-weight:800">🧞 Ask Intel Anything</div>
+        <div style="font-size:.7rem;color:rgba(255,255,255,.75);margin-top:2px">Live pricing, rates, availability — just ask</div>
+      </button>
+
       <div class="sidebar-section" style="background:linear-gradient(135deg,rgba(0,104,181,.12),rgba(255,153,0,.06));border:1px solid rgba(0,104,181,.35);border-radius:10px;padding:10px 8px;margin-bottom:16px">
         <div class="sidebar-label" style="color:#4da3e8;font-weight:800;letter-spacing:.12em">Resources — Tools &amp; Help</div>
         <button class="nav-item" id="nav3" onclick="goStep(3)">
           <span class="step-num" id="snum3">⊞</span>Calculators — IAP &amp; Simple Monthly
-        </button>
-        <button class="nav-item" onclick="goStep(3);setTimeout(()=>{setBaselineMethod(2);document.getElementById('baseline-method-2').scrollIntoView({behavior:'smooth',block:'start'});},80)">
-          <span class="step-num">$</span>Ask Intel Anything
         </button>
         <button class="nav-item" onclick="downloadWorkflowGuide()">
           <span class="step-num">⇩</span>Instructions — Download Guide
@@ -1448,6 +1450,9 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
         <button class="nav-item" onclick="showFillGuide()">
           <span class="step-num">?</span>How to Fill This Out
         </button>
+        <a href="https://app.smartsheet.com/sheets/P3J6GHmGxmJxQwgM6f7wqCmpjRFFrp8m2PFvxgx1" target="_blank" rel="noopener" class="nav-item" style="text-decoration:none;display:block">
+          <span class="step-num">⧉</span>Open Smartsheet Tracker ↗
+        </a>
       </div>
 
       <div class="sidebar-section">
@@ -1773,7 +1778,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
             <div class="f-group">
               <label>Include as Win Wire</label>
               <select id="win-wire"><option value="yes" selected>Yes</option><option value="">No</option></select>
-              <span class="hint">Win Wire deals are aggregated and exportable to Excel</span>
+              <span class="hint">Win Wire deals are aggregated and exportable to Excel. Yes also flags the deal for fast-track approval.</span>
             </div>
             <div class="f-group">
               <label>Customer Legal Name <span class="req">*</span></label>
@@ -1955,9 +1960,10 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
                 <option>Paid by TCC</option>
               </select>
             </div>
-            <div class="f-group">
+            <div class="f-group" id="ipic-num-wrap">
               <label>IPIC Activity #</label>
-              <input type="text" id="ipic-num" placeholder="e.g. 00338178" class="mono">
+              <input type="text" id="ipic-num" placeholder="Filled by admin after SOW" class="mono">
+              <span class="hint">Admin/TCC only — assigned after the SOW is generated.</span>
             </div>
             <div class="f-group">
               <label>Activity Type</label>
@@ -1982,7 +1988,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
                 <option>Q3</option><option>Q4</option>
               </select>
             </div>
-            <div class="f-group">
+            <div class="f-group" id="budget-year-wrap">
               <label>Intel Budget Year</label>
               <select id="intel-budget-year">
                 <option>2026</option><option>2027</option><option>2025</option>
@@ -2059,12 +2065,12 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
                 <option value="blended">Blended (e.g. 1-yr or 3-yr reserved savings)</option>
                 <option value="ondemand">On-Demand (no commitment discount)</option>
               </select>
-              <input type="number" id="cust-edp-discount" value="10" min="0" max="40" step="0.5" oninput="this.dataset.userEdited=1">
+              <input type="number" id="cust-edp-discount" value="20" min="0" max="40" step="0.5" oninput="this.dataset.userEdited=1">
               <select id="discount-verified" style="margin-top:6px">
                 <option value="verified">Verified with customer</option>
                 <option value="assumed">Assumed — must verify before final payment</option>
               </select>
-              <span class="hint" id="discount-hint">AWS EDP typically runs 6–25% depending on commitment size and term. Do Not Exceed = Target ARR × this percentage.</span>
+              <span class="hint" id="discount-hint">Default is 20% blended. Adjust to the customer's actual pricing benefit if known. Do Not Exceed = Target ARR × this percentage.</span>
             </div>
           </div>
         </div>
@@ -2140,10 +2146,10 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
             <div class="f-group span2">
               <label>Which program is this deal under? <span class="req">*</span></label>
               <select id="iap-program" onchange="handleProgramChange()">
-                <option value="standard">Standard IAP — Migrate / Modernize (4.5%) / Optimize (1%, capped $250K)</option>
-                <option value="modernization">Program 2 — Modernization (Modernize 1% capped $250K · Migrate 4.5%)</option>
+                <option value="standard">Standard IAP</option>
+                <option value="modernization">Program 2 — Modernization</option>
               </select>
-              <span class="hint" id="program-hint">Standard program: Migrate and Modernize both pay 4.5%; Optimize pays 1% capped at $250,000. Program 2 flips this for Modernization deals specifically — see below once selected.</span>
+              <span class="hint" id="program-hint">Both programs use the same rate table. Program 2 adds the quarterly milestone schedule and governance rules below.</span>
             </div>
           </div>
         </div>
@@ -2163,20 +2169,21 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
             </div>
             <div class="f-group">
               <label>Deal Type <span class="req">*</span></label>
-              <select id="prd-deal-type" onchange="handleProgramChange()"><option value="">— Select —</option><option>Migrate</option><option>Modernize</option><option id="opt-optimize">Optimize</option></select>
-              <span class="hint" id="deal-type-rate-hint">Migrate / Modernize 4.5%. Optimize 1%, capped $250,000.</span>
+              <select id="prd-deal-type" onchange="handleProgramChange()"><option value="">— Select —</option><option>Migrate</option><option>Modernize</option></select>
+              <span class="hint" id="deal-type-rate-hint">Migrate: 4.5%. Modernize: 1%, capped $250,000. Modernize covers upgrading an existing Intel fleet to Gen 8; Migrate covers moving from another platform or on-prem to AWS Gen 8.</span>
             </div>
             <div class="f-group">
               <label>Payment Option <span class="req">*</span></label>
-              <select id="payment-option">
+              <select id="payment-option" onchange="handlePaymentOptionChange()">
                 <option value="">— Select —</option>
-                <option>Quarterly (10/20/30/40)</option>
-                <option>Milestone (25/50/75)</option>
-                <option>Lump Sum (at 75%+)</option>
-                <option id="opt-mod-schedule">Modernization Milestones (15/15/20/50)</option>
+                <option>Quarterly (15/15/25/45)</option>
+                <option>Lump Sum (post 75%)</option>
+                <option>Custom</option>
               </select>
-              <span class="hint">The milestone/payout structure. Different from Payment Cadence in Deal Metadata, which sets how often TCC pays.</span>
-              <span class="hint">All payments are consumption-based. TCC manages disbursements.</span>
+              <span class="hint">Quarterly pays out as Cost Explorer confirms 25/50/75/sustained-75 percent of target ARR on Gen 8. Lump Sum pays once, after 75 percent is confirmed. Different from Payment Cadence in Deal Metadata, which sets how often TCC pays.</span>
+              <div id="payment-custom-wrap" style="display:none;margin-top:8px">
+                <textarea id="payment-custom-details" placeholder="Describe the custom payment structure — triggers, percentages, and timing"></textarea>
+              </div>
             </div>
             <div class="f-group">
               <label>Simple Monthly Calculator</label>
@@ -2184,8 +2191,6 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
                 <a href="https://calculator.aws" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">Open AWS Pricing Calculator ↗</a>
                 <span style="font-size:.72rem;color:var(--ink3)">Look up the figures there, then enter them in AWS ARR Breakdown below — nothing here is auto-filled.</span>
               </div>
-              <input type="file" id="smc-upload" accept=".csv,.png,.jpg,.jpeg,.pdf,.xlsx" onchange="handleSMCUpload(this)" style="margin-top:8px">
-              <span class="hint" id="smc-status">Optional — attach if you have a saved export. Cost Explorer is NOT required at submission.</span>
             </div>
             <div class="f-group">
               <label>SFDC / CRM Opportunity ID</label>
@@ -2375,25 +2380,14 @@ Please confirm receipt.<br>
           <div id="baseline-method-1">
             <div class="alert alert-info" style="margin-bottom:12px">
               <strong>Cost Explorer = existing fleet baseline.</strong> The customer's actual EC2 spend establishes the ARR against which the IAP benefit is calculated. This is the preferred method for existing workloads already running on AWS.
-            </div>
-            <div class="form-grid">
-              <div class="f-group">
-                <label>Upload Cost Explorer Export</label>
-                <input type="file" id="ce-upload" accept=".csv,.png,.jpg,.jpeg,.pdf,.xlsx"
-                  onchange="handleCEUpload(this)" style="font-size:.75rem;padding:6px">
-                <span class="hint">CSV, screenshot, or PDF. Provided by the customer directly to The Channel Company / Intel — not via AWS.</span>
-              </div>
-              <div class="f-group">
-                <label>Baseline Status</label>
-                <div id="ce-status" style="font-size:.78rem;color:var(--ink3);padding:8px 0">No file attached</div>
-              </div>
+              <div style="margin-top:8px;font-size:.78rem">Cost Explorer isn't uploaded here — it's collected directly between TCC and the customer after the SOW is signed, as part of Proof of Performance. AWS never handles or forwards this data.</div>
             </div>
           </div>
 
           <!-- Method 2: Intel Instance Pricing Chat -->
           <div id="baseline-method-2" style="display:none">
             <div class="alert alert-info" style="margin-bottom:12px">
-              <strong>Ask Intel Anything</strong> — pricing, program rates, regional availability, whatever you need. Live data, plain answers.
+              <strong>🧞 Ask Intel Anything</strong> — I've got live pricing, program rates, and regional availability on tap. Ask me anything, I don't do vague answers.
             </div>
             <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:12px">
               <div id="intel-chat-messages" style="min-height:120px;max-height:280px;overflow-y:auto;padding:12px;background:#fafafa;font-size:.78rem;line-height:1.6">
@@ -2801,6 +2795,13 @@ function doLogin(){
     if(mn9) mn9.style.display='none';
   }
 
+  // IPIC # and Intel Budget Year are admin/approver-only — hidden from sellers and partners
+  const canSeeBudget = currentUser.tier==='admin' || currentUser.approver;
+  ['ipic-num-wrap','budget-year-wrap'].forEach(wid=>{
+    const el=document.getElementById(wid);
+    if(el) el.style.display = canSeeBudget ? '' : 'none';
+  });
+
   initApp();
 }
 
@@ -3130,14 +3131,9 @@ const AUTOFILL_LABELS = {
 };
 
 function computeRate(dealType, program){
-  const isOptimize = dealType === 'Optimize';
   const isModernize = dealType === 'Modernize';
-  if(program === 'modernization'){
-    if(isModernize) return {rate:0.01, cap:250000, label:'1% (Modernize, Program 2 — capped $250,000)'};
-    return {rate:0.045, cap:null, label:'4.5% (Migrate, Program 2)'};
-  }
-  if(isOptimize) return {rate:0.01, cap:250000, label:'1% (Optimize — capped $250,000)'};
-  return {rate:0.045, cap:null, label:'4.5% (Migrate / Modernize)'};
+  if(isModernize) return {rate:0.01, cap:250000, label:'1% (Modernize — capped $250,000)'};
+  return {rate:0.045, cap:null, label:'4.5% (Migrate)'};
 }
 
 function getRateInfo(){
@@ -3146,25 +3142,20 @@ function getRateInfo(){
   return computeRate(dealType, program);
 }
 
+function handlePaymentOptionChange(){
+  const val = (document.getElementById('payment-option')||{}).value;
+  const wrap = document.getElementById('payment-custom-wrap');
+  if(wrap) wrap.style.display = (val === 'Custom') ? 'block' : 'none';
+}
+
 function handleProgramChange(){
   const program = (document.getElementById('iap-program')||{}).value || 'standard';
   const gov = document.getElementById('program2-governance');
-  const optOption = document.getElementById('opt-optimize');
-  const modSchedule = document.getElementById('opt-mod-schedule');
   const rateHint = document.getElementById('deal-type-rate-hint');
   const discountInput = document.getElementById('cust-edp-discount');
-  if(program === 'modernization'){
-    if(gov) gov.style.display = 'block';
-    if(optOption) optOption.disabled = true;
-    if(modSchedule) modSchedule.disabled = false;
-    if(rateHint) rateHint.textContent = 'Program 2: Modernize pays 1%, capped $250,000. Migrate pays 4.5%, no cap.';
-    if(discountInput && !discountInput.dataset.userEdited) discountInput.value = 20;
-  } else {
-    if(gov) gov.style.display = 'none';
-    if(optOption) optOption.disabled = false;
-    if(rateHint) rateHint.textContent = 'Migrate / Modernize 4.5%. Optimize 1%, capped $250,000.';
-    if(discountInput && !discountInput.dataset.userEdited) discountInput.value = 10;
-  }
+  if(gov) gov.style.display = (program === 'modernization') ? 'block' : 'none';
+  if(rateHint) rateHint.textContent = 'Migrate 4.5%. Modernize 1%, capped $250,000.';
+  if(discountInput && !discountInput.dataset.userEdited) discountInput.value = 20;
   recalcAceFromServices();
 }
 
@@ -3892,7 +3883,7 @@ async function sendIntelChat(){
   // Show user message
   messages.innerHTML += '<div style="margin-bottom:8px"><span style="background:var(--intel);color:#fff;padding:3px 8px;border-radius:10px;font-size:.72rem">' + msg + '</span></div>';
   input.value = '';
-  messages.innerHTML += '<div id="intel-typing" style="color:var(--ink3);font-size:.72rem;font-style:italic">Checking live Intel pricing…</div>';
+  messages.innerHTML += '<div id="intel-typing" style="color:var(--ink3);font-size:.72rem;font-style:italic">🧞 Pulling up live Intel pricing…</div>';
   messages.scrollTop = messages.scrollHeight;
 
   try {
@@ -4104,8 +4095,7 @@ function downloadProgramOnePager(){
     <table>
       <tr><th>Deal Type</th><th>Rate</th><th>Cap</th></tr>
       <tr><td>Migrate</td><td>4.5% of post-discount ARR</td><td>—</td></tr>
-      <tr><td>Modernize</td><td>4.5% of post-discount ARR</td><td>—</td></tr>
-      <tr><td>Optimize</td><td>1% of post-discount ARR</td><td>$250,000</td></tr>
+      <tr><td>Modernize</td><td>1% of post-discount ARR</td><td>$250,000</td></tr>
     </table>
     <div class="card" style="margin-top:10px">Rebate applies to <strong>actual spend</strong>, post-discount, never list price. The calculated figure is a Do Not Exceed (DNE) ceiling, not a guaranteed payout — actual disbursement follows Proof of Performance.</div>
 
@@ -4387,7 +4377,7 @@ function validateAcct(el){
 /* ── SOW GENERATION ──────────────────────────────────────────── */
 function generateSOW(){
   if(!(currentUser && (currentUser.tier==='tcc' || currentUser.tier==='admin'))){
-    alert('SOW generation is restricted to The Channel Company. TCC generates and amends the SOW once Intel leadership has approved.');
+    alert('The SOW is generated by TCC once Intel leadership has approved the deal — it\'ll be ready for them at that point.');
     return;
   }
   // Pull from SOW detail fields (Step 7) first, fall back to earlier steps
@@ -4415,7 +4405,7 @@ function generateSOW(){
   const rateInfo = getRateInfo();
   const rate = rateInfo.rate===0.01 ? '1%' : '4.5%';
   const rateLabel = rateInfo.label;
-  const progType = (document.getElementById('prd-deal-type')||{}).value==='Optimize' ? 'optimize' : 'migrate';
+  const progType = (document.getElementById('prd-deal-type')||{}).value==='Modernize' ? 'modernize' : 'migrate';
 
   const smVal = parseFloat(document.getElementById('simple-monthly')?.value||0);
   const smARR = smVal * 12;
@@ -5166,7 +5156,7 @@ function getCurrentDealData(){
     migFrom:v('mig-from'),migTo:v('mig-to'),discountModel:parseFloat(v('discount-model'))||30,intelSegment:v('intel-segment'),
     arrEc2:parseFloat(v('arr-ec2'))||0, arrRds:parseFloat(v('arr-rds'))||0,
     arrElastiCache:parseFloat(v('arr-elasticache'))||0, arrOpenSearch:parseFloat(v('arr-opensearch'))||0,
-    awsRegion:v('cust-awsregion'), custEdpDiscount:parseFloat(v('cust-edp-discount'))||10,
+    awsRegion:v('cust-awsregion'), custEdpDiscount:parseFloat(v('cust-edp-discount'))||20,
     intelRepName:v('intel-rep-name'), awsRepName:v('aws-rep-name'),
     iapProgram:v('iap-program')||'standard', discountMode:v('discount-mode')||'blended',
     discountVerified:v('discount-verified')||'assumed',
@@ -5446,7 +5436,7 @@ function canEditDeal(){
 
 async function setDNE(id){
   const arr=parseFloat(document.getElementById('dne-arr-'+id).value)||0;
-  if(arr<=0){ alert('Enter the Target ARR first.'); return; }
+  if(arr<=0){ alert('Add the Target ARR first and this will calculate itself.'); return; }
   const deals=await loadPipelineDealsFromCloud();
   const deal=deals.find(d=>d.id===id);
   if(!deal) return;
@@ -5576,7 +5566,7 @@ function refreshCRMHeader(){
   set('crm-type', d.actType);
   set('crm-pay', (d.paymentOption||'').split(' ')[0]);
   set('crm-ace', d.aceID);
-  set('crm-ww', d.winWire?'Yes':'No');
+  set('crm-ww', d.winWire?'Yes — Fast Track':'No');
   if(d.dne && d.migrationCost>0){
     const roi=((d.dne - d.migrationCost)/d.migrationCost*100);
     set('crm-roi', roi.toFixed(0)+'% (DNE vs. migration cost)');
@@ -5699,9 +5689,9 @@ function formatDateWeek(d){
 // ── DEAL TEAM ──────────────────────────────────────────────
 
 const ROLES = [
-  {val:'intel-seller',     label:'Intel Seller'},
+  {val:'intel-seller',     label:'Intel Account Team'},
   {val:'aws-account',      label:'AWS Account Team'},
-  {val:'intel-specialist', label:'Intel Specialist at AWS'},
+  {val:'partner',          label:'Partner'},
 ];
 
 function addTeamMember(){
