@@ -1520,9 +1520,9 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
       <!-- ── STEP 1: DEAL INFORMATION ── -->
       <div class="step-panel active" id="step1">
         <div class="step-header">
-          <div class="step-badge">Step 01</div>
+          <div class="step-badge">Step 01 · Deal Desk</div>
           <div class="step-title">Deal Info</div>
-          <div class="step-desc" id="step1-desc">Capture the deal details to route this opportunity through the Intel × AWS co-investment program.</div>
+          <div class="step-desc" id="step1-desc">Fast-track intake for the Intel × AWS co-investment program — the fields below are everything needed to route this opportunity.</div>
         </div>
 
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
@@ -2169,8 +2169,12 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
             </div>
             <div class="f-group">
               <label>Deal Type <span class="req">*</span></label>
-              <select id="prd-deal-type" onchange="handleProgramChange()"><option value="">— Select —</option><option>Migrate</option><option>Modernize</option></select>
-              <span class="hint" id="deal-type-rate-hint">Migrate: 4.5%. Modernize: 1%, capped $250,000. Modernize covers upgrading an existing Intel fleet to Gen 8; Migrate covers moving from another platform or on-prem to AWS Gen 8.</span>
+              <select id="prd-deal-type" onchange="handleProgramChange()">
+                <option value="">— Select —</option>
+                <option value="Migrate">Migrate (net new workloads to AWS)</option>
+                <option value="Modernize">Modernization (upgrade to new Gen for incremental value)</option>
+              </select>
+              <span class="hint" id="deal-type-rate-hint">Migrate: 4.5% of actual total spend, no cap. Modernization: 1% of actual total spend, capped $250,000.</span>
             </div>
             <div class="f-group">
               <label>Payment Option <span class="req">*</span></label>
@@ -3132,7 +3136,7 @@ const AUTOFILL_LABELS = {
 
 function computeRate(dealType, program){
   const isModernize = dealType === 'Modernize';
-  if(isModernize) return {rate:0.01, cap:250000, label:'1% (Modernize — capped $250,000)'};
+  if(isModernize) return {rate:0.01, cap:250000, label:'1% (Modernization — capped $250,000)'};
   return {rate:0.045, cap:null, label:'4.5% (Migrate)'};
 }
 
