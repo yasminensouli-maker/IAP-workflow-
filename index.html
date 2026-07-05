@@ -2601,6 +2601,7 @@ Please confirm receipt.<br>
 
         <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
           <button class="btn btn-primary" onclick="generateSummary()">⚡ Generate Summary</button>
+          <button class="btn btn-secondary" onclick="downloadCustomerSafeSummary()">📄 Customer-Safe Summary (no internal figures)</button>
           
         </div>
 
@@ -2713,6 +2714,7 @@ Please confirm receipt.<br>
                 <th id="pipe-th-program">Program</th>
                 <th id="pipe-th-benefit">Benefit Est.</th>
                 <th>Status</th>
+                <th id="pipe-th-days">Days in Stage</th>
                 <th id="pipe-th-date">Date</th>
                 <th></th>
               </tr>
@@ -2720,6 +2722,21 @@ Please confirm receipt.<br>
             <tbody id="pipeline-tbody">
               <!-- Injected by JS -->
             </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── STEP 10: PARTNER VIEW (read-only, no financials) ── -->
+      <div class="step-panel" id="step10">
+        <div class="step-header">
+          <div class="step-badge">Partner View</div>
+          <div class="step-title">Your Deals</div>
+          <div class="step-desc">Status on deals registered under your company. No internal figures shown here — for funding details, ask your AWS or Intel contact.</div>
+        </div>
+        <div class="section-card">
+          <table class="deals-table">
+            <thead><tr><th>Customer</th><th>Deal Type</th><th>Status</th><th>Migration Start</th><th>Migration End</th></tr></thead>
+            <tbody id="partner-deals-tbody"><!-- Injected by JS --></tbody>
           </table>
         </div>
       </div>
@@ -2769,6 +2786,7 @@ const USERS = {
   'deep.grewal@intel.com':      { pass:'Intel2026',tier:'intel_approver', name:'Deep Grewal',     label:'Intel Leadership', approver:'intel' },
   // TCC
   'jacobx.barksdale@intel.com': { pass:'TCC2026',  tier:'tcc',     name:'Jacob Barksdale', label:'The Channel Company', approver:'tcc' },
+  'partner@slalom.com':         { pass:'Slalom2026', tier:'partner', name:'Slalom Partner Team', label:'Partner — Slalom', partnerFilter:'Slalom' },
 };
 
 let currentUser = null;
@@ -2811,6 +2829,16 @@ function doLogin(){
   document.getElementById('login-screen').style.display='none';
   document.getElementById('app').style.display='block';
   document.getElementById('user-pill').textContent = currentUser.name + ' · ' + currentUser.label;
+
+  if(currentUser.tier==='partner'){
+    document.querySelectorAll('.sidebar-section, .sidebar > button').forEach(el=>el.style.display='none');
+    const step10 = document.getElementById('step10');
+    document.querySelectorAll('.step-panel').forEach(p=>p.classList.remove('active'));
+    if(step10) step10.classList.add('active');
+    currentStep = 10;
+    renderPartnerDeals();
+    return;
+  }
 
   // Show Pipeline for admin/aws; show Approval Queue for approvers
   if(currentUser.tier==='admin' || currentUser.tier==='aws'){
@@ -2885,6 +2913,7 @@ function goStep(n){
   if(n===4) renderPlays();
   if(n===9) renderPipeline();
   if(n===8) renderApprovalQueue();
+  if(n===10) renderPartnerDeals();
 }
 
 /* ── COUNTRY LISTS ───────────────────────────────────────────── */
@@ -4098,6 +4127,33 @@ function downloadProgramOnePager(){
   openPrintableWindow('IAP Program Details', html);
 }
 
+function downloadCustomerSafeSummary(){
+  const d = getCurrentDealData();
+  const isMigrate = (d.actType||'').toLowerCase().startsWith('migrat');
+  const valueStory = isMigrate
+    ? "Moving to Intel Xeon 6 (8th Gen) on AWS means faster performance, lower infrastructure footprint, and a modern foundation for what comes next — including GenAI workloads."
+    : "Upgrading your existing AWS fleet to Intel Xeon 6 (8th Gen) unlocks meaningful performance and efficiency gains on infrastructure you already run, with no disruption to your architecture.";
+  const html = `
+    <div class="banner">
+      <div class="tag">Intel × AWS</div>
+      <h1 style="color:#fff;margin-top:4px">${d.custName || 'Migration & Modernization'} Overview</h1>
+      <div style="color:rgba(255,255,255,.7);font-size:.85rem">Prepared for discussion — ${d.awsRegion || ''}</div>
+    </div>
+    <h2>What This Is</h2>
+    <div class="card">${valueStory}</div>
+    <h2>The Path</h2>
+    <table>
+      <tr><th>Milestone</th><th>Date</th></tr>
+      <tr><td>Kickoff</td><td>${d.migStart || 'To be scheduled'}</td></tr>
+      <tr><td>Target Completion</td><td>${d.closeDate || 'To be scheduled'}</td></tr>
+    </table>
+    <h2>Why Gen 8</h2>
+    <div class="card">Intel Xeon 6 delivers stronger performance per core, better price-performance on demanding workloads, and is the foundation AWS and Intel recommend for GenAI-ready infrastructure.</div>
+    ${d.workload ? `<h2>Workload</h2><div class="card">${d.workload}</div>` : ''}
+  `;
+  openPrintableWindow((d.custName||'Deal')+' — Overview', html);
+}
+
 function downloadWorkflowOnePager(){
   const html = `
     <div class="banner">
@@ -4594,6 +4650,13 @@ function getApprovalLabel(stage){
   return stage;
 }
 
+function daysInStage(deal){
+  const entered = deal.stageEnteredAt || deal.submittedAt;
+  if(!entered) return 0;
+  const ms = Date.now() - new Date(entered).getTime();
+  return Math.max(0, Math.floor(ms/(1000*60*60*24)));
+}
+
 async function renderApprovalQueue(){
   if(!currentUser||!currentUser.approver) return;
   const myTier = currentUser.approver;
@@ -4625,11 +4688,17 @@ async function renderApprovalQueue(){
     pending.forEach(deal=>{
       const totWNE=(deal.fleets||[]).reduce((s,f)=>s+(parseFloat(f.nteCap)||0),0);
       const totPay=(deal.fleets||[]).reduce((s,f)=>s+(parseFloat(f.rebate)||0),0);
+      const daysIn = daysInStage(deal);
+      const daysColor = daysIn>10 ? '#dc2626' : daysIn>5 ? '#d97706' : 'var(--ink3)';
+      const emailWarning = (deal.emailFailures&&deal.emailFailures.length)
+        ? `<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:6px;padding:8px 10px;margin-bottom:10px;font-size:.72rem;color:#991b1b">⚠ Notification email failed to send at this stage — check SES verification for the recipient. This deal may not have been flagged to the reviewer.</div>`
+        : '';
       html+=`<div class="approval-card">
+        ${emailWarning}
         <div class="approval-card-header">
           <div>
             <div class="approval-card-title">${deal.custName||'[Customer]'} ${getApprovalLabel(deal.approvalStage||'core')}</div>
-            <div class="approval-card-meta">${deal.actType||'Migration'} · ${deal.segment||''} · ${deal.region||''} · Submitted ${deal.date||''}</div>
+            <div class="approval-card-meta">${deal.actType||'Migration'} · ${deal.segment||''} · ${deal.region||''} · Submitted ${deal.date||''} · <span style="color:${daysColor};font-weight:700">${daysIn} day${daysIn===1?'':'s'} in this stage</span></div>
           </div>
           <div style="text-align:right;font-family:Arial,sans-serif">
             <div style="font-size:1.1rem;font-weight:700;color:var(--green)">${fmt(totPay)}</div>
@@ -4927,6 +4996,27 @@ async function requestChanges(id){
   alert('Changes requested. The submitter will see this when they next view the deal.');
 }
 
+async function renderPartnerDeals(){
+  if(!currentUser || currentUser.tier!=='partner') return;
+  const allDeals = await loadPipelineDealsFromCloud();
+  const filter = (currentUser.partnerFilter||'').toLowerCase();
+  const mine = allDeals.filter(d=>(d.partnerName||'').toLowerCase().includes(filter));
+  const tbody = document.getElementById('partner-deals-tbody');
+  if(!tbody) return;
+  if(mine.length===0){
+    tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:#aaa;padding:20px">No deals registered under your company yet.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = mine.map(d=>`
+    <tr>
+      <td>${d.custName||'—'}</td>
+      <td>${d.actType||'—'}</td>
+      <td><span class="status-pill ${statusClass(d.status)}">${d.status||'Draft'}</span></td>
+      <td>${d.migStart||'—'}</td>
+      <td>${d.closeDate||'—'}</td>
+    </tr>`).join('');
+}
+
 async function renderPipeline(){
   let deals = await loadPipelineDealsFromCloud();
   await syncBudgetFromCloud();
@@ -4983,10 +5073,16 @@ async function renderPipeline(){
   }
 
   // Sellers (AWS/Intel) see deal + status only — hide submitter, segment, program, benefit, date
-  ['pipe-th-submitter','pipe-th-segment','pipe-th-program','pipe-th-benefit','pipe-th-date'].forEach(id=>{
+  ['pipe-th-submitter','pipe-th-segment','pipe-th-program','pipe-th-benefit','pipe-th-days','pipe-th-date'].forEach(id=>{
     const el=document.getElementById(id);
     if(el) el.style.display = isSeller ? 'none' : '';
   });
+
+  const activeDeals = deals.filter(d=>{
+    const s=(d.status||'').toLowerCase();
+    return !s.includes('paid') && !s.includes('draft');
+  });
+  const avgDays = activeDeals.length ? Math.round(activeDeals.reduce((s,d)=>s+daysInStage(d),0)/activeDeals.length) : 0;
 
   document.getElementById('pipe-summary').innerHTML = isSeller ? `
     <div class="pipe-card"><div class="pipe-val">${deals.length}</div><div class="pipe-label">Total Deals</div></div>
@@ -4994,14 +5090,18 @@ async function renderPipeline(){
     <div class="pipe-card"><div class="pipe-val">${deals.length}</div><div class="pipe-label">Total Deals</div></div>
     <div class="pipe-card"><div class="pipe-val">${fmt(totRebate)}</div><div class="pipe-label">Total Benefit Pipeline</div></div>
     <div class="pipe-card"><div class="pipe-val">${byStatus.submitted+byStatus.approved}</div><div class="pipe-label">Active / Approved</div></div>
-    <div class="pipe-card"><div class="pipe-val">${byStatus.paid}</div><div class="pipe-label">Paid</div></div>`;
+    <div class="pipe-card"><div class="pipe-val">${byStatus.paid}</div><div class="pipe-label">Paid</div></div>
+    <div class="pipe-card"><div class="pipe-val" style="${avgDays>10?'color:var(--red)':avgDays>5?'color:#d97706':''}">${avgDays}</div><div class="pipe-label">Avg. Days in Stage</div></div>`;
 
   const tbody=document.getElementById('pipeline-tbody');
   if(deals.length===0){
-    tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:#aaa;padding:20px">No deals submitted yet.</td></tr>';
+    tbody.innerHTML='<tr><td colspan="9" style="text-align:center;color:#aaa;padding:20px">No deals submitted yet.</td></tr>';
     return;
   }
-  tbody.innerHTML=deals.map(d=>`
+  tbody.innerHTML=deals.map(d=>{
+    const daysIn = daysInStage(d);
+    const daysColor = daysIn>10 ? 'color:var(--red)' : daysIn>5 ? 'color:#d97706' : '';
+    return `
     <tr>
       <td>${d.custName||'—'}</td>
       <td style="${isSeller?'display:none':''}">${d.fhName||'—'}</td>
@@ -5009,9 +5109,11 @@ async function renderPipeline(){
       <td style="${isSeller?'display:none':''}">${d.prog||'—'}</td>
       <td style="${isSeller?'display:none':''}">${fmt(d.rebate||0)}</td>
       <td><span class="status-pill ${statusClass(d.status)}">${d.status||'Draft'}</span></td>
+      <td style="${isSeller?'display:none':''};${daysColor}">${daysIn} day${daysIn===1?'':'s'}</td>
       <td style="${isSeller?'display:none':''}">${d.date||'—'}</td>
       <td><button class="btn btn-secondary btn-sm" onclick="loadDealById('${d.id}')">View</button></td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
 }
 
 function statusClass(s){

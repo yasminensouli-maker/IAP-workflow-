@@ -113,8 +113,10 @@ def notify_submitted(deal):
 
 Next step: review the deal, run the DNE calculator, and approve to route to Intel leadership.
 {time.strftime('%B %d, %Y')}"""
-    if send_email(REVIEWER_EMAILS, subject, body):
+    ok_sent = send_email(REVIEWER_EMAILS, subject, body)
+    if ok_sent:
         log_email(deal, REVIEWER_EMAILS, subject)
+    return ok_sent
 
 def notify_intel(deal):
     subject = f"IAP Deal Pending Intel Approval: {deal.get('custName', 'New Deal')} — DNE ${float(deal.get('dne',0) or 0):,.0f}"
@@ -124,8 +126,10 @@ def notify_intel(deal):
 
 Reply through the app: approve, or ask a question. Questions are logged against the deal record.
 {time.strftime('%B %d, %Y')}"""
-    if send_email(INTEL_EMAILS, subject, body):
+    ok_sent = send_email(INTEL_EMAILS, subject, body)
+    if ok_sent:
         log_email(deal, INTEL_EMAILS, subject)
+    return ok_sent
 
 def notify_question(deal, question, asked_by):
     subject = f"IAP Question from Intel Leadership: {deal.get('custName', '')}"
@@ -135,8 +139,10 @@ def notify_question(deal, question, asked_by):
 
 {deal_summary_block(deal)}"""
     recips = REVIEWER_EMAILS
-    if send_email(recips, subject, body):
+    ok_sent = send_email(recips, subject, body)
+    if ok_sent:
         log_email(deal, recips, subject)
+    return ok_sent
 
 def notify_intel_approved(deal):
     subject = f"IAP Intel Leadership Approved: {deal.get('custName', '')} — Ready for SOW"
@@ -147,8 +153,10 @@ def notify_intel_approved(deal):
 
 Next steps: TCC amends and issues the SOW. Proof of Performance items, including Cost Explorer, are collected after SOW signing.
 {time.strftime('%B %d, %Y')}"""
-    if send_email(recips, subject, body):
+    ok_sent = send_email(recips, subject, body)
+    if ok_sent:
         log_email(deal, recips, subject)
+    return ok_sent
 
 def notify_sow_issued(deal):
     subject = f"IAP SOW Issued: {deal.get('custName', '')}"
@@ -158,8 +166,10 @@ def notify_sow_issued(deal):
     body = f"""The SOW has been issued for this deal. Post-SOW execution moves to Smartsheet tracking.
 
 {deal_summary_block(deal)}"""
-    if send_email(recips, subject, body):
+    ok_sent = send_email(recips, subject, body)
+    if ok_sent:
         log_email(deal, recips, subject)
+    return ok_sent
 
 def audit(deal, editor, field, old, new):
     """PRD Section 6: who, field, old -> new, UTC timestamp."""
@@ -359,15 +369,21 @@ def lambda_handler(event, context):
             if body.get('submitted') and not old_item:
                 deal['status'] = curr_status = 'Submitted'
                 deal['submittedAt'] = now_utc()
-                notify_submitted(deal)
+                deal['stageEnteredAt'] = deal['submittedAt']
+                if not notify_submitted(deal):
+                    deal.setdefault('emailFailures', []).append({'at': now_utc(), 'stage': 'Submitted', 'note': 'Submit notification failed to send — check SES verification for recipients.'})
                 deal['smartsheetSync'] = push_to_smartsheet(deal)
             elif prev_status != curr_status:
+                deal['stageEnteredAt'] = now_utc()
                 if curr_status == 'Approved (DNE Set)':
-                    notify_intel(deal)
+                    if not notify_intel(deal):
+                        deal.setdefault('emailFailures', []).append({'at': now_utc(), 'stage': curr_status, 'note': 'Intel Leadership notification failed — check SES verification for Intel recipients.'})
                 elif curr_status == 'Intel Leadership Approved':
-                    notify_intel_approved(deal)
+                    if not notify_intel_approved(deal):
+                        deal.setdefault('emailFailures', []).append({'at': now_utc(), 'stage': curr_status, 'note': 'TCC notification failed — check SES verification.'})
                 elif curr_status == 'SOW Issued':
-                    notify_sow_issued(deal)
+                    if not notify_sow_issued(deal):
+                        deal.setdefault('emailFailures', []).append({'at': now_utc(), 'stage': curr_status, 'note': 'SOW-issued notification failed — check SES verification.'})
 
             table.put_item(Item=json.loads(json.dumps(deal), parse_float=str))
             return ok(headers, {'saved': True, 'id': deal['id'], 'status': deal.get('status', '')})
