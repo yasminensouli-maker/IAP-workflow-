@@ -192,13 +192,12 @@ def get_smartsheet_token():
         return None
 
 def push_to_smartsheet(deal):
-    """Add the deal as a row on the IAP Project Intake Sheet.
-    Submitter-derivable fields are populated now. TCC-owned fields
-    (IPIC #, Activity Type, POP dates, Claim Quarter, Intel Budget Year,
-    Contribution/Claimed/Paid/Remaining amounts, POP Received) are left
-    unset so TCC fills them directly in Smartsheet post-submission.
-    Column matching is tolerant by title — only columns that actually
-    exist on the sheet get written to."""
+    """Add the deal as a row on the IAP Project Intake Sheet, mapped to the
+    full confirmed column list. TCC/admin-only columns (assigned after
+    submission — IPIC #, POP dates, Claim Quarter, Intel Budget Year,
+    Contribution/Claimed/Paid/Remaining amounts, SharePoint link) are left
+    blank so TCC fills them directly in Smartsheet. Column matching is
+    tolerant by title — only columns that actually exist get written to."""
     token = get_smartsheet_token()
     if not token:
         return 'Not synced — token not configured in Secrets Manager'
@@ -220,58 +219,76 @@ def push_to_smartsheet(deal):
             float(deal.get('arrElastiCache', 0) or 0) + float(deal.get('arrOpenSearch', 0) or 0)
         )
         infra_arr = service_arr or float(deal.get('targetArr', 0) or 0)
-        instances_used = deal.get('migTo', '') or ', '.join(
-            f.get('instance', '') for f in deal.get('fleets', []) if f.get('instance'))
-        is_migration = 'Yes' if str(deal.get('actType', '')).lower() in ('migrate', 'migration') else \
-                       ('No' if deal.get('actType') else '')
+        dne = float(deal.get('dne', 0) or 0)
+        migration_cost = float(deal.get('migrationCost', 0) or 0)
+        act_type = str(deal.get('actType', '') or '')
+        is_migrate = act_type.lower().startswith('migrat')
+        activity_type_label = 'Migration' if is_migrate else ('Modernization' if act_type else '')
+        funding_pct = '1% (capped $250,000)' if not is_migrate and act_type else ('4.5%' if is_migrate else '')
+        is_migration_yn = 'Yes' if is_migrate else ('No' if act_type else '')
+        pop_due = ''
+        try:
+            end_d = datetime.strptime(deal.get('closeDate', ''), '%Y-%m-%d')
+            pop_due = (end_d.replace(day=min(end_d.day, 28))).strftime('%Y-%m-%d')
+        except Exception:
+            pass
+        expected_roi = ''
+        if migration_cost > 0 and dne > 0:
+            expected_roi = f"{round((dne - migration_cost) / migration_cost * 100)}%"
+        activity_desc = f"{act_type or 'Deal'} for {deal.get('custName','')} — {deal.get('workload','') or 'workload not specified'}".strip(' —')
 
-        # Submitter-derivable fields — written now
+        # Submitter-derivable fields — written now.
+        # Blank string values are dropped before sending, so any field genuinely
+        # unknown at submission (marked TCC-only below) simply stays untouched.
         candidates = {
-            'Activity Name': deal.get('dealName', '') or ('IAP - ' + deal.get('custName', '')),
-            'IPIC Activity Description': deal.get('summaryText', '') or deal.get('projectDescription', ''),
-            'Description': deal.get('summaryText', '') or deal.get('projectDescription', ''),
-            'Migration Project Description': deal.get('projectDescription', ''),
+            # Activity tracking — submitter provides where marked, rest is TCC/admin post-SOW
+            'IPIC Activity #': deal.get('ipicNum', ''),                          # TCC-only
+            'Activity Name': deal.get('dealName', ''),
+            'Activity Type': activity_type_label,
+            'IPIC Activity Description': activity_desc,
             'Start Date': deal.get('migStart', ''),
             'End Date': deal.get('closeDate', '') or deal.get('migTargetDate', ''),
-            'Partner or End Customer Name': deal.get('custName', ''),
+            'POP Due Date': pop_due,                                            # estimate; TCC confirms
+            'Claim Quarter': deal.get('claimQuarter', ''),                      # TCC-only
+            'Partner or End Customer Name': deal.get('partnerName', '') or deal.get('custName', ''),
             'Status': deal.get('status', ''),
-            'Intake Entry Date': deal.get('submittedAt', '')[:10] if deal.get('submittedAt') else '',
+            'Notes': deal.get('notes', ''),
+            'POP Received Date': '',                                           # TCC-only
+            'Claim Submitted Date': '',                                        # TCC-only
+            'IPIC Activity Creation Date': (deal.get('submittedAt', '') or '')[:10],
+            'Intel Budget Year': deal.get('intelBudgetYear', ''),
+            'Intel Contribution Amount': dne,
+            'ACE Opportunity ID': deal.get('aceID', ''),
+            'Funding amount not to exceed': dne,
+            'Funding Percentage': funding_pct,
+            'Amount Claimed': '',                                              # TCC-only
+            'Amount Paid': '',                                                 # TCC-only
+            'Amount Remaining': '',                                            # TCC-managed running total
+            'AWS Alignment': deal.get('awsRegion', ''),
+            'Link to SharePoint': '',                                          # added later by admin/TCC
+
+            # Intake form entries
+            'Intake Entry Date': (deal.get('submittedAt', '') or '')[:10],
             'Submitter Name': submitter.get('name', ''),
             'Submitter Email': submitter.get('email', ''),
             'Intel Rep Name': deal.get('intelRepName', ''),
             'AWS Rep Name': deal.get('awsRepName', ''),
-            'Workload': deal.get('workload', '') or deal.get('custWorkload', ''),
-            'Workload Selection': deal.get('workload', ''),
-            'POP Available': 'No',
-            'AWS Instances Used': instances_used,
+            'Migration Project Description': deal.get('workload', ''),
+            'POP Available?': 'No',                                           # true only post-SOW
+            'AWS Instances Used': deal.get('migTo', ''),
             'Region/Country of Execution': deal.get('awsRegion', ''),
             'Cost of Infrastructure (ARR)': infra_arr,
-            'Cost of Migration (Engineering Work)': float(deal.get('migrationCost', 0) or 0),
-            'Requested funding amount': float(deal.get('dne', 0) or 0),
-            'Funding amount not to exceed': float(deal.get('dne', 0) or 0),
-            'Is this for a Migration activity?': is_migration,
-            'Is this a migration activity?': is_migration,
-            'Link to AWS Pricing Calculator': deal.get('pricingCalcLink', ''),
-            'Expected ROI': deal.get('expectedRoi', ''),
-            'AWS Alignment': deal.get('awsRegion', ''),
-            'ACE Opportunity ID': deal.get('aceID', ''),
-            'SFDC Opportunity ID': deal.get('sfdcID', ''),
-            'Opportunity ID': deal.get('aceID', '') or deal.get('sfdcID', ''),
-            # Legacy/simple sheet column names, kept for tolerance
-            'Deal Name': deal.get('dealName', ''), 'Customer': deal.get('custName', ''),
-            'Partner': deal.get('partnerName', ''), 'ACE ID': deal.get('aceID', ''),
-            'Deal Type': deal.get('actType', ''), 'Target ARR': deal.get('targetArr', 0),
-            'DNE': deal.get('dne', 0), 'Payment Option': deal.get('paymentOption', ''),
-            'Migration Start': deal.get('migStart', ''),
-            'Win Wire': 'Yes' if deal.get('winWire') else 'No',
-            'IPIC Activity #': deal.get('ipicNum', ''),
-            # Program 2 tracking columns — TCC fills Q1-Q4 status and Total Paid after SOW signing
-            'SOW Date': '', 'Migration End': deal.get('closeDate', '') or deal.get('migTargetDate', ''),
-            'Q1 Status': '', 'Q2 Status': '', 'Q3 Status': '', 'Q4 Status': '',
-            'Total Paid': '', 'Notes': deal.get('notes', ''),
-            'IAP Program': 'Modernization (Program 2)' if deal.get('iapProgram') == 'modernization' else 'Standard',
-            'Customer Pricing Benefit': f"{deal.get('discountMode','blended').title()} {deal.get('cust_edp_discount', deal.get('custEdpDiscount',''))}%".strip(),
-            'Discount Verification': deal.get('discountVerified', ''),
+            'Cost of Migration (Engineering Work)': migration_cost,
+            'Workload Selection': ', '.join(deal.get('workloadSelection', []) or []),
+            'Requested funding amount': dne,
+            'Is this for a Migration activity?': is_migration_yn,
+            'Project Description (Other)': '',
+            'Project Description (Event)': '',
+            'Add link to AWS Pricing Calculator': '',                         # field removed from submitter form
+            'Link to Pricing Calculator': '',                                 # field removed from submitter form
+            'Is this a migration activity?': is_migration_yn,
+            'Activity Description': activity_desc,
+            'Expected ROI': expected_roi,
         }
         cells = [{'columnId': cols[k], 'value': v} for k, v in candidates.items()
                  if k in cols and v not in ('', None, 0)]
@@ -496,7 +513,7 @@ Read the document carefully, including any email threads, tables, or slides. Ext
 Return ONLY valid JSON, no other text, no markdown fences, in this exact shape:
 {
   "dealName": "", "custName": "", "partnerName": "",
-  "actType": "one of: Migrate, Modernize, Optimize, or empty if unclear",
+  "actType": "one of: Migrate, Modernize, or empty if unclear",
   "aceID": "", "targetArr": null, "migStart": "", "closeDate": "",
   "confidence": {"dealName":"high|medium|low","custName":"high|medium|low","partnerName":"high|medium|low","actType":"high|medium|low","aceID":"high|medium|low","targetArr":"high|medium|low","migStart":"high|medium|low","closeDate":"high|medium|low"},
   "flags": ["plain-sentence notes on contradictions, revisions across the document, or ambiguity worth a human checking"],
@@ -558,19 +575,20 @@ Deal data:
 - Customer: {deal.get('custName', 'Not provided')}
 - Partner: {deal.get('partnerName', 'Not provided')}
 - ACE Opportunity ID: {deal.get('aceID', 'Not provided')}
-- ACE Amount: ${deal.get('aceAmount', 0)}
+- ACE ARR: ${deal.get('aceAmount', 0)}
 - Deal type: {deal.get('actType', 'Not provided')}
 - Payment option: {deal.get('paymentOption', 'Not provided')}
 - Migration target date: {deal.get('migTargetDate', 'Not provided')}
 - Target ARR: ${deal.get('targetArr', 0)}
+- Customer Pricing Benefit (discount): {deal.get('custEdpDiscount', 20)}% ({deal.get('discountMode', 'blended')}, {deal.get('discountVerified', 'assumed')})
 - DNE: ${deal.get('dne', 0)}
-- Simple Monthly Calculator attached: {'Yes' if deal.get('smcFileName') else 'No'}
 - Win Wire: {'Yes' if deal.get('winWire') else 'No'}
 
 Program rules:
-- DNE = Target ARR x 70 percent (30 percent blended discount) x 4.5 percent (Migrate/Modernize) or 1 percent (Optimize, cap $250,000)
-- ACE amount must equal deal amount
-- Simple Monthly Calculator attachment is mandatory at submission
+- DNE = Target ARR x (1 - discount percent above, default 20 percent blended, editable per deal) x rate
+- Rate: Migrate is 4.5 percent, uncapped. Modernize is 1 percent, capped at $250,000. There is no "Optimize" track — Modernize is the only 1 percent track.
+- ACE ARR should be consistent with Target ARR
+- The Simple Monthly Calculator is a reference tool (a link, not a required upload) — do not flag its absence as an issue
 - Cost Explorer is NOT required at submission; it is collected by TCC after SOW signing
 - Maximum duration 12 months, one calendar year
 - 75 percent of target ARR is treated as full completion
@@ -625,14 +643,15 @@ Write a concise professional email to {submitter_name}. Dry, direct tone. Sign a
             prompt = f"""You are Nova, an expert assistant for the Intel Accelerate Program (IAP). This is an Intel program.
 
 Key facts:
-- DNE = Target ARR x 70 percent (30 percent blended discount budget) x 4.5 percent (Migrate/Modernize) or 1 percent (Optimize, capped $250,000)
-- Payment options: Quarterly (10/20/30/40), Milestone (25/50/75), Lump Sum (at 75 percent or more)
+- DNE = Target ARR x (1 - Customer Pricing Benefit discount, default 20 percent blended, editable per deal) x rate
+- Rate: Migrate is 4.5 percent, uncapped. Modernize is 1 percent, capped at $250,000. There is no "Optimize" track — Modernize is the only 1 percent track.
+- Payment options: Quarterly (15/15/20/50, tied to Cost Explorer milestones), Lump Sum (one payment once 75 percent of target ARR is confirmed), or Custom
 - 75 percent of target ARR is treated as 100 percent complete
 - Maximum duration 12 months, one calendar year
 - Cost Explorer is collected by TCC after SOW signing, shared by Intel or the customer directly. AWS cannot access or transfer it.
-- Simple Monthly Calculator attachment is required at submission. ACE amount must match deal amount.
+- The Simple Monthly Calculator is a reference link, not a required upload. ACE ARR should be consistent with Target ARR.
 - Eligible: {', '.join(ELIGIBLE_FAMILIES)} (i-suffix Intel families) on EC2, RDS, ElastiCache, OpenSearch. Non-Intel families excluded.
-- Flow: Submitted > Under Review (Yasmine/Chris/Jeanine set DNE) > Intel Leadership Approved (one of Akanksha/Deep/Brendan) > SOW Issued (TCC) > In Progress > Complete
+- Flow: Submitted > AWS Approval (Yasmine/Chris Chlee/Jeanine set DNE) > Intel Leadership Approved (one of Akanksha/Deep/Brendon) > SOW Issued (TCC) > In Progress > Complete
 
 Context: step {context_data.get('currentStep', 'unknown')}, customer {context_data.get('custName', 'not set')}, type {context_data.get('actType', 'not set')}
 

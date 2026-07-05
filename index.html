@@ -58,8 +58,9 @@ body{
 .login-box{
   background:var(--white);
   border-radius:12px;
-  padding:48px 40px 40px;
-  width:380px;
+  padding:44px 40px 40px;
+  width:400px;
+  max-width:92vw;
   box-shadow:0 20px 60px rgba(0,0,0,.25);
   text-align:center;
 }
@@ -1348,11 +1349,11 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
       <div style="font-size:.63rem;color:#60a5fa;text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin-bottom:12px">Intel Accelerate Program — IAP 2026</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
         <div>
-          <div style="font-size:.75rem;color:#FF9900;font-weight:700;margin-bottom:5px">Program 1 — Migration</div>
+          <div style="font-size:.75rem;color:#FF9900;font-weight:700;margin-bottom:5px">Track 1 — Migration</div>
           <div style="font-size:.7rem;color:rgba(255,255,255,.65);line-height:1.6">Resources to support customers migrating from on-premises or another hyperscaler. Targets supply-constrained, end-of-life, and net-new workload scenarios.</div>
         </div>
         <div>
-          <div style="font-size:.75rem;color:#FF9900;font-weight:700;margin-bottom:5px">Program 2 — Optimization</div>
+          <div style="font-size:.75rem;color:#FF9900;font-weight:700;margin-bottom:5px">Track 2 — Modernization</div>
           <div style="font-size:.7rem;color:rgba(255,255,255,.65);line-height:1.6">Resources to support existing AWS customers modernizing pre-8th gen x86 fleets to unlock performance gains and GenAI readiness.</div>
         </div>
       </div>
@@ -1396,7 +1397,9 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
       <img src="logo.png" alt="Intel × AWS">
     </div>
     <h1>Deal Desk</h1>
-    <p>Intel Accelerate Program · Restricted Access</p>
+    <p style="max-width:380px;margin:0 auto 4px">An Intel program managed by AWS to accelerate customer migrations and modernizations onto the latest Intel silicon.</p>
+    <p style="margin-bottom:24px"><a href="https://www.intel.com/content/www/us/en/products/details/processors/xeon.html" target="_blank" rel="noopener" style="color:#0068B5;font-size:.82rem;font-weight:600">See what's new in Intel Xeon 6 (Gen 8) ↗</a></p>
+
     <div class="login-form">
       <label>Email Address</label>
       <input type="email" id="login-email" placeholder="email address" autocomplete="email" onkeydown="if(event.key==='Enter')doLogin()">
@@ -1530,6 +1533,24 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
           <button class="btn btn-secondary btn-sm" onclick="downloadWorkflowOnePager()">⇩ Workflow — how a deal moves</button>
         </div>
 
+        <div class="section-card" style="background:linear-gradient(135deg,#f0f5ff,#fff8f0);border:1px solid #c7d7f5">
+          <div class="section-card-title">What could this earn?</div>
+          <div style="font-size:.74rem;color:#555;margin-bottom:12px">Enter annual spend on EC2, RDS, ElastiCache, or OpenSearch running on Intel — see the estimate instantly, before you fill in a single field below.</div>
+          <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+            <input type="number" id="calc-spend" placeholder="Annual spend, e.g. 500000" oninput="calcTopEarnings()" style="flex:1;min-width:180px;padding:9px 10px;border:1px solid #c7d7f5;border-radius:6px;font-size:.85rem">
+            <select id="calc-type" onchange="calcTopEarnings()" style="padding:9px 10px;border:1px solid #c7d7f5;border-radius:6px;font-size:.82rem">
+              <option value="Migrate">Migrate (4.5%)</option>
+              <option value="Modernize">Modernization (1%, cap $250K)</option>
+            </select>
+          </div>
+          <div id="calc-result" style="display:none">
+            <div style="font-size:1.3rem;font-weight:800;color:#0068B5" id="calc-earning">—</div>
+            <div style="font-size:.68rem;color:#666;margin-bottom:10px">Net program revenue — after discounts and credits, at a 20% blended discount</div>
+            <div style="font-size:.68rem;color:#0A1628;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">How it would pay out — Quarterly (15/15/20/50)</div>
+            <div id="calc-schedule" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px"></div>
+          </div>
+        </div>
+
         <div class="section-card" style="background:linear-gradient(135deg,#f0f5ff,#fff);border:1px solid #c7d7f5">
           <div class="section-card-title">Autofill from a Document</div>
           <div style="font-size:.78rem;color:#555;margin-bottom:10px">Upload an email thread, BOM, or deal doc. It reads the file and proposes values for the fields below — nothing is applied until you review and confirm.</div>
@@ -1593,14 +1614,14 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
             <div style="font-size:.7rem;color:var(--ink3);margin-bottom:10px">Added by: Intel Seller — drives funding rate</div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
               <div id="prog-card-migrate" onclick="selectIntelProgram('migrate')" style="border:2px solid var(--border);border-radius:8px;padding:16px;cursor:pointer;transition:.2s">
-                <div style="font-weight:700;font-size:.85rem;color:var(--intel);margin-bottom:6px">Program 1 — Migration</div>
-                <div style="font-size:.72rem;color:var(--ink2);line-height:1.5">Moving mission-critical workloads to AWS from on-premises, end-of-life hardware, or another cloud</div>
+                <div style="font-weight:700;font-size:.85rem;color:var(--intel);margin-bottom:6px">Migrate</div>
+                <div style="font-size:.72rem;color:var(--ink2);line-height:1.5">Net new workloads to AWS — moving from on-premises, end-of-life hardware, or another cloud</div>
                 <div style="font-size:1.1rem;font-weight:800;color:var(--intel);margin-top:8px">4.5% of ARR</div>
               </div>
-              <div id="prog-card-optimize" onclick="selectIntelProgram('optimize')" style="border:2px solid var(--border);border-radius:8px;padding:16px;cursor:pointer;transition:.2s">
-                <div style="font-weight:700;font-size:.85rem;color:var(--intel);margin-bottom:6px">Program 2 — Optimization</div>
-                <div style="font-size:.72rem;color:var(--ink2);line-height:1.5">Existing AWS customers on pre-8th gen x86 — right-size fleet, reduce spend, unlock GenAI budget</div>
-                <div style="font-size:1.1rem;font-weight:800;color:var(--intel);margin-top:8px">1% of ARR (NTE $250K)</div>
+              <div id="prog-card-modernize" onclick="selectIntelProgram('modernize')" style="border:2px solid var(--border);border-radius:8px;padding:16px;cursor:pointer;transition:.2s">
+                <div style="font-weight:700;font-size:.85rem;color:var(--intel);margin-bottom:6px">Modernization</div>
+                <div style="font-size:.72rem;color:var(--ink2);line-height:1.5">Upgrade to new Gen for incremental value — existing AWS customers on pre-8th gen x86, right-size fleet, unlock GenAI budget</div>
+                <div style="font-size:1.1rem;font-weight:800;color:var(--intel);margin-top:8px">1% of ARR (capped $250K)</div>
               </div>
             </div>
             <div id="intel-funding-result" style="display:none;padding:14px 16px;background:linear-gradient(135deg,#f0f4ff,#e8f0fe);border-radius:8px;border:1px solid var(--intel)">
@@ -1695,7 +1716,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
                   <option value="3">Phase 3 — Investment Proposal (Week 3–4)</option>
                   <option value="4">Phase 4 — Proof of Concept (Week 4–8)</option>
                   <option value="5">Phase 5 — Investment Deployment (Week 6–10)</option>
-                  <option value="6">Phase 6 — Migration / Optimization (Week 8–20)</option>
+                  <option value="6">Phase 6 — Migration / Modernization (Week 8–20)</option>
                 </select>
               </div>
               <div class="f-group">
@@ -1768,6 +1789,10 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
           <button class="btn btn-secondary btn-sm mt8" onclick="addTeamMember()">+ Add Person</button>
         </div>
 
+        <div class="f-group" style="display:none">
+          <select id="iap-program"><option value="standard" selected>standard</option></select>
+        </div>
+
         <div class="section-card">
           <div class="section-card-title">End Customer</div>
           <div class="form-grid">
@@ -1778,7 +1803,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
             <div class="f-group">
               <label>Include as Win Wire</label>
               <select id="win-wire"><option value="yes" selected>Yes</option><option value="">No</option></select>
-              <span class="hint">Win Wire deals are aggregated and exportable to Excel. Yes also flags the deal for fast-track approval.</span>
+              <span class="hint">Win Wire stays internal unless separately nominated as a customer case study. Saying yes fast-tracks this deal, and enters the customer and submitter into a draw for a prize once submitted.</span>
             </div>
             <div class="f-group">
               <label>Customer Legal Name <span class="req">*</span></label>
@@ -1885,8 +1910,8 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
         <div class="section-card">
           <div class="section-card-title">Deal Metadata</div>
           <div class="form-grid three">
-            <div class="f-group">
-              <label>Deal Date <span class="req">*</span></label>
+            <div class="f-group" style="display:none">
+              <label>Deal Date</label>
               <input type="date" id="deal-date">
             </div>
             <div class="f-group">
@@ -1930,25 +1955,23 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
               </select>
             </div>
 
-            <div class="f-group">
-              <label>IAP Program Type <span class="req">*</span></label>
+            <div class="f-group" style="display:none">
+              <label>Deal Type</label>
               <select id="deal-program">
                 <option value="">— Select —</option>
-                <option value="migrate">Program 1 · Migrate — Net New (4.5% ARR)</option>
-                <option value="optimize">Program 2 · Optimize — Right-size (1% ARR)</option>
-                <option value="mixed">Mixed — rate set per fleet</option>
+                <option value="migrate">Migrate — net new workloads to AWS (4.5% ARR)</option>
+                <option value="modernize">Modernization — upgrade to new Gen for incremental value (1% ARR, capped $250K)</option>
               </select>
             </div>
-            <div class="f-group">
+            <div class="f-group" style="display:none">
               <label>Payment Cadence</label>
               <select id="deal-cadence">
                 <option>Quarterly</option>
                 <option>Semi-Annual</option>
                 <option>Annual</option>
               </select>
-              <span class="hint">How often TCC disburses payment. Different from Payment Option below, which sets the milestone structure.</span>
             </div>
-            <div class="f-group">
+            <div class="f-group" style="display:none">
               <label>Deal Status</label>
               <select id="deal-status">
                 <option>Draft</option>
@@ -1965,10 +1988,10 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
               <input type="text" id="ipic-num" placeholder="Filled by admin after SOW" class="mono">
               <span class="hint">Admin/TCC only — assigned after the SOW is generated.</span>
             </div>
-            <div class="f-group">
+            <div class="f-group" style="display:none">
               <label>Activity Type</label>
               <select id="activity-type">
-                <option value="">— Select —</option>
+                <option value="IAP funding - Deal acceleration" selected>IAP funding - Deal acceleration</option>
                 <option>Migration</option>
                 <option>Modernize</option>
                 <option>Proof of Concept</option>
@@ -1980,7 +2003,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
                 <option>Other</option>
               </select>
             </div>
-            <div class="f-group">
+            <div class="f-group" style="display:none">
               <label>Claim Quarter</label>
               <select id="claim-quarter">
                 <option value="">— Quarter —</option>
@@ -2032,6 +2055,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
               <span><span style="display:inline-block;width:8px;height:8px;background:#7c3aed;border-radius:2px;margin-right:4px"></span>OpenSearch</span>
             </div>
             <div id="arr-total-line" style="font-size:.78rem;color:var(--ink2);margin-top:8px">Total: $0 — enter figures above</div>
+            <div id="arr-eligible-line" style="font-size:.78rem;color:var(--intel);font-weight:700;margin-top:2px"></div>
           </div>
           <div class="form-grid" style="margin-top:14px">
             <div class="f-group">
@@ -2065,7 +2089,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
                 <option value="blended">Blended (e.g. 1-yr or 3-yr reserved savings)</option>
                 <option value="ondemand">On-Demand (no commitment discount)</option>
               </select>
-              <input type="number" id="cust-edp-discount" value="20" min="0" max="40" step="0.5" oninput="this.dataset.userEdited=1">
+              <input type="number" id="cust-edp-discount" value="20" min="0" max="40" step="0.5" oninput="this.dataset.userEdited=1;recalcAceFromServices()">
               <select id="discount-verified" style="margin-top:6px">
                 <option value="verified">Verified with customer</option>
                 <option value="assumed">Assumed — must verify before final payment</option>
@@ -2075,8 +2099,8 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
           </div>
         </div>
 
-        <div class="section-card" id="program2-governance" style="display:none;background:#fef9f0;border:1px solid #fde68a">
-          <div class="section-card-title" style="color:#92400e">Program 2 — Governance Notes</div>
+        <div class="section-card" id="program2-governance" style="background:#fef9f0;border:1px solid #fde68a">
+          <div class="section-card-title" style="color:#92400e">Governance Notes</div>
           <div style="font-size:.78rem;color:#78350f;line-height:1.8">
             Gen 8 only (m8i, c8i, r8i, x8i). Exceptions need written approval from Chris Chlee (SA) and Intel.<br>
             Program max duration: 12 months.<br>
@@ -2097,7 +2121,11 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
           <div class="form-grid">
             <div class="f-group">
               <label>SI / ISV Partner Name</label>
-              <input type="text" id="partner-name" placeholder="e.g. Capgemini Canada">
+              <input type="text" id="partner-name" placeholder="Slalom">
+            </div>
+            <div class="f-group">
+              <label>Partner SPMS ID</label>
+              <input type="text" id="partner-spms-id" placeholder="SPMS ID" class="mono">
             </div>
             <div class="f-group">
               <label>Partner Type</label>
@@ -2114,21 +2142,9 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
               </select>
             </div>
             <div class="f-group">
-              <label>Intel Rep Name</label>
-              <input type="text" id="intel-rep-name" placeholder="e.g. Akanksha Bilani">
-            </div>
-            <div class="f-group">
-              <label>AWS Rep Name</label>
-              <input type="text" id="aws-rep-name" placeholder="e.g. your name">
-            </div>
-            <div class="f-group">
               <label>Cost of Migration — Engineering ($)</label>
               <input type="number" id="migration-cost" placeholder="0" min="0">
               <span class="hint">Professional services / engineering effort, separate from infrastructure ARR</span>
-            </div>
-            <div class="f-group">
-              <label>Link to AWS Pricing Calculator</label>
-              <input type="text" id="pricing-calc-link" placeholder="https://calculator.aws/#/estimate?id=...">
             </div>
             <div class="f-group span2">
               <label>Partner Role in Deal</label>
@@ -2140,19 +2156,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
         
 
       
-      <div class="section-card" style="background:linear-gradient(135deg,#fff8f0,#fff);border:1px solid #fed7aa">
-          <div class="section-card-title">IAP Program</div>
-          <div class="form-grid">
-            <div class="f-group span2">
-              <label>Which program is this deal under? <span class="req">*</span></label>
-              <select id="iap-program" onchange="handleProgramChange()">
-                <option value="standard">Standard IAP</option>
-                <option value="modernization">Program 2 — Modernization</option>
-              </select>
-              <span class="hint" id="program-hint">Both programs use the same rate table. Program 2 adds the quarterly milestone schedule and governance rules below.</span>
-            </div>
-          </div>
-        </div>
+      
 
       <div class="section-card">
           <div class="section-card-title">Opportunity IDs — provide at least one</div>
@@ -2180,11 +2184,19 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
               <label>Payment Option <span class="req">*</span></label>
               <select id="payment-option" onchange="handlePaymentOptionChange()">
                 <option value="">— Select —</option>
-                <option>Quarterly (15/15/25/45)</option>
+                <option>Quarterly (15/15/20/50)</option>
                 <option>Lump Sum (post 75%)</option>
                 <option>Custom</option>
               </select>
-              <span class="hint">Quarterly pays out as Cost Explorer confirms 25/50/75/sustained-75 percent of target ARR on Gen 8. Lump Sum pays once, after 75 percent is confirmed. Different from Payment Cadence in Deal Metadata, which sets how often TCC pays.</span>
+              <div style="background:var(--bg);border:1px solid var(--border2);border-radius:8px;padding:10px 12px;margin-top:8px;font-size:.74rem;color:var(--ink2);line-height:1.7">
+                <strong>Quarterly (15/15/20/50)</strong> — back-loaded, tied to Cost Explorer milestones:<br>
+                Q1: 15% on baseline Cost Explorer submitted (15% cumulative)<br>
+                Q2: 15% at 25% of target ARR on Gen 8 (30% cumulative)<br>
+                Q3: 20% at 50% of target ARR on Gen 8 (50% cumulative)<br>
+                Q4: 50% at 75% of target ARR on Gen 8, sustained 30 days (100% cumulative)<br>
+                <strong>Lump Sum (post 75%)</strong> — one payment once 75% of target ARR on Gen 8 is confirmed.<br>
+                <strong>Custom</strong> — any other structure; describe the triggers, percentages, and timing below.
+              </div>
               <div id="payment-custom-wrap" style="display:none;margin-top:8px">
                 <textarea id="payment-custom-details" placeholder="Describe the custom payment structure — triggers, percentages, and timing"></textarea>
               </div>
@@ -2227,14 +2239,6 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
         </div>
 
         
-
-        <div class="section-card">
-          <div class="section-card-title">ACE Co-Sell Summary (Copy for ACE)</div>
-          <div id="ace-summary-box" style="background:var(--bg);border-radius:var(--radius);padding:14px 16px;font-family:'Courier New',monospace;font-size:.72rem;line-height:1.7;white-space:pre-wrap;min-height:80px;color:var(--ink2)">
-            Fill in the steps above to generate the ACE co-sell summary.
-          </div>
-          <button class="btn btn-secondary btn-sm mt8" onclick="copyACESummary()">📋 Copy Summary</button>
-        </div>
 
       <!-- ── STEP 5.5: SUMMARY ── injected as step 6, SOW becomes step 7 -->
       
@@ -2335,7 +2339,7 @@ Please find attached our Cost Explorer export for [Q1/Q2/Q3/Q4] of our IAP engag
 <br>
 Details:<br>
 - Customer: [Legal Name]<br>
-- Program: [Migration 4.5% / Optimization 1%]<br>
+- Program: [Migration 4.5% / Modernization 1%]<br>
 - Period covered: [Start Date] to [End Date]<br>
 - Intel instance families included: m8i, c8i, r8i, x8i<br>
 - Non-Intel families excluded from export<br>
@@ -2578,6 +2582,19 @@ Please confirm receipt.<br>
           <div id="funding-score-panel" style="display:none;padding:14px 22px;border-top:1px solid var(--border)"></div>
         </div>
 
+        <div class="section-card" id="smartsheet-preview" style="display:none;background:#f0fdf4;border:1px solid #86efac">
+          <div class="section-card-title" style="display:flex;align-items:center;justify-content:space-between">
+            <span>Smartsheet Preview — Admin / TCC Only</span>
+            <a href="https://app.smartsheet.com/sheets/P3J6GHmGxmJxQwgM6f7wqCmpjRFFrp8m2PFvxgx1" target="_blank" rel="noopener" style="font-size:.7rem;font-weight:600;color:#0068B5">Open sheet ↗</a>
+          </div>
+          <div style="font-size:.72rem;color:var(--ink3);margin-bottom:10px" id="smartsheet-sync-status">Not yet submitted — nothing synced.</div>
+          <div style="overflow-x:auto">
+            <table style="width:100%;border-collapse:collapse;font-size:.72rem">
+              <tbody id="smartsheet-preview-rows"></tbody>
+            </table>
+          </div>
+        </div>
+
         <div class="section-card" id="summary-content">
           <div style="text-align:center;padding:30px;color:var(--ink3);font-size:.8rem">Click Generate Summary to populate.</div>
         </div>
@@ -2691,12 +2708,12 @@ Please confirm receipt.<br>
             <thead>
               <tr>
                 <th>Customer</th>
-                <th>Submitter</th>
-                <th>Segment</th>
-                <th>Program</th>
-                <th>Benefit Est.</th>
+                <th id="pipe-th-submitter">Submitter</th>
+                <th id="pipe-th-segment">Segment</th>
+                <th id="pipe-th-program">Program</th>
+                <th id="pipe-th-benefit">Benefit Est.</th>
                 <th>Status</th>
-                <th>Date</th>
+                <th id="pipe-th-date">Date</th>
                 <th></th>
               </tr>
             </thead>
@@ -2757,6 +2774,28 @@ const USERS = {
 let currentUser = null;
 let teamMembers = [];
 let teamCount = 0;
+
+function calcTopEarnings(){
+  const spend = parseFloat(document.getElementById('calc-spend').value) || 0;
+  const type = document.getElementById('calc-type').value;
+  const result = document.getElementById('calc-result');
+  if(spend <= 0){ result.style.display = 'none'; return; }
+  result.style.display = 'block';
+  const eligible = spend * 0.80; // 20% blended discount, matches app default
+  const isModernize = type === 'Modernize';
+  let benefit = eligible * (isModernize ? 0.01 : 0.045);
+  if(isModernize && benefit > 250000) benefit = 250000;
+  const fmtD = v => '$' + Math.round(v).toLocaleString();
+  document.getElementById('calc-earning').textContent = fmtD(benefit) + ' estimated annual benefit';
+  const pcts = [0.15, 0.15, 0.20, 0.50];
+  const labels = ['Q1','Q2','Q3','Q4'];
+  document.getElementById('calc-schedule').innerHTML = pcts.map((p,i) =>
+    `<div style="background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:6px 4px;text-align:center">
+      <div style="font-size:.62rem;color:#888;text-transform:uppercase">${labels[i]}</div>
+      <div style="font-size:.72rem;font-weight:700;color:#0A1628">${fmtD(benefit*p)}</div>
+    </div>`
+  ).join('');
+}
 
 function doLogin(){
   const email = (document.getElementById('login-email').value||'').trim().toLowerCase();
@@ -2836,7 +2875,6 @@ function goStep(n){
   document.querySelectorAll('.mobile-nav-btn').forEach(b=>b.classList.remove('active'));
   const mb=document.getElementById('mnav'+n);
   if(mb) mb.classList.add('active');
-  if(n===1) renderACESummary();
   const panel = document.getElementById('step'+n);
   if(panel) panel.classList.add('active');
   const nav = document.getElementById('nav'+n);
@@ -2979,7 +3017,7 @@ async function getIntelPricing(id){
 
   } catch(err) {
     if(btn){ btn.textContent = '⚡ Intel Price'; btn.disabled = false; }
-    alert('Intel Pricing API error: ' + err.message + '\n\nCheck that the server at 52.26.245.170:8502 is reachable.');
+    alert('Couldn\'t reach live pricing right now — try again in a moment.');
   }
 }
 
@@ -3153,13 +3191,11 @@ function handlePaymentOptionChange(){
 }
 
 function handleProgramChange(){
-  const program = (document.getElementById('iap-program')||{}).value || 'standard';
-  const gov = document.getElementById('program2-governance');
+  const dealType = (document.getElementById('prd-deal-type')||{}).value || '';
   const rateHint = document.getElementById('deal-type-rate-hint');
-  const discountInput = document.getElementById('cust-edp-discount');
-  if(gov) gov.style.display = (program === 'modernization') ? 'block' : 'none';
-  if(rateHint) rateHint.textContent = 'Migrate 4.5%. Modernize 1%, capped $250,000.';
-  if(discountInput && !discountInput.dataset.userEdited) discountInput.value = 20;
+  const mainProg = document.getElementById('deal-program');
+  if(rateHint) rateHint.textContent = 'Migrate 4.5%. Modernize 1%, capped $250,000. If a deal genuinely involves both, submit it as two separate deals — one per track.';
+  if(mainProg && dealType) mainProg.value = dealType === 'Modernize' ? 'modernize' : 'migrate';
   recalcAceFromServices();
 }
 
@@ -3211,6 +3247,16 @@ function recalcAceFromServices(){
   }
   if(sum>0 && !(aceEl.dataset.userEdited && Math.abs((parseFloat(aceEl.value)||0)-sum)/Math.max(sum,1) > 0.01)){
     aceEl.value=Math.round(sum);
+  }
+  const eligibleLine = document.getElementById('arr-eligible-line');
+  if(eligibleLine){
+    const discountPct = parseFloat((document.getElementById('cust-edp-discount')||{}).value) || 0;
+    if(sum>0){
+      const eligible = sum * (1 - discountPct/100);
+      eligibleLine.textContent = 'Eligible ARR (post-discount, ' + discountPct + '%): ' + fmtD(eligible) + ' — this is what feeds DNE';
+    } else {
+      eligibleLine.textContent = '';
+    }
   }
 }
 
@@ -3604,68 +3650,19 @@ function renderPlayTags(){
 }
 
 /* ── ACE SUMMARY ─────────────────────────────────────────────── */
-function renderACESummary(){
-  const cust = v('cust-name')||'[Customer TBD]';
-  const prog = document.getElementById('deal-program');
-  const progLabel = prog && prog.selectedOptions[0] ? prog.selectedOptions[0].text : 'Program 1';
-  const totRebate = fleets.reduce((s,f)=>s+(f.rebate||0),0);
-  const totActual  = fleets.reduce((s,f)=>s+(f.actualARR||0),0);
-  const aceID  = v('ace-id')||'[ACE ID pending]';
-  const stage  = v('ace-stage')||'Prospect';
-  const lead = getTeamData()[0]||{};
-  const fhName = lead.name||'[Submitter]';
-  const fhEmailS = lead.email||'[email]';
-  const region = v('fh-region')||'[Region]';
-  const playsArr = (selectedPlays && typeof selectedPlays[Symbol.iterator]==='function') ? [...selectedPlays] : [];
-  const plays  = playsArr.map(id=>PLAYS.find(p=>p.id===id)?.name||'').filter(Boolean).join(', ')||'[Select plays in Step 4]';
-
-  const summary =
-`IAP CO-SELL OPPORTUNITY SUMMARY
-================================
-Customer:        ${cust}
-Program:         ${progLabel}
-Submitter:       ${fhName} (${fhEmailS})
-GTM Region:      ${region}
-AWS Segment:     ${v('deal-segment')||'[Segment]'}
-ACE Opp ID:      ${aceID}
-ACE Stage:       ${stage}
-Sales Plays:     ${plays}
-
-FINANCIAL SUMMARY
------------------
-Total EC2 ARR (actual spend): ${fmt(totActual)}
-IAP Benefit Estimate:          ${fmt(totRebate)}
-Benefit Recipient:             ${v('cust-recipient')||'[Recipient]'}
-Payment via:                  TCC (Intel→TCC→Recipient)
-
-WORKLOAD
---------
-${v('cust-workload')||'[Describe workload in Step 2]'}
-
-AWS Account ID: ${v('cust-acct')||'[Pending]'}
-Primary Region: ${v('cust-awsregion')||'[Pending]'}`;
-
-  document.getElementById('ace-summary-box').textContent=summary;
-}
-
-function copyACESummary(){
-  const text=document.getElementById('ace-summary-box').textContent;
-  navigator.clipboard.writeText(text).then(()=>alert('ACE summary copied to clipboard.'));
-}
-
 /* ── ACE ID VALIDATION ───────────────────────────────────────── */
 /* ── INTEL SELLER VIEW FUNCTIONS ───────────────────────────── */
 function selectIntelProgram(type){
   const migrate = document.getElementById('prog-card-migrate');
-  const optimize = document.getElementById('prog-card-optimize');
+  const optimize = document.getElementById('prog-card-modernize');
   if(!migrate || !optimize) return;
   migrate.style.border = type==='migrate' ? '2px solid var(--intel)' : '2px solid var(--border)';
   migrate.style.background = type==='migrate' ? '#f0f4ff' : '';
-  optimize.style.border = type==='optimize' ? '2px solid var(--intel)' : '2px solid var(--border)';
-  optimize.style.background = type==='optimize' ? '#f0f4ff' : '';
+  optimize.style.border = type==='modernize' ? '2px solid var(--intel)' : '2px solid var(--border)';
+  optimize.style.background = type==='modernize' ? '#f0f4ff' : '';
   // Sync to main program field
   const mainProg = document.getElementById('deal-program');
-  if(mainProg) mainProg.value = type==='migrate' ? 'migrate' : 'optimize';
+  if(mainProg) mainProg.value = type==='migrate' ? 'migrate' : 'modernize';
   window._intelProgram = type;
   calcIntelFunding();
 }
@@ -3703,7 +3700,7 @@ const PHASE_NEXT = {
   '2': 'Next: Investment Proposal — Intel and AWS formalize the co-investment amount, eligible use cases, and timeline. Output: signed program agreement. (Week 3–4)',
   '3': 'Next: Proof of Concept — Joint engineering validates performance on your actual workloads in the Intel sandbox. Output: validated instance recommendation. (Week 4–8)',
   '4': 'Next: Investment Deployment — Intel cash is deployed through the agreed program structure. (Week 6–10)',
-  '5': 'Next: Migration / Optimization — Full deployment on AWS Xeon 6 8th Gen with joint engineering support and quarterly business reviews. (Week 8–20)',
+  '5': 'Next: Migration / Modernization — Full deployment on AWS Xeon 6 8th Gen with joint engineering support and quarterly business reviews. (Week 8–20)',
   '6': 'Active deployment in progress. Quarterly business reviews track results against agreed outcomes.'
 };
 
@@ -3759,42 +3756,20 @@ function updateSOWActivityName(){
 
 /* ── SUMMARY STEP ─────────────────────────────────────────── */
 function generateSummary(){
-  const custName = v('cust-name') || v('cust-name-intel') || '[Customer]';
-  const prog = document.getElementById('deal-program');
-  const progLabel = prog && prog.selectedOptions[0] ? prog.selectedOptions[0].text : '[Program]';
-  const migStart = v('mig-start') || v('mig-start-intel') || '[TBD]';
-  const migEnd = v('deal-close') || v('mig-end-intel') || '[TBD]';
-  const region = v('fh-region') || '[Region]';
-  const country = v('fh-country') || v('fh-country-intel') || '[Country]';
-  const workload = v('cust-workload') || '[Workload pending]';
-  const acctID = v('cust-acct') || '[Pending]';
-  const aceID = v('ace-id') || v('ace-id-intel') || '[Pending]';
-  const partner = v('partner-name') || 'None';
+  const d = getCurrentDealData();
+  const rateInfo = computeRate(d.actType, d.iapProgram);
+  const custName = d.custName || '[Customer name pending]';
+  const totalARR = d.arrEc2 + d.arrRds + d.arrElastiCache + d.arrOpenSearch;
+  const arrForDNE = totalARR || d.targetArr || d.aceAmount || 0;
+  const eligible = arrForDNE * (1 - (d.custEdpDiscount||20)/100);
+  let dne = eligible * rateInfo.rate;
+  if(rateInfo.cap && dne > rateInfo.cap) dne = rateInfo.cap;
+  const fmtD = v => '$' + Math.round(v||0).toLocaleString();
 
-  const totRebate = fleets.reduce((s,f)=>s+(f.rebate||0),0);
-  const totActual = fleets.reduce((s,f)=>s+(f.actualARR||0),0);
-  const smVal = parseFloat(document.getElementById('simple-monthly')?.value||0);
-  const smARR = smVal * 12;
-  const progRate = (document.getElementById('deal-program')?.value==='optimize') ? 0.01 : 0.045;
-  const intelEst = (smARR||totActual) * progRate;
-
-  const intelArr = parseFloat(document.getElementById('est-arr-intel')?.value||0);
-  const finalEst = intelEst || (intelArr * progRate);
-
-  const targetInst = document.getElementById('target-instance-intel');
-  const targetLabel = targetInst && targetInst.selectedOptions[0] ? targetInst.selectedOptions[0].text : '';
-
-  const infraSummary = v('sow-infra-summary') || 'Infrastructure summary pending — complete SOW Details in Step 7.';
-  const currentInfra = document.getElementById('current-infra-intel')?.value || '[Not specified]';
-  const phase = document.getElementById('engagement-phase-intel');
-  const phaseLabel = phase && phase.selectedOptions[0] ? phase.selectedOptions[0].text : '[Not specified]';
-  const useCase = document.getElementById('investment-use-intel')?.value || '[Not specified]';
-
-  // Claim dates
-  const endD = new Date(migEnd);
-  const claimD = new Date(migEnd);
-  claimD.setDate(claimD.getDate()+30);
-  const claimDate = isNaN(claimD) ? '[30 days after end date]' : claimD.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  const endD = d.closeDate ? new Date(d.closeDate) : null;
+  const claimD = endD ? new Date(endD) : null;
+  if(claimD) claimD.setDate(claimD.getDate()+30);
+  const claimDate = (claimD && !isNaN(claimD)) ? claimD.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '[Set migration end date]';
 
   const html = `
     <div style="padding:4px 0">
@@ -3804,43 +3779,42 @@ function generateSummary(){
         <div style="background:var(--bg);border-radius:6px;padding:12px;border:1px solid var(--border)">
           <div style="font-size:.65rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Customer</div>
           <div style="font-size:.85rem;font-weight:600">${custName}</div>
-          <div style="font-size:.72rem;color:var(--ink2)">${country} · ${region}</div>
-          <div style="font-size:.72rem;color:var(--ink2)">AWS Account: ${acctID}</div>
+          <div style="font-size:.72rem;color:var(--ink2)">${d.awsRegion || '[Region pending]'}</div>
+          <div style="font-size:.72rem;color:var(--ink2)">Workload: ${d.workload || '[Not specified]'}</div>
         </div>
         <div style="background:var(--bg);border-radius:6px;padding:12px;border:1px solid var(--border)">
-          <div style="font-size:.65rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Program</div>
-          <div style="font-size:.85rem;font-weight:600">${progLabel}</div>
-          <div style="font-size:.72rem;color:var(--ink2)">Start: ${migStart} → End: ${migEnd}</div>
+          <div style="font-size:.65rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Deal Type &amp; Program</div>
+          <div style="font-size:.85rem;font-weight:600">${d.actType || '[Not selected]'} — ${rateInfo.label}</div>
+          <div style="font-size:.72rem;color:var(--ink2)">Start: ${d.migStart || '[TBD]'} → End: ${d.closeDate || '[TBD]'}</div>
           <div style="font-size:.72rem;color:var(--ink2)">Final Claim Date: ${claimDate}</div>
         </div>
         <div style="background:#f0fdf4;border-radius:6px;padding:12px;border:1px solid #86efac">
-          <div style="font-size:.65rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Estimated Intel Co-Investment</div>
-          <div style="font-size:1.3rem;font-weight:800;color:var(--green)">$${finalEst.toLocaleString('en-US',{maximumFractionDigits:0})}</div>
-          <div style="font-size:.68rem;color:var(--ink3)">Subject to Cost Explorer validation and program approval</div>
+          <div style="font-size:.65rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Estimated Intel Co-Investment (DNE)</div>
+          <div style="font-size:1.3rem;font-weight:800;color:var(--green)">${fmtD(dne)}</div>
+          <div style="font-size:.68rem;color:var(--ink3)">Net program revenue — after discounts and credits. Ceiling, not a guaranteed payout. Subject to Proof of Performance.</div>
         </div>
         <div style="background:var(--bg);border-radius:6px;padding:12px;border:1px solid var(--border)">
           <div style="font-size:.65rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">ACE / Co-Sell</div>
-          <div style="font-size:.85rem;font-weight:600">${aceID}</div>
-          <div style="font-size:.72rem;color:var(--ink2)">Partner: ${partner}</div>
+          <div style="font-size:.85rem;font-weight:600">${d.aceID || '[Pending]'}</div>
+          <div style="font-size:.72rem;color:var(--ink2)">Partner: ${d.partnerName || 'None'}</div>
+          <div style="font-size:.72rem;color:var(--ink2)">Payment Option: ${d.paymentOption || '[Not selected]'}</div>
         </div>
       </div>
 
       <div style="background:var(--bg);border-radius:6px;padding:12px;border:1px solid var(--border);margin-bottom:12px">
-        <div style="font-size:.65rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Infrastructure</div>
-        <div style="font-size:.78rem;color:var(--ink2)"><strong>Today:</strong> ${currentInfra}</div>
-        ${targetLabel ? '<div style="font-size:.78rem;color:var(--ink2)"><strong>Target:</strong> ' + targetLabel.split('·')[0].trim() + '</div>' : ''}
-        <div style="font-size:.78rem;color:var(--ink2);margin-top:6px">${infraSummary}</div>
+        <div style="font-size:.65rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">AWS ARR Breakdown</div>
+        <div style="font-size:.78rem;color:var(--ink2)">EC2: ${fmtD(d.arrEc2)} · RDS: ${fmtD(d.arrRds)} · ElastiCache: ${fmtD(d.arrElastiCache)} · OpenSearch: ${fmtD(d.arrOpenSearch)}</div>
+        <div style="font-size:.78rem;color:var(--ink2);margin-top:4px">Total ARR: ${fmtD(totalARR)} · Discount: ${d.custEdpDiscount||20}% (${d.discountMode||'blended'}, ${d.discountVerified||'assumed'})</div>
       </div>
 
       <div style="background:var(--bg);border-radius:6px;padding:12px;border:1px solid var(--border);margin-bottom:12px">
-        <div style="font-size:.65rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Engagement Status</div>
-        <div style="font-size:.78rem;color:var(--ink2)"><strong>Phase:</strong> ${phaseLabel}</div>
-        <div style="font-size:.78rem;color:var(--ink2)"><strong>Investment Use:</strong> ${useCase}</div>
-        <div style="font-size:.78rem;color:var(--ink2)"><strong>Workload:</strong> ${workload}</div>
+        <div style="font-size:.65rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Team</div>
+        <div style="font-size:.78rem;color:var(--ink2)">${(d.team||[]).map(t=>t.name+' ('+(t.roleLabel||t.role)+')').join(', ') || '[No team members added]'}</div>
+        <div style="font-size:.72rem;color:var(--ink2);margin-top:4px">Win Wire: ${d.winWire ? 'Yes — fast-tracked, draw entry' : 'No'}</div>
       </div>
 
       <div style="padding:10px 14px;background:#fff7ed;border-radius:6px;border-left:3px solid #fb923c;font-size:.74rem;color:#9a3412">
-        <strong>Before generating the SOW:</strong> Confirm the 6 SOW Detail fields in Step 7 — Activity Name, Customer Legal Name, Infrastructure Summary, Signatory Name &amp; Title, and Remit-to Address. Everything else auto-fills.
+        <strong>Before generating the SOW:</strong> TCC confirms this summary against the submitted deal record once Intel leadership has approved.
       </div>
     </div>`;
 
@@ -3966,7 +3940,7 @@ async function sendIntelChat(){
     const hourlyMatch = responseText.match(/\$[\d.]+.*?hour/i);
 
     messages.innerHTML += '<div style="margin-bottom:12px;padding:8px 10px;background:#f0f4ff;border-radius:6px;border-left:3px solid var(--intel);font-size:.75rem;white-space:pre-wrap">' +
-      '<strong style="color:var(--intel);font-size:.65rem;display:block;margin-bottom:4px">✦ Intel Pricing API</strong>' +
+      '<strong style="color:var(--intel);font-size:.65rem;display:block;margin-bottom:4px">🧞 Straight from Intel</strong>' +
       responseText.replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</div>';
     messages.scrollTop = messages.scrollHeight;
 
@@ -3983,7 +3957,7 @@ async function sendIntelChat(){
     }
   } catch(e) {
     document.getElementById('intel-typing')?.remove();
-    messages.innerHTML += '<div style="margin-bottom:8px;padding:8px;background:#fff5f5;border-radius:6px;font-size:.72rem;color:#dc2626">Could not reach Intel Pricing API. Error: ' + e.message + '</div>';
+    messages.innerHTML += '<div style="margin-bottom:8px;padding:8px;background:#fff5f5;border-radius:6px;font-size:.72rem;color:#dc2626">Couldn\'t reach live pricing just now — give it another try.</div>';
     messages.scrollTop = messages.scrollHeight;
   }
 }
@@ -4005,7 +3979,7 @@ function showFillGuide(){
 
       <div style="margin-bottom:20px">
         <div style="font-size:.92rem;font-weight:700;color:#fff;margin-bottom:6px"><span style="color:#0068B5">1.</span> Deal Information</div>
-        <div style="font-size:.82rem;color:rgba(255,255,255,.7);line-height:1.7">Enter the customer legal name, the submitting AWS rep, and the program track. Migration applies to customers moving onto Intel Xeon 6 instances. Optimization applies to existing AWS customers modernizing older fleets.</div>
+        <div style="font-size:.82rem;color:rgba(255,255,255,.7);line-height:1.7">Enter the customer legal name, the submitting AWS rep, and the program track. Migration applies to customers moving onto Intel Xeon 6 instances. Modernization applies to existing AWS customers upgrading older fleets to new Gen.</div>
       </div>
 
       <div style="margin-bottom:20px">
@@ -4015,7 +3989,7 @@ function showFillGuide(){
 
       <div style="margin-bottom:20px">
         <div style="font-size:.92rem;font-weight:700;color:#fff;margin-bottom:6px"><span style="color:#0068B5">3.</span> IAP Calculator</div>
-        <div style="font-size:.82rem;color:rgba(255,255,255,.7);line-height:1.7">Model the future monthly spend on Intel Xeon 6 families (m8i, c8i, r8i, x8i only). Monthly spend times 12 sets the Target ARR. The tool applies 4.5% for Migration or 1% for Optimization (capped at 250,000 USD) to produce the funding ceiling. The 8i families are the default eligible set. i7i is under review for VMware migration cases; confirm eligibility with Intel leadership per deal.</div>
+        <div style="font-size:.82rem;color:rgba(255,255,255,.7);line-height:1.7">Model the future monthly spend on Intel Xeon 6 families (m8i, c8i, r8i, x8i only). Monthly spend times 12 sets the Target ARR. The tool applies 4.5% for Migration or 1% for Modernization (capped at 250,000 USD) to produce the funding ceiling. The 8i families are the default eligible set. i7i is under review for VMware migration cases; confirm eligibility with Intel leadership per deal.</div>
       </div>
 
       <div style="margin-bottom:20px">
@@ -4116,7 +4090,7 @@ function downloadProgramOnePager(){
     </table>
 
     <h2>Proof of Performance (POP)</h2>
-    <div class="card">Three things, collected after SOW signing, directly between TCC, the submitter, and the customer or partner: the <strong>BOM</strong>, the <strong>migration timeline</strong>, and a <strong>Cost Explorer export</strong> showing the actual instances running. AWS is never the party sharing customer cost data.</div>
+    <div class="card">Collected each quarter after SOW signing, directly between TCC and the customer or partner: a <strong>Cost Explorer export</strong> filtered to Gen 8 families (m8i, c8i, r8i, x8i), for the billing quarter. AWS never shares customer cost data.</div>
 
     <h2>The SOW Number</h2>
     <div class="card">The Do Not Exceed figure on the SOW is the <strong>instance ARR × the blended discount</strong>, paid out on the agreed schedule (quarterly, milestone, or lump sum) once POP is confirmed.</div>
@@ -4158,7 +4132,7 @@ function downloadWorkflowOnePager(){
     </table>
 
     <h2>Data Collection After SOW Signing</h2>
-    <div class="card">Proof of Performance flows directly between <strong>TCC, the submitter, and the customer or partner</strong> — never through AWS. Three pieces: the <strong>BOM</strong>, the <strong>migration timeline</strong>, and a <strong>Cost Explorer export</strong> of the actual running instances.</div>
+    <div class="card">Proof of Performance flows directly between <strong>TCC and the customer or partner</strong> — never through AWS. It is the quarterly <strong>Cost Explorer export</strong>, filtered to Gen 8 families, confirming actual spend against target ARR.</div>
 
     <h2>What the SOW Pays</h2>
     <div class="card">The Do Not Exceed number is <strong>instance ARR × blended discount</strong>, paid on the schedule set at submission.</div>
@@ -4187,8 +4161,8 @@ i7i is under active review for VMware migration cases. Confirm i7i eligibility
 with Intel leadership on a per-deal basis.
 
 FUNDING RATES
-  Program 1 — Migration Acceleration:   4.5% of Target ARR
-  Program 2 — Infrastructure Optimization: 1% of Target ARR (NTE $250,000 USD)
+  Track 1 — Migration:      4.5% of Target ARR
+  Track 2 — Modernization:   1% of Target ARR (NTE $250,000 USD)
 
 QUARTERLY DISBURSEMENT SCHEDULE (10/20/30/40)
   Q1 · Month 3   10% of WNE   Pilot Intel instances live + migration roadmap
@@ -4206,7 +4180,7 @@ THE THREE-ACT FLOW
 HOW THE MATH WORKS
   Target ARR         = Monthly Pricing Calculator estimate x 12
   Migration Benefit  = Target ARR x 4.5%
-  Optimization Benefit = Target ARR x 1% (capped at $250,000)
+  Modernization Benefit = Target ARR x 1% (capped at $250,000)
   Monthly Benefit    = Annual benefit / 12
   WNE                = Total Intel payout cap (auto-calculated in IAP tool)
 
@@ -4274,7 +4248,7 @@ CUSTOMER EMAIL TEMPLATE — QUARTERLY POP SUBMISSION
 
   Details:
   Customer: [Legal Name]
-  Program: [Migration 4.5% / Optimization 1%]
+  Program: [Migration 4.5% / Modernization 1%]
   Period covered: [Start Date] to [End Date]
   Intel instance families included: m8i, c8i, r8i, x8i
   All non-Intel families excluded from export
@@ -4416,7 +4390,7 @@ function generateSOW(){
   const intelArr = parseFloat(document.getElementById('est-arr-intel')?.value||0);
   const baseARR = smARR || fleets.reduce((s,f)=>s+(f.actualARR||0),0) || intelArr;
   const progRate = rateInfo.rate;
-  const fundingEst = progType==='optimize' ? Math.min(baseARR*0.01,250000) : baseARR*0.045;
+  const fundingEst = rateInfo.cap ? Math.min(baseARR*progRate, rateInfo.cap) : baseARR*progRate;
   const fundingLabel = fundingEst > 0 ? '$' + fundingEst.toLocaleString('en-US',{maximumFractionDigits:0}) + ' USD' : '[To be determined based on Cost Explorer validation]';
 
   // Payment schedule — fixed per SOW template
@@ -4980,27 +4954,43 @@ async function renderPipeline(){
   const committedPct = pool>0 ? (committed/pool*100) : 0;
   const pendingPct = pool>0 ? (pending/pool*100) : 0;
   const canEdit = currentUser && currentUser.tier==='admin';
+  const isSeller = currentUser && (currentUser.tier==='aws' || currentUser.tier==='intel');
 
+  // Budget figures, including Remaining, are admin-only — everyone else gets no budget tracker at all
   const budgetEl=document.getElementById('budget-tracker');
   if(budgetEl){
-    budgetEl.innerHTML=`
-      <div class="budget-head">
-        <div class="budget-title">IAP Program Budget — 2026</div>
-        ${canEdit?`<button class="btn btn-secondary btn-sm" onclick="editBudgetPool()">Edit Pool</button>`:''}
-      </div>
-      <div class="budget-bar-track">
-        <div class="budget-bar-committed" style="width:${Math.min(committedPct,100)}%"></div>
-        <div class="budget-bar-pending" style="width:${Math.min(pendingPct,100-committedPct)}%"></div>
-      </div>
-      <div class="budget-legend">
-        <div class="budget-stat"><span class="bdot total"></span>Total Pool<b>${fmt(pool)}</b></div>
-        <div class="budget-stat"><span class="bdot committed"></span>Committed<b>${fmt(committed)}</b></div>
-        <div class="budget-stat"><span class="bdot pending"></span>Pending<b>${fmt(pending)}</b></div>
-        <div class="budget-stat"><span class="bdot remaining"></span>Remaining<b style="color:${remaining<0?'var(--red)':'var(--green)'}">${fmt(remaining)}</b></div>
-      </div>`;
+    if(currentUser && currentUser.tier==='admin'){
+      budgetEl.style.display='';
+      budgetEl.innerHTML=`
+        <div class="budget-head">
+          <div class="budget-title">IAP Program Budget — 2026</div>
+          <button class="btn btn-secondary btn-sm" onclick="editBudgetPool()">Edit Pool</button>
+        </div>
+        <div class="budget-bar-track">
+          <div class="budget-bar-committed" style="width:${Math.min(committedPct,100)}%"></div>
+          <div class="budget-bar-pending" style="width:${Math.min(pendingPct,100-committedPct)}%"></div>
+        </div>
+        <div class="budget-legend">
+          <div class="budget-stat"><span class="bdot total"></span>Total Pool<b>${fmt(pool)}</b></div>
+          <div class="budget-stat"><span class="bdot committed"></span>Committed<b>${fmt(committed)}</b></div>
+          <div class="budget-stat"><span class="bdot pending"></span>Pending<b>${fmt(pending)}</b></div>
+          <div class="budget-stat"><span class="bdot remaining"></span>Remaining<b style="color:${remaining<0?'var(--red)':'var(--green)'}">${fmt(remaining)}</b></div>
+        </div>`;
+    } else {
+      budgetEl.style.display='none';
+      budgetEl.innerHTML='';
+    }
   }
 
-  document.getElementById('pipe-summary').innerHTML=`
+  // Sellers (AWS/Intel) see deal + status only — hide submitter, segment, program, benefit, date
+  ['pipe-th-submitter','pipe-th-segment','pipe-th-program','pipe-th-benefit','pipe-th-date'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.style.display = isSeller ? 'none' : '';
+  });
+
+  document.getElementById('pipe-summary').innerHTML = isSeller ? `
+    <div class="pipe-card"><div class="pipe-val">${deals.length}</div><div class="pipe-label">Total Deals</div></div>
+    <div class="pipe-card"><div class="pipe-val">${byStatus.submitted+byStatus.approved}</div><div class="pipe-label">Active / Approved</div></div>` : `
     <div class="pipe-card"><div class="pipe-val">${deals.length}</div><div class="pipe-label">Total Deals</div></div>
     <div class="pipe-card"><div class="pipe-val">${fmt(totRebate)}</div><div class="pipe-label">Total Benefit Pipeline</div></div>
     <div class="pipe-card"><div class="pipe-val">${byStatus.submitted+byStatus.approved}</div><div class="pipe-label">Active / Approved</div></div>
@@ -5014,12 +5004,12 @@ async function renderPipeline(){
   tbody.innerHTML=deals.map(d=>`
     <tr>
       <td>${d.custName||'—'}</td>
-      <td>${d.fhName||'—'}</td>
-      <td>${d.segment||'—'}</td>
-      <td>${d.prog||'—'}</td>
-      <td>${fmt(d.rebate||0)}</td>
+      <td style="${isSeller?'display:none':''}">${d.fhName||'—'}</td>
+      <td style="${isSeller?'display:none':''}">${d.segment||'—'}</td>
+      <td style="${isSeller?'display:none':''}">${d.prog||'—'}</td>
+      <td style="${isSeller?'display:none':''}">${fmt(d.rebate||0)}</td>
       <td><span class="status-pill ${statusClass(d.status)}">${d.status||'Draft'}</span></td>
-      <td>${d.date||'—'}</td>
+      <td style="${isSeller?'display:none':''}">${d.date||'—'}</td>
       <td><button class="btn btn-secondary btn-sm" onclick="loadDealById('${d.id}')">View</button></td>
     </tr>`).join('');
 }
@@ -5137,7 +5127,7 @@ function getCurrentDealData(){
     custName:v('cust-name'),custAcct:v('cust-acct'),
     industry:v('cust-industry'),workload:v('cust-workload'),
     awsRegion:v('cust-awsregion'),recipient:v('cust-recipient'),
-    partnerName:v('partner-name'),partnerTier:v('partner-tier'),
+    partnerName:v('partner-name'),partnerTier:v('partner-tier'),partnerSpmsId:v('partner-spms-id'),
     partnerRole:v('partner-role'),
     aceID:v('ace-id'),sfdcID:v('sfdc-id'),campaignCode:v('campaign-code'),pricingCalcLink:v('pricing-calc-link'),
     aceStage:v('ace-stage'),aceNotes:v('ace-notes'),
@@ -5161,7 +5151,8 @@ function getCurrentDealData(){
     arrEc2:parseFloat(v('arr-ec2'))||0, arrRds:parseFloat(v('arr-rds'))||0,
     arrElastiCache:parseFloat(v('arr-elasticache'))||0, arrOpenSearch:parseFloat(v('arr-opensearch'))||0,
     awsRegion:v('cust-awsregion'), custEdpDiscount:parseFloat(v('cust-edp-discount'))||20,
-    intelRepName:v('intel-rep-name'), awsRepName:v('aws-rep-name'),
+    intelRepName:(getTeamData().find(t=>t.role==='intel-seller')||{}).name||'',
+    awsRepName:(getTeamData().find(t=>t.role==='aws-account')||{}).name||'',
     iapProgram:v('iap-program')||'standard', discountMode:v('discount-mode')||'blended',
     discountVerified:v('discount-verified')||'assumed',
     migrationCost:parseFloat(v('migration-cost'))||0, pricingCalcLink:v('pricing-calc-link'),
@@ -5570,7 +5561,7 @@ function refreshCRMHeader(){
   set('crm-type', d.actType);
   set('crm-pay', (d.paymentOption||'').split(' ')[0]);
   set('crm-ace', d.aceID);
-  set('crm-ww', d.winWire?'Yes — Fast Track':'No');
+  set('crm-ww', d.winWire?'Yes — Fast Track + Draw Entry':'No');
   if(d.dne && d.migrationCost>0){
     const roi=((d.dne - d.migrationCost)/d.migrationCost*100);
     set('crm-roi', roi.toFixed(0)+'% (DNE vs. migration cost)');
@@ -5578,6 +5569,63 @@ function refreshCRMHeader(){
     set('crm-roi', d.migrationCost?'Add DNE to calculate':'Add migration cost to calculate');
   }
   const st=document.getElementById('crm-stage'); if(st) st.textContent=d.status||'Draft';
+  renderSmartsheetPreview(d);
+}
+
+function renderSmartsheetPreview(d){
+  const card = document.getElementById('smartsheet-preview');
+  if(!card) return;
+  const canSee = currentUser && (currentUser.tier==='admin' || currentUser.tier==='tcc');
+  card.style.display = canSee ? 'block' : 'none';
+  if(!canSee) return;
+
+  const statusEl = document.getElementById('smartsheet-sync-status');
+  if(statusEl) statusEl.textContent = d.smartsheetSync || 'Not yet submitted — nothing synced.';
+
+  const infraArr = (d.arrEc2||0)+(d.arrRds||0)+(d.arrElastiCache||0)+(d.arrOpenSearch||0) || d.targetArr || 0;
+  const isMigrate = (d.actType||'').toLowerCase().startsWith('migrat');
+  const activityType = isMigrate ? 'Migration' : (d.actType ? 'Modernization' : '');
+  const fundingPct = !isMigrate && d.actType ? '1% (capped $250,000)' : (isMigrate ? '4.5%' : '');
+  const submitter = (d.team||[])[0] || {};
+  const isMigrationYN = d.actType ? (isMigrate ? 'Yes' : 'No') : '';
+  const activityDesc = [d.actType||'Deal', 'for', d.custName||'', '—', d.workload||'workload not specified'].join(' ');
+
+  const rows = [
+    ['IPIC Activity #', d.ipicNum || '(TCC assigns after SOW)'],
+    ['Activity Name', d.dealName],
+    ['Activity Type', activityType],
+    ['IPIC Activity Description', activityDesc],
+    ['Start Date', d.migStart],
+    ['End Date', d.closeDate || d.migTargetDate],
+    ['POP Due Date', '(TCC confirms)'],
+    ['Claim Quarter', d.claimQuarter || '(TCC assigns)'],
+    ['Partner or End Customer Name', d.partnerName || d.custName],
+    ['Status', d.status],
+    ['Intel Budget Year', d.intelBudgetYear],
+    ['Intel Contribution Amount', d.dne ? fmt(d.dne) : ''],
+    ['ACE Opportunity ID', d.aceID],
+    ['Funding amount not to exceed', d.dne ? fmt(d.dne) : ''],
+    ['Funding Percentage', fundingPct],
+    ['AWS Alignment', d.awsRegion],
+    ['Intake Entry Date', (d.submittedAt||'').slice(0,10)],
+    ['Submitter Name', submitter.name],
+    ['Submitter Email', submitter.email],
+    ['Intel Rep Name', d.intelRepName],
+    ['AWS Rep Name', d.awsRepName],
+    ['Migration Project Description', d.workload],
+    ['POP Available?', 'No (true only post-SOW)'],
+    ['AWS Instances Used', d.migTo],
+    ['Region/Country of Execution', d.awsRegion],
+    ['Cost of Infrastructure (ARR)', infraArr ? fmt(infraArr) : ''],
+    ['Cost of Migration (Engineering Work)', d.migrationCost ? fmt(d.migrationCost) : ''],
+    ['Workload Selection', (d.workloadSelection||[]).join(', ')],
+    ['Requested funding amount', d.dne ? fmt(d.dne) : ''],
+    ['Is this for a Migration activity?', isMigrationYN],
+    ['Expected ROI', (d.dne && d.migrationCost>0) ? Math.round((d.dne-d.migrationCost)/d.migrationCost*100)+'%' : ''],
+  ];
+  document.getElementById('smartsheet-preview-rows').innerHTML = rows.map(([label,val])=>
+    `<tr style="border-bottom:1px solid #d1fae5"><td style="padding:4px 8px;color:#166534;font-weight:600;white-space:nowrap">${label}</td><td style="padding:4px 8px;color:#0A1628">${val||'—'}</td></tr>`
+  ).join('');
 }
 
 async function scoreFunding(){
@@ -5710,7 +5758,7 @@ function addTeamMember(){
   const roleOptions = ROLES.map(r=>`<option value="${r.val}">${r.label}</option>`).join('');
 
   div.innerHTML = `
-    <div style="display:grid;grid-template-columns:1.5fr 1fr 1fr 1.2fr 1fr auto;gap:10px;align-items:end">
+    <div style="display:grid;grid-template-columns:1.5fr 1fr 1fr 1.4fr auto;gap:10px;align-items:end">
       <div class="f-group">
         <label>Role</label>
         <select id="tm${id}-role" onchange="handleRoleChange(${id})" style="font-size:.78rem">
@@ -5729,10 +5777,6 @@ function addTeamMember(){
       <div class="f-group">
         <label>Email</label>
         <input type="email" id="tm${id}-email" placeholder="name@intel.com" oninput="handleEmailDomain(${id})">
-      </div>
-      <div class="f-group" id="tm${id}-alias-wrap" style="display:none">
-        <label id="tm${id}-alias-label">Alias</label>
-        <input type="text" id="tm${id}-alias" placeholder="alias">
       </div>
       <div style="padding-bottom:1px">
         ${id>1?`<button class="btn btn-danger btn-sm" onclick="removeTeamMember(${id})">✕</button>`:''}
