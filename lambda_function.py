@@ -20,6 +20,28 @@ BUCKET = os.environ.get('BUCKET', '')
 NOVA_MODEL = os.environ.get('NOVA_MODEL', 'amazon.nova-2-lite-v1:0')
 NOVA_EXTRACT_MODEL = os.environ.get('NOVA_EXTRACT_MODEL', 'us.amazon.nova-2-lite-v1:0')
 NOVA_EXTRACT_FALLBACK = os.environ.get('NOVA_EXTRACT_FALLBACK', 'us.amazon.nova-lite-v1:0')
+
+def call_nova_text(prompt, max_tokens=600, temperature=0.2):
+    """Single shared path for text-only Nova calls (sow-check, pop-draft, ask).
+    Uses the same us-east-1 client + fallback chain proven reliable for
+    document extraction, instead of each endpoint carrying its own
+    (previously untested) ca-central-1 call. Raises on total failure —
+    callers must catch and return an honest error, never a fake default."""
+    def _try(model_id):
+        return bedrock_us.invoke_model(
+            modelId=model_id,
+            body=json.dumps({
+                "messages": [{"role": "user", "content": [{"text": prompt}]}],
+                "inferenceConfig": {"maxTokens": max_tokens, "temperature": temperature}
+            })
+        )
+    try:
+        response = _try(NOVA_EXTRACT_MODEL)
+    except Exception as first_err:
+        print(f"Primary Nova model failed ({NOVA_EXTRACT_MODEL}): {str(first_err)}")
+        response = _try(NOVA_EXTRACT_FALLBACK)
+    result = json.loads(response['body'].read())
+    return result['output']['message']['content'][0]['text'].strip()
 FROM_EMAIL = os.environ.get('FROM_EMAIL', 'yasmine@cloudzero.ca')
 APP_URL = os.environ.get('APP_URL', 'https://main.dgxv59n7ru973.amplifyapp.com')
 
@@ -612,18 +634,14 @@ Program rules:
 
 Respond in this exact JSON format with no other text:
 {{"score": <0-100>, "ready": <true|false>, "issues": ["..."], "warnings": ["..."], "recommendation": "one sentence"}}"""
-            response = bedrock.invoke_model(
-                modelId=NOVA_MODEL,
-                body=json.dumps({
-                    "messages": [{"role": "user", "content": [{"text": prompt}]}],
-                    "inferenceConfig": {"maxTokens": 600, "temperature": 0.1}
-                })
-            )
-            result = json.loads(response['body'].read())
-            text = result['output']['message']['content'][0]['text'].strip()
-            if '```' in text:
-                text = text.split('```')[1].replace('json', '').strip()
-            return ok(headers, {'result': json.loads(text)})
+            try:
+                text = call_nova_text(prompt, max_tokens=600, temperature=0.1)
+                if '```' in text:
+                    text = text.split('```')[1].replace('json', '').strip()
+                return ok(headers, {'result': json.loads(text)})
+            except Exception as e:
+                print(f"sow-check failed: {str(e)}")
+                return ok(headers, {'result': None, 'error': f'Scoring unavailable: {str(e)[:150]}'})
 
         # ── AI: POP DRAFTER (kept; CE now post-SOW) ──
         if path == '/ai/pop-draft' and method == 'POST':
@@ -640,15 +658,12 @@ POP requirements:
 3. Program limit: 12 months, one calendar year. 75 percent of target ARR is treated as complete.
 
 Write a concise professional email to {submitter_name}. Dry, direct tone. Sign as Jacob Barksdale, The Channel Company. Respond with only the email body text."""
-            response = bedrock.invoke_model(
-                modelId=NOVA_MODEL,
-                body=json.dumps({
-                    "messages": [{"role": "user", "content": [{"text": prompt}]}],
-                    "inferenceConfig": {"maxTokens": 500, "temperature": 0.2}
-                })
-            )
-            result = json.loads(response['body'].read())
-            return ok(headers, {'email': result['output']['message']['content'][0]['text'].strip()})
+            try:
+                email_text = call_nova_text(prompt, max_tokens=500, temperature=0.2)
+                return ok(headers, {'email': email_text})
+            except Exception as e:
+                print(f"pop-draft failed: {str(e)}")
+                return ok(headers, {'email': None, 'error': f'Draft unavailable: {str(e)[:150]}'})
 
         # ── AI: ASK NOVA (kept; brace bug fixed) ──
         if path == '/ai/ask' and method == 'POST':
@@ -674,15 +689,12 @@ Context: step {context_data.get('currentStep', 'unknown')}, customer {context_da
 Question: {question}
 
 Answer clearly and concisely, under 150 words."""
-            response = bedrock.invoke_model(
-                modelId=NOVA_MODEL,
-                body=json.dumps({
-                    "messages": [{"role": "user", "content": [{"text": prompt}]}],
-                    "inferenceConfig": {"maxTokens": 300, "temperature": 0.3}
-                })
-            )
-            result = json.loads(response['body'].read())
-            return ok(headers, {'answer': result['output']['message']['content'][0]['text'].strip()})
+            try:
+                answer_text = call_nova_text(prompt, max_tokens=300, temperature=0.3)
+                return ok(headers, {'answer': answer_text})
+            except Exception as e:
+                print(f"ask failed: {str(e)}")
+                return ok(headers, {'answer': None, 'error': f'Answer unavailable: {str(e)[:150]}'})
 
         # ── INTEL PRICING PROXY (kept) ──
         if path == '/intel/price' and method == 'POST':
