@@ -2458,6 +2458,56 @@ Please confirm receipt.<br>
           </div>
         </div>
 
+        <!-- SAP RISE BOM ★ -->
+        <div class="section-card mt16" id="rise-bom-card" style="border:2px solid #0068B5;background:#EFF6FF">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+            <span style="color:var(--intel);font-size:1rem;font-weight:700">★</span>
+            <div class="section-card-title" style="color:#0A1628;margin-bottom:0">SAP RISE BOM — Compute-Only ARR</div>
+            <span style="font-size:.65rem;color:#0A1628;font-weight:600">Use when ARR comes from a SAP RISE / AWS calculator BOM export</span>
+          </div>
+          <div style="font-size:.72rem;color:#0A1628;margin-bottom:10px;padding:8px 12px;background:#DBEAFE;border-radius:5px;border-left:3px solid #0068B5">
+            AWS Avg ARR from a RISE BOM blends compute with storage and network passthrough charges. This strips out EBS Snapshot and Network Connectivity before the IAP rate applies, so the funding ask is defensible against a "show me your math" challenge.
+          </div>
+          <div class="form-grid" style="grid-template-columns:1fr 1fr 1fr">
+            <div class="f-group">
+              <label>AWS Avg ARR ($) <span style="font-size:.6rem;color:#0A1628">— from BOM Financial Summary</span></label>
+              <input type="number" id="rise-avg-arr" placeholder="e.g. 1040113" min="0" step="100"
+                oninput="calcRiseBOM()" style="font-size:.85rem;font-weight:700;border:2px solid #0068B5">
+            </div>
+            <div class="f-group">
+              <label>EBS Snapshot Cost, annual ($)</label>
+              <input type="number" id="rise-ebs" placeholder="Sum across all phases" min="0" step="10"
+                oninput="calcRiseBOM()">
+            </div>
+            <div class="f-group">
+              <label>Network Connectivity, annual ($)</label>
+              <input type="number" id="rise-netconn" placeholder="Sum across all phases" min="0" step="10"
+                oninput="calcRiseBOM()">
+            </div>
+          </div>
+          <div class="form-grid" style="grid-template-columns:1fr 1fr 1fr;margin-top:10px">
+            <div class="f-group">
+              <label>RISE Funding Total ($) <span style="font-size:.6rem;color:#0A1628">— from BOM, optional stack</span></label>
+              <input type="number" id="rise-funding-total" placeholder="e.g. 699284" min="0" step="100"
+                oninput="calcRiseBOM()">
+            </div>
+            <div class="f-group">
+              <label>IAP Term</label>
+              <select id="rise-term-years" onchange="calcRiseBOM()">
+                <option value="1" selected>1 year (recommended — matches quarterly milestone funding)</option>
+                <option value="5">5 years (full contract term)</option>
+              </select>
+            </div>
+            <div class="f-group">
+              <label>Compute-Only ARR</label>
+              <div id="rise-compute-arr" style="font-size:1.1rem;font-weight:700;color:var(--ink);padding:8px 0">$0</div>
+              <span class="hint">AWS Avg ARR minus EBS + Network Connectivity</span>
+            </div>
+          </div>
+          <div id="rise-bom-breakdown" style="display:none;margin-top:10px;padding:10px 14px;background:#fff;border-radius:6px;border:1px solid #0068B5;font-size:.74rem;line-height:1.8;color:#0A1628">
+          </div>
+        </div>
+
         <!-- Running Totals -->
         <div class="calc-totals mt16" id="calc-totals" style="grid-template-columns:repeat(5,1fr)">
           <div class="calc-total-item">
@@ -3329,7 +3379,7 @@ function parseTextDeterministically(text, filename){
   if(aceMatch){ result.aceID = aceMatch[0].toUpperCase(); result.confidence.aceID='high'; found.push('aceID'); }
 
   // Customer name — look for an explicit label first, then fall back to filename
-  const custLabel = text.match(/(?:customer|client|account)\s*[:\-]\s*([A-Z][A-Za-z0-9&.,'\s]{2,50})/i);
+  const custLabel = text.match(/(?:customer|client|account)\s*[:\-]\s*([A-Z][A-Za-z0-9&.,' ]{2,50})/i);
   if(custLabel){ result.custName = custLabel[1].trim().replace(/[.,]$/,''); result.confidence.custName='medium'; found.push('custName'); }
   else {
     const fnGuess = filename.replace(/\.[^.]+$/,'').replace(/[_-]/g,' ').match(/^[A-Za-z0-9 ]{3,40}/);
@@ -3624,6 +3674,50 @@ function calcSimpleMonthly(){
 
   // Sync to fleet rebate totals for SOW
   updateTotals();
+}
+
+function calcRiseBOM(){
+  const avgARR = parseFloat(document.getElementById('rise-avg-arr').value)||0;
+  const ebs = parseFloat(document.getElementById('rise-ebs').value)||0;
+  const netConn = parseFloat(document.getElementById('rise-netconn').value)||0;
+  const riseFundingTotal = parseFloat(document.getElementById('rise-funding-total').value)||0;
+  const termYears = parseInt(document.getElementById('rise-term-years').value)||1;
+  const computeArrEl = document.getElementById('rise-compute-arr');
+  const breakdownEl = document.getElementById('rise-bom-breakdown');
+
+  if(avgARR <= 0){
+    computeArrEl.textContent = '$0';
+    breakdownEl.style.display = 'none';
+    return;
+  }
+
+  const computeOnlyARR = Math.max(avgARR - ebs - netConn, 0);
+  computeArrEl.textContent = fmt(computeOnlyARR);
+
+  // Same rate/cap logic as every other calculator in this app — Migrate 4.5%,
+  // Modernize 1% capped $250k — so this stays consistent if the rate ever changes.
+  const rateInfo = getRateInfo();
+  let annualIAP = computeOnlyARR * rateInfo.rate;
+  let capApplied = false;
+  if(rateInfo.cap && annualIAP > rateInfo.cap){
+    annualIAP = rateInfo.cap;
+    capApplied = true;
+  }
+  const totalIAP = annualIAP * termYears;
+  const stackedTotal = riseFundingTotal + totalIAP;
+
+  window._computedRiseBOM = {avgARR, ebs, netConn, computeOnlyARR, annualIAP, totalIAP, riseFundingTotal, stackedTotal, termYears};
+
+  breakdownEl.innerHTML =
+    '<strong>Compute-only ARR:</strong><br>' +
+    'AWS Avg ARR: ' + fmt(avgARR) + ' &nbsp;−&nbsp; EBS Snapshot: ' + fmt(ebs) + ' &nbsp;−&nbsp; Network Connectivity: ' + fmt(netConn) +
+    ' = <strong>Compute-only ARR: ' + fmt(computeOnlyARR) + '</strong><br>' +
+    'IAP rate: ' + rateInfo.label + ' &nbsp;×&nbsp; ' + fmt(computeOnlyARR) + ' = <strong>' + fmt(annualIAP) + '/year</strong>' +
+    (capApplied ? ' <span style="color:#92400e">(capped at $250,000)</span>' : '') + '<br>' +
+    'Over ' + termYears + ' year' + (termYears>1?'s':'') + ': <strong>' + fmt(totalIAP) + '</strong><br>' +
+    (riseFundingTotal>0 ? 'Stacked with RISE Funding (' + fmt(riseFundingTotal) + '): <strong style="color:var(--green)">' + fmt(stackedTotal) + ' combined</strong><br>' : '') +
+    '<span style="color:#0A1628;font-size:.68rem">This is the IAP layer only. RISE Funding, if entered, is the AWS calculator\'s own figure, already committed, not derived here.</span>';
+  breakdownEl.style.display = 'block';
 }
 
 function updateTotals(){
