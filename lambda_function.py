@@ -9,39 +9,13 @@ from datetime import datetime, timezone
 dynamodb = boto3.resource('dynamodb')
 s3 = boto3.client('s3')
 ses = boto3.client('ses', region_name='ca-central-1')
-bedrock = boto3.client('bedrock-runtime', region_name='ca-central-1')
-# Document extraction runs via us-east-1: Nova cross-region inference profiles
-# (us.*) are not resolvable from ca-central-1, which breaks Converse there.
-bedrock_us = boto3.client('bedrock-runtime', region_name='us-east-1')
+# Bedrock/Nova removed entirely — scoring, extraction, and Q&A are now
+# deterministic logic in index.html. See scoreFunding(), parseTextDeterministically(),
+# answerIntelQuestion(), draftPOPWithNova().
 
 # ── CONFIG (env vars — PRD Section 10; change via console, no code edit) ──
 TABLE = os.environ.get('TABLE', 'iap-deals')
 BUCKET = os.environ.get('BUCKET', '')
-NOVA_MODEL = os.environ.get('NOVA_MODEL', 'amazon.nova-2-lite-v1:0')
-NOVA_EXTRACT_MODEL = os.environ.get('NOVA_EXTRACT_MODEL', 'us.amazon.nova-2-lite-v1:0')
-NOVA_EXTRACT_FALLBACK = os.environ.get('NOVA_EXTRACT_FALLBACK', 'us.amazon.nova-lite-v1:0')
-
-def call_nova_text(prompt, max_tokens=600, temperature=0.2):
-    """Single shared path for text-only Nova calls (sow-check, pop-draft, ask).
-    Uses the same us-east-1 client + fallback chain proven reliable for
-    document extraction, instead of each endpoint carrying its own
-    (previously untested) ca-central-1 call. Raises on total failure —
-    callers must catch and return an honest error, never a fake default."""
-    def _try(model_id):
-        return bedrock_us.invoke_model(
-            modelId=model_id,
-            body=json.dumps({
-                "messages": [{"role": "user", "content": [{"text": prompt}]}],
-                "inferenceConfig": {"maxTokens": max_tokens, "temperature": temperature}
-            })
-        )
-    try:
-        response = _try(NOVA_EXTRACT_MODEL)
-    except Exception as first_err:
-        print(f"Primary Nova model failed ({NOVA_EXTRACT_MODEL}): {str(first_err)}")
-        response = _try(NOVA_EXTRACT_FALLBACK)
-    result = json.loads(response['body'].read())
-    return result['output']['message']['content'][0]['text'].strip()
 FROM_EMAIL = os.environ.get('FROM_EMAIL', 'yasmine@cloudzero.ca')
 APP_URL = os.environ.get('APP_URL', 'https://main.dgxv59n7ru973.amplifyapp.com')
 
@@ -534,168 +508,10 @@ def lambda_handler(event, context):
                           ServerSideEncryption='AES256')
             return ok(headers, {'uploaded': True, 'key': key})
 
-        # ── AI: DOCUMENT AUTOFILL (any upload -> structured deal fields) ──
-        if path == '/ai/extract' and method == 'POST':
-            filename = body.get('filename', 'document')
-            file_b64 = body.get('data', '')
-            mime = body.get('mimeType', 'application/pdf')
-            if not file_b64:
-                return ok(headers, {'result': {'error': 'no file data received'}})
-            raw_bytes = base64.b64decode(file_b64)
-            doc_name = re.sub(r'[^a-zA-Z0-9\s()\[\]-]', ' ', filename.rsplit('.', 1)[0])[:50].strip() or 'document'
-
-            prompt_text = """You are extracting deal information from an uploaded document for an Intel Accelerate Program (IAP) deal intake form.
-
-Read the document carefully, including any email threads, tables, or slides. Extract only what is actually present — never invent or estimate a value that isn't stated.
-
-Return ONLY valid JSON, no other text, no markdown fences, in this exact shape:
-{
-  "dealName": "", "custName": "", "partnerName": "",
-  "actType": "one of: Migrate, Modernize, or empty if unclear",
-  "aceID": "", "targetArr": null, "migStart": "", "closeDate": "",
-  "confidence": {"dealName":"high|medium|low","custName":"high|medium|low","partnerName":"high|medium|low","actType":"high|medium|low","aceID":"high|medium|low","targetArr":"high|medium|low","migStart":"high|medium|low","closeDate":"high|medium|low"},
-  "flags": ["plain-sentence notes on contradictions, revisions across the document, or ambiguity worth a human checking"],
-  "missingForARR": ["if targetArr could not be found or computed, list the specific facts still needed to get one — e.g. current AWS EC2 monthly spend on the target instance family, a Pricing Calculator estimate for the post-migration instances, or confirmation of what AWS services (vs. a managed third-party service like SAP RISE) actually carry the spend. Be concrete, not generic. Empty array if targetArr was found."]
-}
-
-Dates should be ISO format (YYYY-MM-DD) if a specific date is stated, otherwise leave empty. targetArr should be a number (no currency symbols or commas) only if an actual dollar figure is present — do not calculate or infer one from technical sizing data. If the document has nothing relevant to a field, leave it empty or null and mark its confidence "low". Flag anything that changes value across the document (e.g. a number revised in a later message) rather than silently picking one.
-
-Note on managed/ISV deployments (e.g. SAP RISE, other managed private cloud editions): these frequently run on AWS infrastructure even though a third party like SAP manages and bills for the service — the deployment region and instance-level detail in the document (not the billing relationship) determines AWS eligibility. Do not assume a managed service is ineligible. If the document names an AWS region or shows memory/compute sizing without naming specific AWS EC2 instance types, say in missingForARR that the AWS EC2 instance types and pricing equivalent to the stated sizing still need to be identified (e.g. via AWS Pricing Calculator) — this is a translation gap, not a disqualification."""
-
-            content_block = {"text": prompt_text}
-            if mime.startswith('image/'):
-                img_fmt = mime.split('/')[-1].replace('jpg', 'jpeg')
-                doc_block = {"image": {"format": img_fmt, "source": {"bytes": raw_bytes}}}
-            else:
-                fmt_map = {
-                    'application/pdf': 'pdf', 'text/plain': 'txt', 'text/csv': 'csv',
-                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
-                    'application/msword': 'doc',
-                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'xlsx',
-                    'application/vnd.ms-excel': 'xls', 'text/html': 'html', 'text/markdown': 'md'
-                }
-                doc_fmt = fmt_map.get(mime, 'pdf')
-                doc_block = {"document": {"format": doc_fmt, "name": doc_name, "source": {"bytes": raw_bytes}}}
-
-            try:
-                def _extract_with(model_id):
-                    return bedrock_us.converse(
-                        modelId=model_id,
-                        messages=[{"role": "user", "content": [doc_block, content_block]}],
-                        inferenceConfig={"maxTokens": 900, "temperature": 0.1}
-                    )
-                try:
-                    response = _extract_with(NOVA_EXTRACT_MODEL)
-                except Exception as first_err:
-                    print(f"Primary extract model failed ({NOVA_EXTRACT_MODEL}): {str(first_err)}")
-                    response = _extract_with(NOVA_EXTRACT_FALLBACK)
-                text = response['output']['message']['content'][0]['text'].strip()
-                if '```' in text:
-                    text = text.split('```')[1]
-                    if text.startswith('json'):
-                        text = text[4:]
-                    text = text.strip()
-                result = json.loads(text)
-            except Exception as e:
-                print(f"Extraction error: {str(e)}")
-                result = {'error': f'Could not read this file: {str(e)[:150]}'}
-            return ok(headers, {'result': result})
-
-        # ── AI: SOW CHECKER (kept) ──
-        if path == '/ai/sow-check' and method == 'POST':
-            deal = body.get('deal', {})
-            prompt = f"""You are an expert reviewer for the Intel Accelerate Program (IAP).
-
-Review this deal submission and identify issues that would cause rejection or delay at internal review.
-
-Deal data:
-- Deal name: {deal.get('dealName', 'Not provided')}
-- Customer: {deal.get('custName', 'Not provided')}
-- Partner: {deal.get('partnerName', 'Not provided')}
-- ACE Opportunity ID: {deal.get('aceID', 'Not provided')}
-- ACE ARR: ${deal.get('aceAmount', 0)}
-- Deal type: {deal.get('actType', 'Not provided')}
-- Payment option: {deal.get('paymentOption', 'Not provided')}
-- Migration target date: {deal.get('migTargetDate', 'Not provided')}
-- Target ARR: ${deal.get('targetArr', 0)}
-- Customer Pricing Benefit (discount): {deal.get('custEdpDiscount', 20)}% ({deal.get('discountMode', 'blended')}, {deal.get('discountVerified', 'assumed')})
-- DNE: ${deal.get('dne', 0)}
-- Win Wire: {'Yes' if deal.get('winWire') else 'No'}
-
-Program rules:
-- DNE = Target ARR x (1 - discount percent above, default 20 percent blended, editable per deal) x rate
-- Rate: Migrate is 4.5 percent, uncapped. Modernize is 1 percent, capped at $250,000. There is no "Optimize" track — Modernize is the only 1 percent track.
-- ACE ARR should be consistent with Target ARR
-- The Simple Monthly Calculator is a reference tool (a link, not a required upload) — do not flag its absence as an issue
-- Cost Explorer is NOT required at submission; it is collected by TCC after SOW signing
-- Maximum duration 12 months, one calendar year
-- 75 percent of target ARR is treated as full completion
-- Eligible: {', '.join(ELIGIBLE_FAMILIES)} on EC2, RDS, ElastiCache, OpenSearch
-
-Respond in this exact JSON format with no other text:
-{{"score": <0-100>, "ready": <true|false>, "issues": ["..."], "warnings": ["..."], "recommendation": "one sentence"}}"""
-            try:
-                text = call_nova_text(prompt, max_tokens=600, temperature=0.1)
-                if '```' in text:
-                    text = text.split('```')[1].replace('json', '').strip()
-                return ok(headers, {'result': json.loads(text)})
-            except Exception as e:
-                print(f"sow-check failed: {str(e)}")
-                return ok(headers, {'result': None, 'error': f'Scoring unavailable: {str(e)[:150]}'})
-
-        # ── AI: POP DRAFTER (kept; CE now post-SOW) ──
-        if path == '/ai/pop-draft' and method == 'POST':
-            deal = body.get('deal', {})
-            submitter_name = deal.get('fhName', 'Account Owner')
-            prompt = f"""You are drafting a professional email on behalf of Jacob Barksdale at The Channel Company requesting Proof of Performance for an Intel Accelerate Program deal after SOW signing.
-
-Deal: {deal.get('custName', 'the customer')}, ACE {deal.get('aceID', 'TBD')}, DNE ${deal.get('dne', 0)}, migration target {deal.get('migTargetDate', 'TBD')}.
-
-POP requirements:
-1. AWS Cost Explorer export covering Intel instances ({', '.join(ELIGIBLE_FAMILIES)}) across EC2, RDS, ElastiCache, OpenSearch
-   (Customer or Intel shares directly with TCC. AWS cannot access or transfer this data.)
-2. Consumption evidence at the agreed thresholds for the selected payment option
-3. Program limit: 12 months, one calendar year. 75 percent of target ARR is treated as complete.
-
-Write a concise professional email to {submitter_name}. Dry, direct tone. Sign as Jacob Barksdale, The Channel Company. Respond with only the email body text."""
-            try:
-                email_text = call_nova_text(prompt, max_tokens=500, temperature=0.2)
-                return ok(headers, {'email': email_text})
-            except Exception as e:
-                print(f"pop-draft failed: {str(e)}")
-                return ok(headers, {'email': None, 'error': f'Draft unavailable: {str(e)[:150]}'})
-
-        # ── AI: ASK NOVA (kept; brace bug fixed) ──
-        if path == '/ai/ask' and method == 'POST':
-            question = body.get('question', '')
-            context_data = body.get('context', {})
-            if not question:
-                return ok(headers, {'answer': 'Please ask a question.'})
-            prompt = f"""You are Nova, an expert assistant for the Intel Accelerate Program (IAP). This is an Intel program.
-
-Key facts:
-- DNE = Target ARR x (1 - Customer Pricing Benefit discount, default 20 percent blended, editable per deal) x rate
-- Rate: Migrate is 4.5 percent, uncapped. Modernize is 1 percent, capped at $250,000. There is no "Optimize" track — Modernize is the only 1 percent track.
-- Payment options: Quarterly (15/15/20/50, tied to Cost Explorer milestones), Lump Sum (one payment once 75 percent of target ARR is confirmed), or Custom
-- 75 percent of target ARR is treated as 100 percent complete
-- Maximum duration 12 months, one calendar year
-- Cost Explorer is collected by TCC after SOW signing, shared by Intel or the customer directly. AWS cannot access or transfer it.
-- The Simple Monthly Calculator is a reference link, not a required upload. ACE ARR should be consistent with Target ARR.
-- Eligible: {', '.join(ELIGIBLE_FAMILIES)} (i-suffix Intel families) on EC2, RDS, ElastiCache, OpenSearch. Non-Intel families excluded.
-- Flow: Submitted > AWS Approval (Yasmine/Chris Chlee/Jeanine set DNE) > Intel Leadership Approved (one of Akanksha/Deep/Brendon) > SOW Issued (TCC) > In Progress > Complete
-
-Context: step {context_data.get('currentStep', 'unknown')}, customer {context_data.get('custName', 'not set')}, type {context_data.get('actType', 'not set')}
-
-Question: {question}
-
-Answer clearly and concisely, under 150 words."""
-            try:
-                answer_text = call_nova_text(prompt, max_tokens=300, temperature=0.3)
-                return ok(headers, {'answer': answer_text})
-            except Exception as e:
-                print(f"ask failed: {str(e)}")
-                return ok(headers, {'answer': None, 'error': f'Answer unavailable: {str(e)[:150]}'})
-
+        # AI-based extraction, scoring, drafting, and Q&A were removed —
+        # replaced with deterministic logic entirely in the frontend.
+        # See index.html: scoreFunding(), parseTextDeterministically(),
+        # answerIntelQuestion(), and draftPOPWithNova().
         # ── INTEL PRICING PROXY (kept) ──
         if path == '/intel/price' and method == 'POST':
             import urllib.request as _ur

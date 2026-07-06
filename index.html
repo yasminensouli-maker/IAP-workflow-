@@ -2268,7 +2268,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
             </div>
             <div class="f-group">
               <label>Discount Model (%)</label>
-              <input type="number" id="discount-model" placeholder="e.g. 30" min="0" max="100" value="30">
+              <input type="number" id="discount-model" placeholder="e.g. 20" min="0" max="100" value="20">
               <span class="hint">Blended discount budget applied to Target ARR. Use the Intel Pricing tab to pull live instance pricing for an informed estimate.</span>
             </div>
           </div>
@@ -3287,22 +3287,99 @@ async function handleAutofillUpload(input){
   if(!file) return;
   status.textContent = 'Reading '+file.name+'…';
   try{
-    const b64 = await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result.split(',')[1]);r.onerror=rej;r.readAsDataURL(file);});
-    const resp = await fetch(API_URL+'/ai/extract',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({filename:file.name,data:b64,mimeType:file.type||'application/pdf'})});
-    const j = await resp.json();
+    const text = await extractTextFromFile(file);
+    const result = parseTextDeterministically(text, file.name);
     status.textContent = '';
     input.value = '';
-    if(j.result && j.result.error){
-      alert("Couldn't read that file: "+j.result.error);
-      return;
-    }
-    showExtractionReview(j.result||{});
+    showExtractionReview(result);
   }catch(e){
     status.textContent = '';
-    alert('Autofill failed. Please try again.');
+    alert("Couldn't read that file. Plain text (.txt) and .csv work most reliably — for other formats, paste the key details in manually.");
     console.error('Autofill error', e);
   }
+}
+
+async function extractTextFromFile(file){
+  // .txt/.csv: read directly. Everything else: best-effort — pull printable
+  // ASCII runs out of the raw bytes. Works for many simple/uncompressed PDFs,
+  // won't work for scanned images or compressed PDF streams — that's a real
+  // limit of going deterministic, not a bug.
+  if(file.type==='text/plain' || file.type==='text/csv' || /\.(txt|csv)$/i.test(file.name)){
+    return await file.text();
+  }
+  const buf = await file.arrayBuffer();
+  const bytes = new Uint8Array(buf);
+  let out = '';
+  let run = '';
+  for(let i=0;i<bytes.length;i++){
+    const c = bytes[i];
+    if(c>=32 && c<=126){ run += String.fromCharCode(c); }
+    else { if(run.length>=4) out += run+' '; run=''; }
+  }
+  if(run.length>=4) out += run;
+  return out;
+}
+
+function parseTextDeterministically(text, filename){
+  const result = {confidence:{}, flags:[], missingForARR:[]};
+  const found = [];
+
+  // ACE Opportunity ID — distinctive format, high confidence when it matches
+  const aceMatch = text.match(/O-[A-Z0-9]{6,12}/i);
+  if(aceMatch){ result.aceID = aceMatch[0].toUpperCase(); result.confidence.aceID='high'; found.push('aceID'); }
+
+  // Customer name — look for an explicit label first, then fall back to filename
+  const custLabel = text.match(/(?:customer|client|account)\s*[:\-]\s*([A-Z][A-Za-z0-9&.,'\s]{2,50})/i);
+  if(custLabel){ result.custName = custLabel[1].trim().replace(/[.,]$/,''); result.confidence.custName='medium'; found.push('custName'); }
+  else {
+    const fnGuess = filename.replace(/\.[^.]+$/,'').replace(/[_-]/g,' ').match(/^[A-Za-z0-9 ]{3,40}/);
+    if(fnGuess){ result.custName = fnGuess[0].trim(); result.confidence.custName='low'; found.push('custName'); }
+  }
+
+  // Partner name
+  const partnerLabel = text.match(/partner\s*[:\-]\s*([A-Z][A-Za-z0-9&.,'\s]{2,50})/i);
+  if(partnerLabel){ result.partnerName = partnerLabel[1].trim().replace(/[.,]$/,''); result.confidence.partnerName='medium'; found.push('partnerName'); }
+
+  // Deal type — keyword presence
+  const hasModernize = /moderniz/i.test(text);
+  const hasMigrate = /migrat/i.test(text);
+  if(hasModernize && !hasMigrate){ result.actType='Modernize'; result.confidence.actType='medium'; found.push('actType'); }
+  else if(hasMigrate && !hasModernize){ result.actType='Migrate'; result.confidence.actType='medium'; found.push('actType'); }
+  else if(hasMigrate && hasModernize){ result.actType='Migrate'; result.confidence.actType='low'; found.push('actType'); result.flags.push('Both "migrate" and "modernize" appear — confirm which track applies.'); }
+
+  // Target ARR — dollar figure near ARR/annual/target keywords
+  const arrMatch = text.match(/(?:target\s*arr|annual\s*(?:run\s*rate|revenue|spend)|arr)\D{0,15}\$?\s*([\d,]+(?:\.\d+)?)\s*(k|m)?/i);
+  if(arrMatch){
+    let n = parseFloat(arrMatch[1].replace(/,/g,''));
+    if(/k/i.test(arrMatch[2]||'')) n *= 1000;
+    if(/m/i.test(arrMatch[2]||'')) n *= 1000000;
+    result.targetArr = Math.round(n); result.confidence.targetArr='medium'; found.push('targetArr');
+  } else {
+    result.missingForARR.push('Target ARR — not found in this document, enter manually');
+  }
+
+  // Dates — start and end/close
+  const dateRe = /(\d{4}-\d{2}-\d{2})|(\d{1,2}\/\d{1,2}\/\d{2,4})|((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s+\d{1,2},?\s+\d{4})/gi;
+  const startCtx = text.match(new RegExp('(?:start|kickoff|begin)[^.\\n]{0,20}('+dateRe.source+')','i'));
+  const endCtx = text.match(new RegExp('(?:end|close|complete|target\\s*completion)[^.\\n]{0,20}('+dateRe.source+')','i'));
+  if(startCtx){ result.migStart = normalizeDateGuess(startCtx[1]); result.confidence.migStart='medium'; found.push('migStart'); }
+  if(endCtx){ result.closeDate = normalizeDateGuess(endCtx[1]); result.confidence.closeDate='medium'; found.push('closeDate'); }
+
+  result.dealName = result.custName ? (result.custName + ' — IAP Deal') : '';
+  if(result.dealName){ result.confidence.dealName='low'; found.push('dealName'); }
+
+  if(found.length===0){
+    result.flags.push('Nothing recognizable was found automatically. This works best on plain text or simple PDFs with clear labels like "Customer:", "ACE ID:", or dollar figures near "ARR."');
+  } else if(found.length < 4){
+    result.flags.push('Only '+found.length+' of 8 fields were found automatically — review carefully and fill in the rest by hand.');
+  }
+  return result;
+}
+
+function normalizeDateGuess(raw){
+  const d = new Date(raw);
+  if(isNaN(d)) return raw;
+  return d.toISOString().slice(0,10);
 }
 
 function showExtractionReview(result){
@@ -3523,7 +3600,7 @@ function calcSimpleMonthly(){
   const rateInfo = getRateInfo();
   const rate = rateInfo.rate;
   const rateLabel = rateInfo.label;
-  const discPct = Math.min(Math.max(parseFloat((document.getElementById('discount-model')||{}).value)||30,0),100);
+  const discPct = Math.min(Math.max(parseFloat((document.getElementById('discount-model')||{}).value)||20,0),100);
   const eligibleARR = targetARR * (1 - discPct/100);
   const totalBenefit = eligibleARR * rate;
   const monthlyBenefit = totalBenefit / 12;
@@ -3840,33 +3917,6 @@ function generateSummary(){
   if(box) box.innerHTML = html;
 }
 
-async function _disabledRunNovaSummaryCheck(){
-  const custName = v('cust-name') || v('cust-name-intel') || '[Customer]';
-  const box = document.getElementById('summary-nova-suggestion');
-  if(!box) return;
-  box.style.display = 'block';
-  box.innerHTML = '<div style="padding:12px;background:#f8f9ff;border-radius:8px;border:1px solid var(--intel);font-size:.78rem;color:var(--ink2)">✦ Nova is reviewing this deal...</div>';
-  try {
-    const r = await fetch(API_URL+'/ai/ask',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        question: 'Review this IAP deal and flag any gaps or risks: Customer=' + custName +
-          ', Program=' + (document.getElementById('deal-program')?.value||'') +
-          ', ARR estimate=' + (document.getElementById('est-arr-intel')?.value||document.getElementById('simple-monthly')?.value||'unknown') +
-          ', ACE ID=' + (v('ace-id')||v('ace-id-intel')||'none') +
-          ', Workload=' + (v('cust-workload')||'not specified') +
-          '. Flag missing fields, eligibility concerns, or next steps needed.',
-        context: {role: currentUser?.tier}
-      })
-    });
-    const d = await r.json();
-    const ans = d.answer || d.response || 'No response';
-    box.innerHTML = '<div style="padding:12px;background:#f8f9ff;border-radius:8px;border:1px solid var(--intel);font-size:.78rem;color:var(--ink2)"><strong>✦ Nova Review:</strong><br><br>' + ans.replace(/\n/g,'<br>') + '</div>';
-  } catch(e) {
-    box.innerHTML = '<div style="padding:12px;background:#fff5f5;border-radius:8px;border:1px solid #fca5a5;font-size:.78rem">Nova unavailable — proceed to SOW manually.</div>';
-  }
-}
 
 /* ── INTEL PRICING CHAT ────────────────────────────────────── */
 function askIntelPrompt(text){
@@ -3876,117 +3926,63 @@ function askIntelPrompt(text){
   sendIntelChat();
 }
 
-async function sendIntelChat(){
+function answerIntelQuestion(msg){
+  const q = msg.toLowerCase();
+
+  // Actual instance pricing — don't fabricate a number, that's worse than saying we don't have it live.
+  // Direct to the real, authoritative source instead.
+  const mentionsInstance = /\b[mcrx]8i(\.\w+)?\b/i.test(msg);
+  const asksPrice = /\bprice|pricing|cost|how much\b/i.test(msg);
+  if(mentionsInstance && asksPrice){
+    return "I don't have live instance pricing built in anymore — rather than guess at a number, use the real source: <a href='https://calculator.aws' target='_blank' rel='noopener'>AWS Pricing Calculator ↗</a>. Build the estimate there, then paste the monthly total into AWS ARR Breakdown on Deal Info — it does the rest automatically.";
+  }
+
+  // Program rules — these are exact, no AI needed for any of this.
+  if(/modern.*cap|cap.*modern|250,?000|250k/i.test(q)){
+    return "Modernize is 1% of eligible ARR (post-discount), capped at $250,000. Migrate is 4.5%, uncapped. If a deal is close to the cap, the extra ARR above the cap threshold doesn't add any further funding.";
+  }
+  if(/rate.*(m8i|c8i|r8i|x8i)|iap rate/i.test(q)){
+    return "The rate depends on Deal Type, not instance family: Migrate is 4.5% of eligible ARR, uncapped. Modernize is 1%, capped at $250,000. All four families — m8i, c8i, r8i, x8i — qualify equally.";
+  }
+  if(/discount|blended|edp|pricing benefit/i.test(q)){
+    return "Customer Pricing Benefit defaults to 20% blended, editable per deal. It can also be set to On-Demand (0%, no commitment discount). DNE = eligible ARR (post-discount) × rate.";
+  }
+  if(/payment|schedule|15\/15|quarterly|disburs/i.test(q)){
+    return "Quarterly (15/15/20/50): Q1 pays 15% when the baseline Cost Explorer is submitted, Q2 pays 15% at 25% of target ARR on Gen 8, Q3 pays 20% at 50%, Q4 pays 50% at 75% sustained for a full 30-day billing cycle. Lump Sum and Custom are also available.";
+  }
+  if(/pop|proof of performance|cost explorer/i.test(q)){
+    return "Proof of Performance is the quarterly Cost Explorer export, filtered to Gen 8 families (m8i, c8i, r8i, x8i), sent directly from the customer to TCC. It's collected after the SOW is signed, not at submission — AWS never handles or forwards this data.";
+  }
+  if(/eligib|which instance|what families|gen ?8/i.test(q)){
+    return "Only i-suffix Intel Gen 8 families qualify: m8i, c8i, r8i, x8i, across EC2, RDS, ElastiCache, and OpenSearch. Non-Intel families are excluded from every calculation.";
+  }
+  if(/approv|flow|process|who approves|steps/i.test(q)){
+    return "Submit → AWS Approval (Yasmine, Jeanine, Chris Chlee validates Simple Monthly) → Intel Leadership (Akanksha, Brendon, or Deep) → TCC generates the SOW and disburses.";
+  }
+  if(/win wire|fast track|draw/i.test(q)){
+    return "Win Wire stays internal unless separately nominated as a customer case study. Saying yes fast-tracks the deal and enters the customer and submitter into a prize draw once submitted.";
+  }
+  if(/mix|both|migrate and modern/i.test(q)){
+    return "A deal is either Migrate or Modernize, not both. If a customer genuinely needs both — say, migrating some workloads while modernizing others — submit them as two separate deals, one per track.";
+  }
+
+  return "That's not one I have a direct answer built for yet. For rates, discount, payment schedule, POP, eligible families, or approval flow, ask about those directly — or check How to Fill This Out in Resources for the full walkthrough.";
+}
+
+function sendIntelChat(){
   const input = document.getElementById('intel-chat-input');
   const messages = document.getElementById('intel-chat-messages');
   if(!input || !messages) return;
   const msg = input.value.trim();
   if(!msg) return;
 
-  // Show user message
   messages.innerHTML += '<div style="margin-bottom:8px"><span style="background:var(--intel);color:#fff;padding:3px 8px;border-radius:10px;font-size:.72rem">' + msg + '</span></div>';
   input.value = '';
-  messages.innerHTML += '<div id="intel-typing" style="color:var(--ink3);font-size:.72rem;font-style:italic">🧞 Pulling up live Intel pricing…</div>';
+
+  const answer = answerIntelQuestion(msg);
+  messages.innerHTML += '<div style="margin-bottom:8px"><strong style="color:var(--intel);font-size:.65rem;display:block;margin-bottom:4px">🧞 Straight from Intel</strong>' + answer + '</div>';
   messages.scrollTop = messages.scrollHeight;
-
-  try {
-    const r = await fetch(API_URL + '/intel/price', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({message: msg})
-    });
-    const data = await r.json();
-    document.getElementById('intel-typing')?.remove();
-
-    let responseText = '';
-    // Handle all Intel API response formats
-    try {
-      if(typeof data === 'string') {
-        responseText = data;
-      } else if(data.response && typeof data.response === 'string') {
-        responseText = data.response;
-      } else if(data.answer && typeof data.answer === 'string') {
-        responseText = data.answer;
-      } else if(data.message && typeof data.message === 'string') {
-        responseText = data.message;
-      } else if(data.choices && data.choices[0]) {
-        // OpenAI-style: choices[0].message.content or choices[0].text
-        const c = data.choices[0];
-        responseText = c.message?.content || c.text || '';
-      } else if(Array.isArray(data)) {
-        // Array of message objects: [{role:"assistant", content:[{type:"text",text:"..."}]}]
-        const assistantMsg = data.find(m => m.role === 'assistant') || data[data.length-1];
-        if(assistantMsg) {
-          if(typeof assistantMsg.content === 'string') {
-            responseText = assistantMsg.content;
-          } else if(Array.isArray(assistantMsg.content)) {
-            responseText = assistantMsg.content
-              .filter(b => b.text || b.type === 'text')
-              .map(b => b.text || b.content || '')
-              .join('\n').trim();
-          }
-        }
-      } else if(data.content) {
-        if(typeof data.content === 'string') {
-          responseText = data.content;
-        } else if(Array.isArray(data.content)) {
-          // Could be [{type:"text",text:"..."}, ...] or [{role,content:[...]}, ...]
-          const first = data.content[0];
-          if(first && first.role) {
-            // Nested message format
-            const assistantMsg = data.content.find(m => m.role === 'assistant') || first;
-            if(Array.isArray(assistantMsg.content)) {
-              responseText = assistantMsg.content.map(b => b.text || '').join('\n').trim();
-            } else {
-              responseText = assistantMsg.content || '';
-            }
-          } else {
-            responseText = data.content.filter(b => b.text).map(b => b.text).join('\n').trim();
-          }
-        }
-      } else if(data.error) {
-        responseText = '' + data.error;
-      } else {
-        // Last resort: find any string field that looks like a response
-        const keys = ['text', 'output', 'result', 'body', 'reply'];
-        for(const k of keys) {
-          if(data[k] && typeof data[k] === 'string') { responseText = data[k]; break; }
-        }
-        if(!responseText) responseText = JSON.stringify(data, null, 2);
-      }
-    } catch(parseErr) {
-      responseText = JSON.stringify(data, null, 2);
-    }
-    // Clean up escaped sequences
-    responseText = responseText.replace(/\\n/g, '\n').replace(/\\t/g, '  ').trim();
-
-    // Try to extract pricing and auto-fill
-    const annualMatch = responseText.match(/\$[\d,]+(?:\.\d+)?.*?annual/i);
-    const hourlyMatch = responseText.match(/\$[\d.]+.*?hour/i);
-
-    messages.innerHTML += '<div style="margin-bottom:12px;padding:8px 10px;background:#f0f4ff;border-radius:6px;border-left:3px solid var(--intel);font-size:.75rem;white-space:pre-wrap">' +
-      '<strong style="color:var(--intel);font-size:.65rem;display:block;margin-bottom:4px">🧞 Straight from Intel</strong>' +
-      responseText.replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</div>';
-    messages.scrollTop = messages.scrollHeight;
-
-    // Auto-fill Simple Monthly if price detected
-    if(data.on_demand_hourly || data.hourly_price){
-      const hourly = data.on_demand_hourly || data.hourly_price;
-      const monthly = hourly * 730;
-      const smField = document.getElementById('simple-monthly');
-      if(smField && !smField.value){
-        smField.value = Math.round(monthly);
-        calcSimpleMonthly();
-        messages.innerHTML += '<div style="font-size:.68rem;color:var(--green);margin-bottom:8px">✓ Monthly price auto-filled: $' + Math.round(monthly).toLocaleString() + '</div>';
-      }
-    }
-  } catch(e) {
-    document.getElementById('intel-typing')?.remove();
-    messages.innerHTML += '<div style="margin-bottom:8px;padding:8px;background:#fff5f5;border-radius:6px;font-size:.72rem;color:#dc2626">Couldn\'t reach live pricing just now — give it another try.</div>';
-    messages.scrollTop = messages.scrollHeight;
-  }
 }
-
 function showFillGuide(){
   let o = document.getElementById('fill-guide-overlay');
   if(o){ o.style.display='flex'; return; }
@@ -4198,141 +4194,69 @@ function downloadWorkflowOnePager(){
 }
 
 function downloadWorkflowGuide(){
-  const guide = `INTEL × AWS — IAP WORKFLOW GUIDE
-Internal Reference · AWS Approval
-=========================================
+  const html = `
+    <div class="banner">
+      <div class="tag">Intel × AWS Co-Investment Program</div>
+      <h1 style="color:#fff;margin-top:4px">IAP Workflow Guide</h1>
+      <div style="color:rgba(255,255,255,.7);font-size:.85rem">Internal Reference · AWS Approval · Confidential</div>
+    </div>
 
-PROGRAM OVERVIEW
-Intel and AWS have built a co-investment program that funds migrations and
-workload optimizations to Intel Xeon 6 (8th Gen) EC2 instance families on AWS.
+    <h2>Program Overview</h2>
+    <div class="card">Intel and AWS co-invest in migrations and modernizations onto Intel Xeon 6 (8th Gen) EC2 instance families — m8i, c8i, r8i, x8i — across EC2, RDS, ElastiCache, and OpenSearch. Only i-suffix Intel families qualify.</div>
 
-ELIGIBLE INSTANCE FAMILIES — Intel Xeon 6 Only
-  m8i   General Purpose         Intel Xeon 6 · up to 20% faster than m7i
-  c8i   Compute Optimized       Intel Xeon 6 · 60% faster NGINX · HPC workloads
-  r8i   Memory Optimized        Intel Xeon 6 · up to 3TB RAM · Oracle, SAP HANA
-  x8i   Extended Memory         Intel Xeon 6 · SAP RISE · large in-memory databases
+    <h2>Funding Rates</h2>
+    <table>
+      <tr><th>Track</th><th>Rate</th><th>Cap</th></tr>
+      <tr><td>Track 1 — Migrate</td><td>4.5% of Target ARR</td><td>—</td></tr>
+      <tr><td>Track 2 — Modernize</td><td>1% of Target ARR</td><td>$250,000</td></tr>
+    </table>
 
-Note: Only i-suffix Intel-optimized families qualify. All other instance families
-are excluded from eligibility calculations.
-i7i is under active review for VMware migration cases. Confirm i7i eligibility
-with Intel leadership on a per-deal basis.
+    <h2>Quarterly Disbursement — 15/15/20/50</h2>
+    <table>
+      <tr><th>Quarter</th><th>% Paid</th><th>Trigger</th></tr>
+      <tr><td>Q1</td><td>15%</td><td>Baseline Cost Explorer submitted</td></tr>
+      <tr><td>Q2</td><td>15%</td><td>25% or more of target ARR on Gen 8 (30% cumulative)</td></tr>
+      <tr><td>Q3</td><td>20%</td><td>50% or more of target ARR on Gen 8 (50% cumulative)</td></tr>
+      <tr><td>Q4</td><td>50%</td><td>75% or more of target ARR, sustained 30 days (100% cumulative)</td></tr>
+    </table>
+    <div class="card">A missed quarterly submission gets a 15-day grace period, then defers to the next quarter — it does not forfeit future milestones.</div>
 
-FUNDING RATES
-  Track 1 — Migration:      4.5% of Target ARR
-  Track 2 — Modernization:   1% of Target ARR (NTE $250,000 USD)
+    <h2>How the Math Works</h2>
+    <div class="card">
+      Target ARR = Monthly Pricing Calculator estimate × 12<br>
+      Eligible ARR = Target ARR × (1 − Customer Pricing Benefit discount, default 20% blended)<br>
+      DNE = Eligible ARR × rate (4.5% Migrate, or 1% Modernize capped $250,000)
+    </div>
 
-QUARTERLY DISBURSEMENT SCHEDULE (10/20/30/40)
-  Q1 · Month 3   10% of WNE   Pilot Intel instances live + migration roadmap
-  Q2 · Month 6   20% of WNE   25% or more of target ARR on Intel instances
-  Q3 · Month 9   30% of WNE   50% or more of target ARR on Intel instances
-  Q4 · Month 12  40% of WNE   75% or more of target ARR · sustained 30+ days
+    <h2>Cost Explorer — Establishing the Baseline</h2>
+    <div class="card">AWS Console → Billing and Cost Management → Cost Explorer. Filter to EC2, RDS, ElastiCache, OpenSearch; group by instance type; filter to Intel families (m8i, c8i, r8i, x8i) only; save the filter as a named report so each quarterly re-export is one action. The customer emails the export directly to TCC and Intel — AWS cannot forward it on their behalf.</div>
 
-THE THREE-ACT FLOW
-  Before   Customer establishes current Intel instance spend baseline (EC2, RDS, ElastiCache, OpenSearch)
-  Target   Partner models future spend on Gen 8 Intel instances
-           Monthly Spend x 12 = Target ARR
-           Target ARR x program rate = Intel co-investment (WNE)
-  Proof    Customer submits quarterly Cost Explorer export to TCC and Intel
+    <h2>Approval Flow</h2>
+    <table>
+      <tr><th>Step</th><th>Who</th></tr>
+      <tr><td>1 · Submit</td><td>Partner or AWS Rep, through this tool</td></tr>
+      <tr><td>2 · AWS Approval</td><td>Yasmine Nsouli, Jeanine Reidel, Chris Chlee (SA)</td></tr>
+      <tr><td>3 · Intel Leadership</td><td>Akanksha Bilani — final funding approval</td></tr>
+      <tr><td>4 · TCC</td><td>Generates the SOW, disburses payment</td></tr>
+    </table>
 
-HOW THE MATH WORKS
-  Target ARR         = Monthly Pricing Calculator estimate x 12
-  Migration Benefit  = Target ARR x 4.5%
-  Modernization Benefit = Target ARR x 1% (capped at $250,000)
-  Monthly Benefit    = Annual benefit / 12
-  WNE                = Total Intel payout cap (auto-calculated in IAP tool)
+    <h2>Guardrails</h2>
+    <div class="card">
+      AWS never shares Cost Explorer data with Intel or TCC — the customer sends it directly.<br>
+      Apply the rebate to post-discount ARR, never list price.<br>
+      Only m8i, c8i, r8i, x8i count — all other families are excluded.<br>
+      The DNE figure is a ceiling, not a guaranteed payout — actual disbursement follows Proof of Performance.<br>
+      Q4 requires one full billing cycle at 75%+ run-rate, not a single-day spike.
+    </div>
 
-COST EXPLORER — ESTABLISHING THE BASELINE
-  1. AWS Console → Billing and Cost Management → Cost Explorer
-  2. Set Service filter to EC2, RDS, ElastiCache, and OpenSearch
-  3. Group by Instance Type
-  4. Set date range to last 3 to 12 months
-  5. Filter to Intel families: m8i, c8i, r8i, x8i only
-  6. Save this filter configuration as a named report
-  7. Export as CSV or screenshot
-  8. Customer emails export directly to TCC and Intel
-
-  IMPORTANT: AWS cannot share or forward Cost Explorer data to Intel or TCC.
-  The customer must pull and send the export directly. AWS may coach the
-  customer on the process but cannot act as an intermediary.
-
-  For each quarterly POP submission the customer reopens the same saved report,
-  updates only the date range, and exports. A multi-step setup becomes one action.
-
-PROOF OF PERFORMANCE (POP)
-  Q1 (Month 3)  Pilot Intel instances live + one-page migration roadmap
-  Q2 (Month 6)  Cost Explorer showing Month 4 to 6 · 25%+ threshold
-  Q3 (Month 9)  Cost Explorer showing Month 7 to 9 · 50%+ threshold
-  Q4 (Month 12) Cost Explorer showing Month 10 to 12 · 75%+ sustained 30 days
-
-  A missed quarterly submission rolls to the next cycle.
-  It does not forfeit future milestones.
-
-APPROVAL FLOW
-  1. Submit         Partner or AWS Rep submits through the IAP tool
-  2. AWS Approval   Yasmine Nsouli, Jeanine Reidel, and Chris Chlee (SA) review and validate
-  3. Intel Leadership  Akanksha Bilani provides final funding approval
-  4. TCC            The Channel Company generates the SOW and disburses payment
-
-PAYMENT FLOW
-  Intel funds The Channel Company (TCC). TCC disburses to the partner or customer.
-  Payment is by bank transfer. AWS does not participate in payment.
-  All reimbursements are calculated against post-discount Intel instance spend (EC2, RDS, ElastiCache, OpenSearch), not list price.
-
-KEY GUARDRAILS
-  Do not: AWS shares Cost Explorer data with Intel or TCC
-  Do:     Coach the customer to pull and send the data directly
-
-  Do not: Apply the rebate to list price ARR
-  Do:     Use post-discount ARR. Configure Pricing Calculator to After Discount rates
-
-  Do not: Include non-Intel-optimized instances in the eligible count
-  Do:     Filter to m8i, c8i, r8i, x8i only in all views and estimates
-
-  Do not: Present the Pricing Calculator estimate as a guaranteed payout
-  Do:     The Pricing Calculator figure is the ceiling (WNE). Actual payout is
-          based on what the customer demonstrates at each quarterly POP
-
-  Do not: Submit Q4 POP based on a single-day spend spike
-  Do:     Q4 requires at least one full billing cycle at 75%+ run-rate
-
-CUSTOMER EMAIL TEMPLATE — QUARTERLY POP SUBMISSION
-  To: jbarksdale@thechannelcompany.com
-  Subject: IAP Cost Explorer Submission — [Customer Name] — Q[X] POP
-
-  Hi Jacob,
-
-  Please find attached our Cost Explorer export for Q[X] of our IAP engagement.
-
-  Details:
-  Customer: [Legal Name]
-  Program: [Migration 4.5% / Modernization 1%]
-  Period covered: [Start Date] to [End Date]
-  Intel instance families included: m8i, c8i, r8i, x8i
-  All non-Intel families excluded from export
-
-  The Cost Explorer export is attached as a CSV.
-
-  Please confirm receipt.
-
-  [Your Name]
-  [Title] · [Company]
-
-CONTACTS
-  AWS Approval:     Yasmine Nsouli / Jeanine Reidel (reidelj@amazon.com) / Chris Chlee (SA)
-  Intel Leadership: Akanksha Bilani
-  TCC:              Jacob Barksdale (jbarksdale@thechannelcompany.com)
-
-=========================================
-Intel Accelerate Program · Managed by AWS Approval
-Intel × AWS Co-Sell Program · Confidential`;
-
-  const blob = new Blob([guide], {type: 'text/plain'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'Intel_AWS_IAP_Program_Guide.txt';
-  a.click();
-  URL.revokeObjectURL(url);
+    <h2>Contacts</h2>
+    <div class="card">
+      AWS Approval: Yasmine Nsouli / Jeanine Reidel (reidelj@amazon.com) / Chris Chlee (SA)<br>
+      Intel Leadership: Akanksha Bilani<br>
+      TCC: Jacob Barksdale (jbarksdale@thechannelcompany.com)
+    </div>
+  `;
+  openPrintableWindow('IAP Workflow Guide', html);
 }
 
 let _selectedRole = 'aws';
@@ -4790,83 +4714,42 @@ async function renderApprovalQueue(){
   container.innerHTML=html;
 }
 
-async function _disabledRunSOWCheck(){
-  const btn = document.getElementById('sow-check-btn');
-  const panel = document.getElementById('sow-check-result');
-  btn.disabled = true;
-  btn.textContent = '✦ Checking with Nova...';
-  panel.style.display = 'block';
-  panel.innerHTML = '<div style="padding:16px;font-family:Arial,sans-serif;font-size:.78rem;color:var(--ink3)">Nova is reviewing your deal...</div>';
-  try{
-    const deal = getCurrentDealData();
-    const r = await fetch(API_URL+'/ai/sow-check',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({deal})
-    });
-    const data = await r.json();
-    const res = data.result;
-    const isReady = res.ready;
-    const scoreColor = res.score >= 80 ? 'green' : 'red';
-    let html = `<div class="nova-result ${isReady?'ready':'not-ready'}">
-      <div class="nova-score ${scoreColor}">${res.score}/100 — ${isReady?'Ready to Submit':'Not Ready'}</div>`;
-    if(res.issues && res.issues.length>0){
-      html+=`<div class="nova-issues"><strong>Issues to fix:</strong><ul>`;
-      res.issues.forEach(i=>{ html+=`<li>🔴 ${i}</li>`; });
-      html+=`</ul></div>`;
-    }
-    if(res.warnings && res.warnings.length>0){
-      html+=`<div class="nova-issues"><strong>Warnings:</strong><ul>`;
-      res.warnings.forEach(w=>{ html+=`<li>${w}</li>`; });
-      html+=`</ul></div>`;
-    }
-    if(res.recommendation){
-      html+=`<div class="nova-rec">✦ ${res.recommendation}</div>`;
-    }
-    html+=`</div>`;
-    panel.innerHTML = html;
-  }catch(e){
-    panel.innerHTML = '<div style="padding:12px;color:red;font-family:Arial,sans-serif;font-size:.78rem">Nova check failed. Check your connection and try again.</div>';
-  }
-  btn.disabled = false;
-  btn.textContent = '✦ Nova SOW Check';
-}
 
-async function draftPOPWithNova(dealId){
-  const deals = await loadPipelineDealsFromCloud();
-  const deal = deals.find(d=>d.id===dealId);
-  if(!deal) return;
+function draftPOPWithNova(dealId){
+  loadPipelineDealsFromCloud().then(deals=>{
+    const deal = deals.find(d=>d.id===dealId);
+    if(!deal) return;
 
-  // Find the card and add a loading state
-  const card = document.querySelector(`[data-deal-id="${dealId}"] .pop-warn`) ||
-                document.getElementById('pop-nova-'+dealId);
+    const existingDraft = document.getElementById('nova-pop-draft-'+dealId);
+    if(existingDraft){ existingDraft.remove(); return; }
 
-  // Show loading in approval queue
-  const existingDraft = document.getElementById('nova-pop-draft-'+dealId);
-  if(existingDraft){ existingDraft.remove(); return; }
+    const draftDiv = document.createElement('div');
+    draftDiv.id = 'nova-pop-draft-'+dealId;
 
-  const loadingDiv = document.createElement('div');
-  loadingDiv.id = 'nova-pop-draft-'+dealId;
-  loadingDiv.innerHTML = '<div style="padding:10px;font-family:Arial,sans-serif;font-size:.75rem;color:#6B21A8">✦ Nova is drafting the email...</div>';
-
-  // Insert after the pop-check div
-  const popCheck = document.querySelector('.pop-check');
-  if(popCheck) popCheck.appendChild(loadingDiv);
-
-  try{
-    const r = await fetch(API_URL+'/ai/pop-draft',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({deal})
-    });
-    const data = await r.json();
-    const emailText = data.email;
+    const submitterName = (deal.team&&deal.team[0])?deal.team[0].name:deal.fhName||'there';
     const submitterEmail = (deal.team&&deal.team[0])?deal.team[0].email:deal.fhEmail||'';
-    const subj = encodeURIComponent('IAP — Proof of Performance Required: '+(deal.custName||'Deal'));
+    const custName = deal.custName || 'the customer';
+    const emailText =
+`Hi ${submitterName},
 
-    loadingDiv.innerHTML = `<div class="nova-draft">
+This deal has cleared internal review and Intel Leadership has approved the co-investment. To move to SOW, we need Proof of Performance from ${custName} — a quarterly Cost Explorer export filtered to Gen 8 Intel families (m8i, c8i, r8i, x8i).
+
+What's needed:
+- A Cost Explorer export covering the current quarter, filtered to Gen 8 instances
+- Sent directly from ${custName} to TCC — this doesn't route through AWS
+- The maximum program duration is 12 months, one calendar year, from the migration start date
+
+Once received, TCC confirms the figures against the deal record and issues the SOW.
+
+Thanks,
+Jacob Barksdale
+The Channel Company`;
+
+    const subj = encodeURIComponent('IAP — Proof of Performance Required: '+custName);
+
+    draftDiv.innerHTML = `<div class="nova-draft">
       <div class="nova-draft-header">
-        <span>✦ Nova Draft — Ready to Send</span>
+        <span>📄 Draft — Ready to Send</span>
         <div style="display:flex;gap:8px">
           <button class="btn btn-nova btn-sm" onclick="sendPOPEmail('${encodeURIComponent(emailText)}','${submitterEmail}','${subj}')">Open in Email</button>
           <button class="btn btn-secondary btn-sm" onclick="document.getElementById('nova-pop-draft-${dealId}').remove()">✕</button>
@@ -4874,9 +4757,10 @@ async function draftPOPWithNova(dealId){
       </div>
       <div>${emailText.replace(/\n/g,'<br>')}</div>
     </div>`;
-  }catch(e){
-    loadingDiv.innerHTML = '<div style="padding:10px;color:red;font-family:Arial,sans-serif;font-size:.75rem">Nova draft failed. Try again.</div>';
-  }
+
+    const popCheck = document.querySelector('.pop-check');
+    if(popCheck) popCheck.appendChild(draftDiv);
+  });
 }
 
 function sendPOPEmail(encodedBody, to, subj){
@@ -5250,7 +5134,7 @@ function getCurrentDealData(){
     actType:v('prd-deal-type')||v('activity-type'),
     paymentOption:v('payment-option'),
     migTargetDate:v('mig-start'),
-    migFrom:v('mig-from'),migTo:v('mig-to'),discountModel:parseFloat(v('discount-model'))||30,intelSegment:v('intel-segment'),
+    migFrom:v('mig-from'),migTo:v('mig-to'),discountModel:parseFloat(v('discount-model'))||20,intelSegment:v('intel-segment'),
     arrEc2:parseFloat(v('arr-ec2'))||0, arrRds:parseFloat(v('arr-rds'))||0,
     arrElastiCache:parseFloat(v('arr-elasticache'))||0, arrOpenSearch:parseFloat(v('arr-opensearch'))||0,
     awsRegion:v('cust-awsregion'), custEdpDiscount:parseFloat(v('cust-edp-discount'))||20,
@@ -5603,7 +5487,6 @@ function dealChecklist(data){
   if(!data.custName) critical.push('Customer name');
   if(!data.aceID) critical.push('ACE Opportunity ID — deals must be registered on ACE');
   if(!(data.aceAmount>0)) critical.push('ACE ARR — look it up in AWS Pricing Calculator, then enter it');
-  if(!data.partnerName) missing.push('Partner name');
   if(!data.actType) missing.push('Deal type');
   if(!data.paymentOption) missing.push('Payment option');
   if(!data.migStart) missing.push('Migration start date');
@@ -5743,30 +5626,40 @@ function renderSmartsheetPreview(d){
   ).join('');
 }
 
-async function scoreFunding(){
+function scoreFunding(){
   const panel=document.getElementById('funding-score-panel');
   panel.style.display='block';
-  panel.innerHTML='<div style="font-size:.8rem;color:var(--ink3)">Scoring against program rules…</div>';
-  try{
-    const r=await fetch(API_URL+'/ai/sow-check',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({deal:getCurrentDealData()})});
-    const j=await r.json();
-    if(!j.result){
-      panel.innerHTML='<div style="font-size:.78rem;color:#b91c1c">Scoring unavailable right now'+(j.error?(': '+j.error):'')+'. You can still review and submit.</div>';
-      return;
-    }
-    const res=j.result;
-    const score=res.score!=null?res.score:0;
-    const color=score>=80?'#16a34a':score>=55?'#d97706':'#dc2626';
-    panel.innerHTML=
-      '<div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">'+
-      '<div style="width:64px;height:64px;border-radius:50%;border:4px solid '+color+';display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.15rem;color:'+color+'">'+score+'</div>'+
-      '<div style="flex:1;min-width:220px"><div style="font-weight:700;font-size:.85rem;color:#0A1628">Funding readiness'+(res.ready?' — ready to submit':' — gaps to close')+'</div>'+
-      '<div style="font-size:.76rem;color:#555;margin-top:2px">'+(res.recommendation||'')+'</div></div></div>'+
-      ((res.issues&&res.issues.length)?'<div style="margin-top:10px;font-size:.76rem;color:#7f1d1d"><strong>Issues:</strong> '+res.issues.join(' · ')+'</div>':'')+
-      ((res.warnings&&res.warnings.length)?'<div style="margin-top:6px;font-size:.76rem;color:#78350f"><strong>Watch:</strong> '+res.warnings.join(' · ')+'</div>':'');
-  }catch(e){
-    panel.innerHTML='<div style="font-size:.78rem;color:#b91c1c">Scoring unavailable right now. You can still review and submit.</div>';
+  const d = getCurrentDealData();
+  const {critical, missing} = dealChecklist(d);
+
+  // Deterministic scoring — no AI, no network call, can never time out or hit a quota.
+  // Start at 100, critical gaps cost more than soft ones, floor at 0.
+  let score = 100 - (critical.length * 25) - (missing.length * 8);
+  score = Math.max(0, Math.min(100, score));
+  const ready = critical.length === 0;
+
+  const warnings = [];
+  if(d.migStart && d.closeDate){
+    const days = (new Date(d.closeDate) - new Date(d.migStart)) / 86400000;
+    if(days > 300 && days <= 366) warnings.push('Migration window is close to the 12-month program maximum');
   }
+  if(d.discountVerified === 'assumed') warnings.push('Customer Pricing Benefit is assumed, not verified — confirm before final payment');
+  if(!d.winWire) warnings.push('Not flagged as Win Wire — will not be fast-tracked');
+
+  let recommendation;
+  if(ready && warnings.length===0) recommendation = 'All required fields are present. Ready to submit.';
+  else if(ready) recommendation = 'Required fields are present. A few things worth double-checking before submitting.';
+  else recommendation = 'Fix the items below before this clears internal review.';
+
+  const color=score>=80?'#16a34a':score>=55?'#d97706':'#dc2626';
+  panel.innerHTML=
+    '<div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">'+
+    '<div style="width:64px;height:64px;border-radius:50%;border:4px solid '+color+';display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.15rem;color:'+color+'">'+score+'</div>'+
+    '<div style="flex:1;min-width:220px"><div style="font-weight:700;font-size:.85rem;color:#0A1628">Funding readiness'+(ready?' — ready to submit':' — gaps to close')+'</div>'+
+    '<div style="font-size:.76rem;color:#555;margin-top:2px">'+recommendation+'</div></div></div>'+
+    (critical.length?'<div style="margin-top:10px;font-size:.76rem;color:#7f1d1d"><strong>Issues:</strong> '+critical.join(' · ')+'</div>':'')+
+    (missing.length?'<div style="margin-top:6px;font-size:.76rem;color:#78350f"><strong>Missing (can amend later):</strong> '+missing.join(' · ')+'</div>':'')+
+    (warnings.length?'<div style="margin-top:6px;font-size:.76rem;color:#78350f"><strong>Watch:</strong> '+warnings.join(' · ')+'</div>':'');
 }
 
 async function loadDealById(id){
