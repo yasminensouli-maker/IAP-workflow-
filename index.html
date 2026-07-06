@@ -1403,9 +1403,9 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
     <div class="login-form">
       <label>Email Address</label>
       <input type="email" id="login-email" placeholder="email address" autocomplete="email" onkeydown="if(event.key==='Enter')doLogin()">
-      <label>Access Code</label>
-      <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
-      <div class="login-error" id="login-error">Incorrect email or access code. Contact yasmine@cloudzero.ca for access.</div>
+      <label>Password</label>
+      <input type="password" id="login-pass" placeholder="Password provided by yasmine@cloudzero.ca" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+      <div class="login-error" id="login-error">Incorrect email or password. Contact yasmine@cloudzero.ca for access.</div>
       <button class="btn-login" onclick="doLogin()">Sign In</button>
     </div>
     <div class="login-tiers">
@@ -1529,23 +1529,33 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
         </div>
 
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
+          <button class="btn btn-secondary btn-sm" onclick="goStep(3);setTimeout(()=>{setBaselineMethod(2);document.getElementById('baseline-method-2').scrollIntoView({behavior:'smooth',block:'start'});},80)">⚡ Open Pricing Calculator</button>
           <button class="btn btn-secondary btn-sm" onclick="downloadProgramOnePager()">⇩ Program Details (one-pager)</button>
           <button class="btn btn-secondary btn-sm" onclick="downloadWorkflowOnePager()">⇩ Workflow — how a deal moves</button>
         </div>
 
         <div class="section-card" style="background:linear-gradient(135deg,#f0f5ff,#fff8f0);border:1px solid #c7d7f5">
           <div class="section-card-title">What could this earn?</div>
-          <div style="font-size:.74rem;color:#555;margin-bottom:12px">Enter annual spend on EC2, RDS, ElastiCache, or OpenSearch running on Intel — see the estimate instantly, before you fill in a single field below.</div>
+          <div style="font-size:.74rem;color:#555;margin-bottom:12px">Enter monthly spend (MRR) on EC2, RDS, ElastiCache, or OpenSearch running on Intel — see the estimate instantly, before you fill in a single field below.</div>
           <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
-            <input type="number" id="calc-spend" placeholder="Annual spend, e.g. 500000" oninput="calcTopEarnings()" style="flex:1;min-width:180px;padding:9px 10px;border:1px solid #c7d7f5;border-radius:6px;font-size:.85rem">
+            <input type="number" id="calc-spend" placeholder="Monthly spend (MRR), e.g. 42000" oninput="calcTopEarnings()" style="flex:1;min-width:180px;padding:9px 10px;border:1px solid #c7d7f5;border-radius:6px;font-size:.85rem">
             <select id="calc-type" onchange="calcTopEarnings()" style="padding:9px 10px;border:1px solid #c7d7f5;border-radius:6px;font-size:.82rem">
               <option value="Migrate">Migrate (4.5%)</option>
               <option value="Modernize">Modernization (1%, cap $250K)</option>
             </select>
+            <select id="calc-family" onchange="calcTopEarnings()" style="padding:9px 10px;border:1px solid #c7d7f5;border-radius:6px;font-size:.82rem">
+              <option value="">Instance family (optional)</option>
+              <option value="m8i">m8i — General Purpose, Gen 8</option>
+              <option value="c8i">c8i — Compute Optimized, Gen 8</option>
+              <option value="r8i">r8i — Memory Optimized, Gen 8</option>
+              <option value="x8i">x8i — Extra Large Memory, Gen 8, SAP RISE</option>
+              <option value="u7i">u7i — Ultra Large Memory, largest memory footprint on AWS, not always Gen 8 but eligible under Migrate for SAP RISE and similar</option>
+            </select>
           </div>
+          <div style="font-size:.66rem;color:#888;margin-bottom:10px">MRR × 12 = target ARR, same as the Simple Monthly calculation used everywhere else in the app</div>
           <div id="calc-result" style="display:none">
             <div style="font-size:1.3rem;font-weight:800;color:#0068B5" id="calc-earning">—</div>
-            <div style="font-size:.68rem;color:#666;margin-bottom:10px">Net program revenue — after discounts and credits, at a 20% blended discount</div>
+            <div style="font-size:.68rem;color:#666;margin-bottom:10px">Undiscounted estimate against full target ARR — no blended pricing assumption applied. Set blended pricing explicitly in Simple Monthly below.</div>
             <div style="font-size:.68rem;color:#0A1628;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">How it would pay out — Quarterly (15/15/20/50)</div>
             <div id="calc-schedule" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px"></div>
           </div>
@@ -1780,7 +1790,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
         <div id="aws-specialist-view">
         <div class="section-card">
           <div class="section-card-title">Deal Team</div>
-          <div style="font-size:.7rem;color:var(--ink3);margin-bottom:8px">Added by: AWS Specialist</div>
+          <div style="font-size:.7rem;color:var(--ink3);margin-bottom:8px">Role: AWS Account Team or Intel Account Team</div>
           <div class="alert alert-info" style="margin-bottom:14px">Add all people involved in originating this deal. At least one submitter is required.</div>
 
           <div id="deal-team-rows">
@@ -1928,6 +1938,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
               <select id="deal-segment">
                 <option value="">— Segment —</option>
                 <option>CSD</option>
+                <option>DNB</option>
                 <option>ENT</option>
                 <option>ISV</option>
                 <option>SMB</option>
@@ -2022,7 +2033,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
 
         <div class="section-card">
           <div class="section-card-title">AWS ARR Breakdown</div>
-          <div style="font-size:.75rem;color:var(--ink3);margin-bottom:10px">Break down the total ARR across these eligible services. The four numbers below sum automatically into the ACE ARR field.</div>
+          <div style="font-size:.75rem;color:var(--ink3);margin-bottom:10px">ACE ARR comes from Simple Monthly (Step 3) by default — Monthly × 12, region-adjusted. Only fill in the four fields below if you need the total split out by service; doing so overrides the Simple Monthly figure.</div>
           <div class="form-grid">
             <div class="f-group">
               <label>EC2 ARR ($)</label>
@@ -2060,7 +2071,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
           <div class="form-grid" style="margin-top:14px">
             <div class="f-group">
               <label>AWS Region</label>
-              <select id="cust-awsregion">
+              <select id="cust-awsregion" onchange="calcSimpleMonthly()">
                 <option value="">— AWS Region —</option>
                 <option>us-east-1 (N. Virginia)</option>
                 <option>us-east-2 (Ohio)</option>
@@ -2151,14 +2162,14 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
           <div class="section-card-title">Opportunity IDs — provide at least one</div>
           <div class="form-grid">
             <div class="f-group">
-              <label>ACE Opportunity ID <span class="req">*</span></label>
+              <label>ACE Opportunity ID <span class="req">*</span> <span style="font-weight:400;color:var(--ink3);font-size:.68rem">(add later but required)</span></label>
               <input type="text" id="ace-id" placeholder="O-XXXXXXXXXX" oninput="validateACE(this)" class="mono">
-              <span class="hint" id="ace-hint">Format: O- followed by alphanumeric (e.g. O-AB12345678)</span>
+              <span class="hint" id="ace-hint">Format: O- followed by alphanumeric (e.g. O-AB12345678). If you don't have it yet, submit with this field blank and add it once the deal is registered on ACE.</span>
             </div>
             <div class="f-group">
               <label>ACE ARR ($) <span class="req">*</span></label>
-              <input type="number" id="ace-amount" placeholder="Derived from Simple Monthly × 12" min="0" oninput="this.dataset.userEdited=1">
-              <span class="hint" id="ace-arr-hint">Derived from the Simple Monthly Target (monthly × 12). Open the calculator below to check the figure.</span>
+              <input type="number" id="ace-amount" placeholder="Pulled from AWS MRR breakdown" min="0" oninput="this.dataset.userEdited=1">
+              <span class="hint" id="ace-arr-hint">Pulled from the AWS MRR breakdown (Simple Monthly, Step 3): monthly × 12, region-adjusted. Open the calculator below to check the figure.</span>
             </div>
             <div class="f-group">
               <label>Deal Type <span class="req">*</span></label>
@@ -2177,15 +2188,6 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
                 <option>Lump Sum (post 75%)</option>
                 <option>Custom</option>
               </select>
-              <div style="background:var(--bg);border:1px solid var(--border2);border-radius:8px;padding:10px 12px;margin-top:8px;font-size:.74rem;color:var(--ink2);line-height:1.7">
-                <strong>Quarterly (15/15/20/50)</strong> — back-loaded, tied to Cost Explorer milestones:<br>
-                Q1: 15% on baseline Cost Explorer submitted (15% cumulative)<br>
-                Q2: 15% at 25% of target ARR on Gen 8 (30% cumulative)<br>
-                Q3: 20% at 50% of target ARR on Gen 8 (50% cumulative)<br>
-                Q4: 50% at 75% of target ARR on Gen 8, sustained 30 days (100% cumulative)<br>
-                <strong>Lump Sum (post 75%)</strong> — one payment once 75% of target ARR on Gen 8 is confirmed.<br>
-                <strong>Custom</strong> — any other structure; describe the triggers, percentages, and timing below.
-              </div>
               <div id="payment-custom-wrap" style="display:none;margin-top:8px">
                 <textarea id="payment-custom-details" placeholder="Describe the custom payment structure — triggers, percentages, and timing"></textarea>
               </div>
@@ -2248,7 +2250,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
           <div class="step-desc">Enter the baseline (Cost Explorer) and target post-migration spend (Simple Monthly). Intel pays 4.5% or 1% of total target ARR. Monthly breakdown required for POP. ★</div>
         </div>
         <div class="section-card">
-          <div class="section-card-title">Migration Path &amp; Discount Model</div>
+          <div class="section-card-title">Migration Path &amp; Blended Pricing</div>
           <div class="form-grid">
             <div class="f-group">
               <label>Migrating From</label>
@@ -2256,133 +2258,113 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
               <span class="hint">Current environment or instance families</span>
             </div>
             <div class="f-group">
-              <label>Migrating To — 8th Gen Intel <span class="req">*</span></label>
+              <label>Migrating To — Intel Target <span class="req">*</span></label>
               <select id="mig-to">
-                <option value="">— Select 8th Gen Target —</option>
-                <option>m8i / m8i-flex — General Purpose</option>
-                <option>c8i / c8i-flex — Compute Optimized</option>
-                <option>r8i / r8i-flex — Memory Optimized</option>
-                <option>x8i — Extra Large Memory</option>
+                <option value="">— Select Intel Target —</option>
+                <option>m8i / m8i-flex — General Purpose, Gen 8</option>
+                <option>c8i / c8i-flex — Compute Optimized, Gen 8</option>
+                <option>r8i / r8i-flex — Memory Optimized, Gen 8</option>
+                <option>x8i — Extra Large Memory, Gen 8</option>
+                <option>u7i — Ultra Large Memory, not always Gen 8, eligible for SAP RISE and similar large-memory migrations</option>
               </select>
-              <span class="hint">Program eligibility requires a Gen 8 Intel target</span>
+              <span class="hint">Program eligibility is not always Gen 8 — u7i qualifies for Migrate when it's the right fit, most commonly SAP RISE</span>
             </div>
             <div class="f-group">
-              <label>Discount Model (%)</label>
+              <label>Blended Pricing (%)</label>
               <input type="number" id="discount-model" placeholder="e.g. 20" min="0" max="100" value="20">
-              <span class="hint">Blended discount budget applied to Target ARR. Use the Intel Pricing tab to pull live instance pricing for an informed estimate.</span>
+              <span class="hint">Blended pricing budget applied to Target ARR. Use the Intel Pricing tab to pull live instance pricing for an informed estimate.</span>
             </div>
           </div>
         </div>
 
 
-        <!-- ── COST EXPLORER GUIDE ── -->
-        <div style="border:1px solid #e0e7ff;border-radius:8px;margin-bottom:16px;overflow:hidden">
-          <div style="background:linear-gradient(135deg,#001f5c,#003087);color:#fff;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="toggleCEGuide()">
-            <div>
-              <div style="font-weight:700;font-size:.82rem">Cost Explorer Guide — How to Pull the Baseline &amp; POP</div>
-              <div style="font-size:.68rem;opacity:.8;margin-top:2px">Step-by-step · Customer sends directly to TCC and Intel · AWS cannot forward this data</div>
-            </div>
-            <span id="ce-guide-arrow" style="font-size:1rem;transition:.2s">▼</span>
-          </div>
-          <div id="ce-guide-body" style="display:none;padding:16px;background:#fafbff">
-
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
-              <div>
-                <div style="font-size:.68rem;font-weight:700;color:#001f5c;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Step-by-Step: Pulling the Baseline</div>
-                <ol style="font-size:.74rem;color:#444;line-height:2;padding-left:16px;margin:0">
-                  <li>AWS Console → Billing & Cost Management → Cost Explorer</li>
-                  <li>Set <strong>Service</strong> filter to <strong>EC2, RDS, ElastiCache, OpenSearch</strong></li>
-                  <li>Group by <strong>Instance Type</strong></li>
-                  <li>Set date range to <strong>last 3–12 months</strong></li>
-                  <li>Filter to Intel families: <strong>m8i, c8i, r8i, x8i</strong> only<br><span style="color:#e53e3e;font-size:.68rem">Exclude non-Intel families</span></li>
-                  <li><strong>Save this filter</strong> as a named report — reuse each quarter</li>
-                  <li>Export as <strong>CSV or screenshot</strong></li>
-                  <li>Customer emails export <strong>directly to TCC and Intel</strong></li>
-                </ol>
-              </div>
-              <div>
-                <div style="font-size:.68rem;font-weight:700;color:#001f5c;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Quarterly POP — Same Steps, New Date Range</div>
-                <div style="background:#f0f7f0;border-radius:6px;padding:10px;border:1px solid #86efac;margin-bottom:8px">
-                  <div style="font-size:.7rem;color:#166534;font-weight:700;margin-bottom:4px">Pro Tip: Save the Filter</div>
-                  <div style="font-size:.7rem;color:#444;line-height:1.6">When pulling the baseline, save the Cost Explorer filter configuration as a named saved report. For each quarterly POP, the customer reopens the same report, updates only the date range, and exports. A 5-step setup becomes a 1-click action every quarter.</div>
-                </div>
-                <div style="font-size:.7rem;color:#444;line-height:1.8">
-                  <strong>Q1 (Month 3):</strong> Initial Intel instances live<br>
-                  <strong>Q2 (Month 6):</strong> Date range = Month 4–6<br>
-                  <strong>Q3 (Month 9):</strong> Date range = Month 7–9<br>
-                  <strong>Q4 (Month 12):</strong> Date range = Month 10–12 · Must show 30+ days sustained
-                </div>
-              </div>
-            </div>
-
-            <div style="border-top:1px solid #e0e7ff;padding-top:12px">
-              <div style="font-size:.68rem;font-weight:700;color:#001f5c;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Customer Submission Email Template</div>
-              <div style="background:#f8f8f8;border:1px solid #ddd;border-radius:6px;padding:12px;font-family:monospace;font-size:.72rem;line-height:1.8;position:relative">
-                <button onclick="copyCETemplate()" style="position:absolute;top:8px;right:8px;background:#003087;color:#fff;border:none;border-radius:4px;padding:3px 8px;font-size:.65rem;cursor:pointer">Copy</button>
-                <div id="ce-email-template">To: jbarksdale@thechannelcompany.com<br>
-Subject: IAP Cost Explorer Submission — [Customer Name] — Q[X] POP<br>
-<br>
-Hi Jacob,<br>
-<br>
-Please find attached our Cost Explorer export for [Q1/Q2/Q3/Q4] of our IAP engagement.<br>
-<br>
-Details:<br>
-- Customer: [Legal Name]<br>
-- Program: [Migration 4.5% / Modernization 1%]<br>
-- Period covered: [Start Date] to [End Date]<br>
-- Intel instance families included: m8i, c8i, r8i, x8i<br>
-- Non-Intel families excluded from export<br>
-<br>
-The Cost Explorer export is attached as a CSV.<br>
-<br>
-Please confirm receipt.<br>
-<br>
-[Your Name]<br>
-[Title] · [Company]</div>
-              </div>
-            </div>
-
-            <div style="background:#fff8f0;border-radius:6px;padding:10px 12px;border-left:3px solid #f97316;margin-top:12px;font-size:.72rem;color:#555;line-height:1.6">
-              <strong style="color:#c2410c">Compliance reminder:</strong> AWS cannot share or forward Cost Explorer data to Intel or TCC. The customer must pull the export from their own AWS console and send it directly. AWS may coach the customer on how to use the tool — that is the extent of AWS involvement in the data transfer.
-            </div>
-          </div>
-        </div>
-
-        <div class="calc-methodology">
-          <strong>How it works:</strong> Intel provides resources to support migrations and optimizations based on the customer's targeted Intel-instance ARR across EC2, RDS, ElastiCache, and OpenSearch. The customer pulls their current spend from Cost Explorer and sends it directly to TCC and Intel. The AWS Pricing Calculator models the post-migration monthly spend. Simple Monthly × 12 = Target ARR. Proof of Performance requires the customer to confirm actual Intel instance spend each quarter. Maximum program duration is 12 months.
+        <div class="section-card" style="background:#fff8f0;border-left:3px solid #f97316">
+          <div class="section-card-title" style="margin-bottom:6px">POP Resources</div>
+          <div style="font-size:.76rem;color:#555;line-height:1.6">Proof of Performance is the customer's own Cost Explorer export, sent directly to TCC and Intel — AWS cannot share or forward this data. Full step-by-step instructions and the submission email template live outside this app so they can be kept current independent of a build.</div>
+          <a href="https://docs.aws.amazon.com/cost-management/latest/userguide/ce-what-is.html" target="_blank" rel="noopener" style="display:inline-block;margin-top:8px;font-size:.78rem;font-weight:600;color:#0068B5">Cost Explorer documentation ↗</a>
         </div>
 
         <div class="section-card" style="margin-bottom:16px">
-          <div class="section-card-title">Step 1 — Establish Baseline</div>
-          <div class="alert alert-warn" style="margin-bottom:14px">
-            <strong>AWS cannot share customer data with Intel or any third party.</strong> Cost Explorer must be sent directly by the customer to The Channel Company and Intel. Choose one method below based on what data is available.
-          </div>
-
-          <div class="alert alert-info" style="margin-bottom:14px">
-            <strong>How the customer finds Cost Explorer:</strong> AWS Console → top-right account menu → Billing and Cost Management → Cost Explorer → set Service to EC2 → Group by Instance Type → set date range (last 3–12 months) → export CSV or take a screenshot. Filter to Intel instance families in scope. The customer sends this directly to The Channel Company and Intel. AWS cannot facilitate this transfer.
-          </div>
-          <!-- Two-tab method selector -->
+          <div class="section-card-title">Step 1 — BOM to Intel Instances</div>
+          <div style="font-size:.74rem;color:var(--ink3);margin-bottom:12px">Start here: take what's in your BOM and translate it into the Intel-powered instances that back the funding ask. Add a fleet per region if pricing differs — each region prices differently.</div>
+          <!-- Three-tab method selector -->
           <div style="display:flex;gap:0;margin-bottom:16px;border:1px solid var(--border);border-radius:6px;overflow:hidden">
             <button id="method-btn-1" onclick="setBaselineMethod(1)"
               style="flex:1;padding:10px;font-family:Arial,sans-serif;font-size:.75rem;font-weight:700;border:none;background:var(--intel);color:#fff;cursor:pointer;border-right:1px solid rgba(255,255,255,.2)">
-              Cost Explorer
+              Fleet Builder
             </button>
             <button id="method-btn-2" onclick="setBaselineMethod(2)"
+              style="flex:1;padding:10px;font-family:Arial,sans-serif;font-size:.75rem;font-weight:700;border:none;background:var(--bg);color:var(--ink2);cursor:pointer;border-right:1px solid var(--border)">
+              SAP RISE BOM
+            </button>
+            <button id="method-btn-3" onclick="setBaselineMethod(3)"
               style="flex:1;padding:10px;font-family:Arial,sans-serif;font-size:.75rem;font-weight:700;border:none;background:var(--bg);color:var(--ink2);cursor:pointer">
-              ⚡ Intel Instance Pricing
+              ⚡ Ask Intel Anything
             </button>
           </div>
 
-          <!-- Method 1: Cost Explorer — existing fleet baseline -->
+          <!-- Method 1: Fleet Builder — BOM to Intel instances, multi-fleet for multi-region -->
           <div id="baseline-method-1">
             <div class="alert alert-info" style="margin-bottom:12px">
-              <strong>Cost Explorer = existing fleet baseline.</strong> The customer's actual EC2 spend establishes the ARR against which the IAP benefit is calculated. This is the preferred method for existing workloads already running on AWS.
-              <div style="margin-top:8px;font-size:.78rem">Cost Explorer isn't uploaded here — it's collected directly between TCC and the customer after the SOW is signed, as part of Proof of Performance. AWS never handles or forwards this data.</div>
+              <strong>One fleet per region.</strong> If the same deal spans regions with different pricing, add a fleet for each — the totals below combine automatically.
+            </div>
+            <div class="fleet-container" id="fleet-container">
+              <!-- Fleet rows injected by JS -->
+            </div>
+            <button class="btn btn-secondary btn-sm" onclick="addFleet()">+ Add Fleet</button>
+          </div>
+
+          <!-- Method 2: SAP RISE BOM -->
+          <div id="baseline-method-2" style="display:none">
+            <div style="font-size:.72rem;color:#0A1628;margin-bottom:10px;padding:8px 12px;background:#DBEAFE;border-radius:5px;border-left:3px solid #0068B5">
+              AWS Avg ARR from a RISE BOM blends compute with storage and network passthrough charges. This strips out EBS Snapshot and Network Connectivity before the IAP rate applies, so the funding ask is defensible against a "show me your math" challenge.
+            </div>
+            <a href="https://calculator.aws/#/" target="_blank" rel="noopener"
+              style="display:inline-flex;align-items:center;gap:6px;margin-bottom:12px;background:#0068B5;color:#fff;font-size:.76rem;font-weight:700;padding:8px 14px;border-radius:6px;text-decoration:none">
+              ⧉ Open AWS Pricing Calculator — get SAP instance sizing and pricing, then fill in the figures below
+            </a>
+            <div class="form-grid" style="grid-template-columns:1fr 1fr 1fr">
+              <div class="f-group">
+                <label>AWS Avg ARR ($) <span style="font-size:.6rem;color:#0A1628">— from BOM Financial Summary</span></label>
+                <input type="number" id="rise-avg-arr" placeholder="e.g. 1040113" min="0" step="100"
+                  oninput="calcRiseBOM()" style="font-size:.85rem;font-weight:700;border:2px solid #0068B5">
+              </div>
+              <div class="f-group">
+                <label>EBS Snapshot Cost, annual ($)</label>
+                <input type="number" id="rise-ebs" placeholder="Sum across all phases" min="0" step="10"
+                  oninput="calcRiseBOM()">
+              </div>
+              <div class="f-group">
+                <label>Network Connectivity, annual ($)</label>
+                <input type="number" id="rise-netconn" placeholder="Sum across all phases" min="0" step="10"
+                  oninput="calcRiseBOM()">
+              </div>
+            </div>
+            <div class="form-grid" style="grid-template-columns:1fr 1fr 1fr;margin-top:10px">
+              <div class="f-group">
+                <label>RISE Funding Total ($) <span style="font-size:.6rem;color:#0A1628">— from BOM, optional stack</span></label>
+                <input type="number" id="rise-funding-total" placeholder="e.g. 699284" min="0" step="100"
+                  oninput="calcRiseBOM()">
+              </div>
+              <div class="f-group">
+                <label>IAP Term</label>
+                <select id="rise-term-years" onchange="calcRiseBOM()">
+                  <option value="1" selected>1 year (recommended — matches quarterly milestone funding)</option>
+                  <option value="5">5 years (full contract term)</option>
+                </select>
+              </div>
+              <div class="f-group">
+                <label>Compute-Only ARR</label>
+                <div id="rise-compute-arr" style="font-size:1.1rem;font-weight:700;color:var(--ink);padding:8px 0">$0</div>
+                <span class="hint">AWS Avg ARR minus EBS + Network Connectivity</span>
+              </div>
+            </div>
+            <div id="rise-bom-breakdown" style="display:none;margin-top:10px;padding:10px 14px;background:#fff;border-radius:6px;border:1px solid #0068B5;font-size:.74rem;line-height:1.8;color:#0A1628">
             </div>
           </div>
 
-          <!-- Method 2: Intel Instance Pricing Chat -->
-          <div id="baseline-method-2" style="display:none">
+          <!-- Method 3: Ask Intel Anything -->
+          <div id="baseline-method-3" style="display:none">
             <div class="alert alert-info" style="margin-bottom:12px">
               <strong>🧞 Ask Intel Anything</strong> — live pricing, program rates, and regional availability, straight answers, no vague ones.
             </div>
@@ -2413,102 +2395,24 @@ Please confirm receipt.<br>
             </div>
           </div>
         </div>
-        <div style="display:none">
-        <div class="fleet-container" id="fleet-container">
-          <!-- Fleet rows injected by JS -->
-        </div>
 
-        <button class="btn btn-secondary btn-sm" onclick="addFleet()">+ Add Fleet</button>
-        </div>
-
-        <!-- Simple Monthly ★ -->
+        <!-- Simple Monthly — link only, per request. Fleet Builder above is now the primary DNE engine. -->
         <div class="section-card mt16" id="simple-monthly-card" style="border:2px solid #FCD34D;background:#FFFBEB">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
             <span style="color:var(--red);font-size:1rem;font-weight:700">★</span>
-            <div class="section-card-title" style="color:#92400e;margin-bottom:0">Simple Monthly Target</div>
-            <span style="font-size:.65rem;color:#92400e;font-weight:600">Required for POP submission to Intel</span>
+            <div class="section-card-title" style="color:#92400e;margin-bottom:0">Simple Monthly</div>
             <a href="https://calculator.aws" target="_blank"
               style="margin-left:auto;background:#FF9900;color:#fff;border:none;border-radius:5px;padding:5px 12px;font-size:.7rem;font-weight:700;cursor:pointer;font-family:Arial,sans-serif;text-decoration:none;display:inline-flex;align-items:center;gap:4px">
               🔗 Open AWS Pricing Calculator
             </a>
           </div>
-          <div style="font-size:.72rem;color:#92400e;margin-bottom:10px;padding:8px 12px;background:#FEF3C7;border-radius:5px;border-left:3px solid #F59E0B">
-            Build your estimate in the AWS Pricing Calculator, get the monthly total, then paste it below.
-          </div>
-          <div class="form-grid" style="grid-template-columns:1fr 1fr 1fr">
-            <div class="f-group">
-              <label>Monthly Spend Post-Migration ($) <span style="font-size:.6rem;color:#92400e">— paste from AWS Calculator</span></label>
-              <input type="number" id="simple-monthly" placeholder="Paste monthly total from AWS Calculator"
-                min="0" step="100" oninput="calcSimpleMonthly()"
-                style="font-size:.85rem;font-weight:700;border:2px solid #FCD34D">
-              <span class="hint">Set this as the target monthly spend in the SOW</span>
-            </div>
-            <div class="f-group">
-              <label>Target ARR (× 12)</label>
-              <div id="sm-annual" style="font-size:1.1rem;font-weight:700;color:var(--ink);padding:8px 0">$0</div>
-              <span class="hint">This is the ARR Intel pays against</span>
-            </div>
-            <div class="f-group">
-              <label>Monthly Intel Benefit</label>
-              <div id="sm-monthly-benefit" style="font-size:1.1rem;font-weight:700;color:var(--green);padding:8px 0">$0</div>
-              <span class="hint">Target ARR × rate ÷ 12</span>
-            </div>
-          </div>
-          <div id="sm-breakdown" style="display:none;margin-top:10px;padding:10px 14px;background:#fff;border-radius:6px;border:1px solid #FCD34D;font-size:.74rem;line-height:1.8;color:#78350f">
-          </div>
+          <div style="font-size:.7rem;color:#92400e;margin-top:6px">Model it in the AWS Pricing Calculator. Bring the monthly total (MRR) into a Fleet above — MRR × 12 is what feeds the Not to Exceed number.</div>
+          <!-- Hidden field kept for backward compatibility with calcSimpleMonthly()/DNE wiring if ever re-enabled -->
+          <input type="hidden" id="simple-monthly" value="0">
+          <div id="sm-annual" style="display:none">$0</div>
+          <div id="sm-monthly-benefit" style="display:none">$0</div>
+          <div id="sm-breakdown" style="display:none"></div>
         </div>
-
-        <!-- SAP RISE BOM ★ -->
-        <div class="section-card mt16" id="rise-bom-card" style="border:2px solid #0068B5;background:#EFF6FF">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
-            <span style="color:var(--intel);font-size:1rem;font-weight:700">★</span>
-            <div class="section-card-title" style="color:#0A1628;margin-bottom:0">SAP RISE BOM — Compute-Only ARR</div>
-            <span style="font-size:.65rem;color:#0A1628;font-weight:600">Use when ARR comes from a SAP RISE / AWS calculator BOM export</span>
-          </div>
-          <div style="font-size:.72rem;color:#0A1628;margin-bottom:10px;padding:8px 12px;background:#DBEAFE;border-radius:5px;border-left:3px solid #0068B5">
-            AWS Avg ARR from a RISE BOM blends compute with storage and network passthrough charges. This strips out EBS Snapshot and Network Connectivity before the IAP rate applies, so the funding ask is defensible against a "show me your math" challenge.
-          </div>
-          <div class="form-grid" style="grid-template-columns:1fr 1fr 1fr">
-            <div class="f-group">
-              <label>AWS Avg ARR ($) <span style="font-size:.6rem;color:#0A1628">— from BOM Financial Summary</span></label>
-              <input type="number" id="rise-avg-arr" placeholder="e.g. 1040113" min="0" step="100"
-                oninput="calcRiseBOM()" style="font-size:.85rem;font-weight:700;border:2px solid #0068B5">
-            </div>
-            <div class="f-group">
-              <label>EBS Snapshot Cost, annual ($)</label>
-              <input type="number" id="rise-ebs" placeholder="Sum across all phases" min="0" step="10"
-                oninput="calcRiseBOM()">
-            </div>
-            <div class="f-group">
-              <label>Network Connectivity, annual ($)</label>
-              <input type="number" id="rise-netconn" placeholder="Sum across all phases" min="0" step="10"
-                oninput="calcRiseBOM()">
-            </div>
-          </div>
-          <div class="form-grid" style="grid-template-columns:1fr 1fr 1fr;margin-top:10px">
-            <div class="f-group">
-              <label>RISE Funding Total ($) <span style="font-size:.6rem;color:#0A1628">— from BOM, optional stack</span></label>
-              <input type="number" id="rise-funding-total" placeholder="e.g. 699284" min="0" step="100"
-                oninput="calcRiseBOM()">
-            </div>
-            <div class="f-group">
-              <label>IAP Term</label>
-              <select id="rise-term-years" onchange="calcRiseBOM()">
-                <option value="1" selected>1 year (recommended — matches quarterly milestone funding)</option>
-                <option value="5">5 years (full contract term)</option>
-              </select>
-            </div>
-            <div class="f-group">
-              <label>Compute-Only ARR</label>
-              <div id="rise-compute-arr" style="font-size:1.1rem;font-weight:700;color:var(--ink);padding:8px 0">$0</div>
-              <span class="hint">AWS Avg ARR minus EBS + Network Connectivity</span>
-            </div>
-          </div>
-          <div id="rise-bom-breakdown" style="display:none;margin-top:10px;padding:10px 14px;background:#fff;border-radius:6px;border:1px solid #0068B5;font-size:.74rem;line-height:1.8;color:#0A1628">
-          </div>
-        </div>
-
-        <!-- Running Totals -->
         <div class="calc-totals mt16" id="calc-totals" style="grid-template-columns:repeat(5,1fr)">
           <div class="calc-total-item">
             <label>Total List Price ARR</label>
@@ -2545,8 +2449,7 @@ Please confirm receipt.<br>
         </div>
 
         <div class="btn-row">
-          <button class="btn btn-secondary" onclick="goStep(6)">← Return to Deal Summary</button>
-          
+          <button class="btn btn-primary" onclick="goStep(1)">Continue → Deal Info</button>
         </div>
       </div>
 
@@ -2647,6 +2550,7 @@ Please confirm receipt.<br>
 
         <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
           <button class="btn btn-primary" onclick="generateSummary()">⚡ Generate Summary</button>
+          <button class="btn btn-secondary" onclick="printInternalSummary()">🖨 Print Summary</button>
           <button class="btn btn-secondary" onclick="downloadCustomerSafeSummary()">📄 Customer-Safe Summary (no internal figures)</button>
           
         </div>
@@ -2840,17 +2744,20 @@ let teamMembers = [];
 let teamCount = 0;
 
 function calcTopEarnings(){
-  const spend = parseFloat(document.getElementById('calc-spend').value) || 0;
+  const mrr = parseFloat(document.getElementById('calc-spend').value) || 0;
   const type = document.getElementById('calc-type').value;
   const result = document.getElementById('calc-result');
-  if(spend <= 0){ result.style.display = 'none'; return; }
+  if(mrr <= 0){ result.style.display = 'none'; return; }
   result.style.display = 'block';
-  const eligible = spend * 0.80; // 20% blended discount, matches app default
+  const targetArr = mrr * 12;
+  // No blended pricing assumption baked in here — this is a quick, undiscounted
+  // estimate against full target ARR. Blended pricing is set explicitly in
+  // Simple Monthly (Step 3), where it's a visible, editable field, not a hidden default.
+  let benefit = targetArr * (type==='Modernize' ? 0.01 : 0.045);
   const isModernize = type === 'Modernize';
-  let benefit = eligible * (isModernize ? 0.01 : 0.045);
   if(isModernize && benefit > 250000) benefit = 250000;
   const fmtD = v => '$' + Math.round(v).toLocaleString();
-  document.getElementById('calc-earning').textContent = fmtD(benefit) + ' estimated annual benefit';
+  document.getElementById('calc-earning').textContent = fmtD(benefit) + ' estimated annual benefit (on ' + fmtD(targetArr) + ' target ARR, undiscounted)';
   const pcts = [0.15, 0.15, 0.20, 0.50];
   const labels = ['Q1','Q2','Q3','Q4'];
   document.getElementById('calc-schedule').innerHTML = pcts.map((p,i) =>
@@ -2920,6 +2827,7 @@ function doLogin(){
   });
 
   initApp();
+  goStep(3); // Workflow now starts with the Calculator (SAP RISE BOM is a tab within it), then moves to Deal Info
 }
 
 function doLogout(){
@@ -2993,6 +2901,8 @@ const INSTANCE_FAMILIES = [
   {val:'m8i',    label:'m8i — General Purpose (Intel Xeon 6, Gen 8)'},
   {val:'c8i',    label:'c8i — Compute Optimized (Intel Xeon 6, Gen 8)'},
   {val:'r8i',    label:'r8i — Memory Optimized (Intel Xeon 6, Gen 8)'},
+  {val:'x8i',    label:'x8i — Extra Large Memory (Intel Xeon 6, Gen 8, SAP RISE)'},
+  {val:'u7i',    label:'u7i — Ultra Large Memory, not always Gen 8, SAP RISE and similar'},
   // Gen 7 — Intel Xeon Scalable 4th Gen
   {val:'m7i',    label:'m7i — General Purpose (Intel Xeon Scalable, Gen 7)'},
   {val:'c7i',    label:'c7i — Compute Optimized (Intel Xeon Scalable, Gen 7)'},
@@ -3099,7 +3009,7 @@ async function getIntelPricing(id){
 function addFleet(){
   fleetCount++;
   const id = fleetCount;
-  fleets.push({id, type:'nn', instance:'', discount:'od', listARR:0, customDisc:0});
+  fleets.push({id, type:'nn', instance:'', discount:'od', listARR:0, customDisc:0, region:''});
 
   const container = document.getElementById('fleet-container');
   const div = document.createElement('div');
@@ -3122,7 +3032,7 @@ function addFleet(){
         ${id>1?`<button class="btn btn-danger btn-sm" onclick="removeFleet(${id})">Remove</button>`:''}
       </div>
     </div>
-    <div class="fleet-fields" style="grid-template-columns:1.4fr 0.7fr 0.7fr 1fr 1.1fr auto">
+    <div class="fleet-fields" style="grid-template-columns:1.3fr 0.7fr 0.6fr 1fr 1fr 1fr 0.9fr auto">
       <div class="f-group">
         <label>Target Instance Family</label>
         <select id="f${id}-inst" onchange="calcFleet(${id})" style="font-size:.75rem">
@@ -3151,18 +3061,26 @@ function addFleet(){
           min="1" oninput="autoARR(${id})">
       </div>
       <div class="f-group">
-        <label>Annual List $/Instance</label>
-        <input type="number" id="f${id}-perinst" placeholder="e.g. 25000"
-          min="0" step="100" oninput="autoARR(${id})">
-        <span class="hint" style="font-size:.6rem">Count × this = ARR</span>
+        <label>Region</label>
+        <select id="f${id}-region" onchange="autoARR(${id})" style="font-size:.75rem">
+          ${REGION_OPTIONS}
+        </select>
+        <span class="hint" style="font-size:.6rem">Each region prices differently — add another fleet for a second region</span>
+      </div>
+      <div class="f-group">
+        <label>Monthly List $/Instance</label>
+        <input type="number" id="f${id}-perinst" placeholder="e.g. 2100"
+          min="0" step="10" oninput="autoARR(${id})">
+        <span class="hint" style="font-size:.6rem">Count × this × 12 × region = ARR</span>
       </div>
       <div class="f-group">
         <label>Annual List ARR ($)</label>
         <input type="number" id="f${id}-list" placeholder="auto or manual"
           oninput="calcFleet(${id})" min="0" step="1000">
+        <span class="hint" style="font-size:.6rem">= Not to Exceed basis</span>
       </div>
       <div class="f-group">
-        <label>Discount Model</label>
+        <label>Blended Pricing</label>
         <select id="f${id}-disc" onchange="handleDiscountChange(${id})" style="font-size:.75rem">
           ${discOptions}
         </select>
@@ -3246,6 +3164,34 @@ const AUTOFILL_LABELS = {
   dealName:'Deal Name', custName:'Customer', partnerName:'Partner', actType:'Deal Type',
   aceID:'ACE Opportunity ID', targetArr:'Target ARR', migStart:'Migration Start', closeDate:'Close Date'
 };
+
+// Directional AWS list-price multipliers relative to us-east-1, used only to
+// flag when a deal's region carries a meaningfully different cost base.
+// These are approximate and should be checked against the customer's actual
+// Cost Explorer or Pricing Calculator export before a number is finalized —
+// this is a sanity-check adjustment, not a substitute for real regional pricing.
+const REGION_MULTIPLIERS = {
+  'us-east-1 (N. Virginia)': 1.00, 'us-east-2 (Ohio)': 1.00,
+  'us-west-1 (N. California)': 1.08, 'us-west-2 (Oregon)': 1.00,
+  'ca-central-1 (Canada Central)': 1.03, 'ca-west-1 (Calgary)': 1.05,
+  'mx-central-1 (Mexico)': 1.06, 'sa-east-1 (São Paulo)': 1.35,
+  'eu-west-1 (Ireland)': 1.09, 'eu-west-2 (London)': 1.12,
+  'eu-west-3 (Paris)': 1.12, 'eu-central-1 (Frankfurt)': 1.13,
+  'eu-central-2 (Zurich)': 1.20, 'eu-north-1 (Stockholm)': 1.09,
+  'ap-southeast-1 (Singapore)': 1.15, 'ap-southeast-2 (Sydney)': 1.17,
+  'ap-northeast-1 (Tokyo)': 1.18, 'ap-south-1 (Mumbai)': 1.06,
+  'Multi-region': 1.00,
+};
+function getRegionMultiplier(){
+  const region = (document.getElementById('cust-awsregion')||{}).value || '';
+  return REGION_MULTIPLIERS[region] || 1.00;
+}
+const REGION_OPTIONS = '<option value="">— Select —</option>' +
+  Object.keys(REGION_MULTIPLIERS).map(r=>`<option value="${r}">${r}</option>`).join('');
+function getFleetRegionMultiplier(id){
+  const region = (document.getElementById('f'+id+'-region')||{}).value || '';
+  return REGION_MULTIPLIERS[region] || 1.00;
+}
 
 function computeRate(dealType, program){
   const isModernize = dealType === 'Modernize';
@@ -3571,9 +3517,10 @@ function handleCEUpload(input){
 
 function autoARR(id){
   const count=parseFloat((document.getElementById('f'+id+'-count')||{}).value)||0;
-  const per=parseFloat((document.getElementById('f'+id+'-perinst')||{}).value)||0;
-  if(count>0&&per>0){
-    document.getElementById('f'+id+'-list').value=Math.round(count*per);
+  const perMonth=parseFloat((document.getElementById('f'+id+'-perinst')||{}).value)||0;
+  if(count>0&&perMonth>0){
+    const regionMult=getFleetRegionMultiplier(id);
+    document.getElementById('f'+id+'-list').value=Math.round(count*perMonth*12*regionMult);
   }
   calcFleet(id);
 }
@@ -3613,6 +3560,7 @@ function calcFleet(id){
   fleet.discRate=discRate;
   fleet.rebate=rebate;
   fleet.instance=document.getElementById('f'+id+'-inst').value;
+  fleet.region=(document.getElementById('f'+id+'-region')||{}).value||'';
 
   // Update row display
   const result=document.getElementById('f'+id+'-result');
@@ -3646,7 +3594,9 @@ function calcSimpleMonthly(){
     return;
   }
 
-  const targetARR = monthly * 12;
+  const rawTargetARR = monthly * 12;
+  const regionMult = getRegionMultiplier();
+  const targetARR = rawTargetARR * regionMult;
   const rateInfo = getRateInfo();
   const rate = rateInfo.rate;
   const rateLabel = rateInfo.label;
@@ -3663,10 +3613,15 @@ function calcSimpleMonthly(){
   annualEl.textContent = fmt(targetARR);
   benefitEl.textContent = fmt(monthlyBenefit);
 
+  const regionNote = regionMult !== 1.00
+    ? 'Region adjustment: ' + fmt(rawTargetARR) + ' &nbsp;×&nbsp; ' + regionMult.toFixed(2) + ' (regional list-price factor) = ' + fmt(targetARR) + '<br>'
+    : '';
+
   breakdownEl.innerHTML =
     '<strong>DNE calculation:</strong><br>' +
-    'Monthly target: ' + fmt(monthly) + ' &nbsp;×&nbsp; 12 = Target ARR: ' + fmt(targetARR) + '<br>' +
-    'Blended discount budget: ' + fmt(targetARR) + ' &nbsp;×&nbsp; ' + (100-discPct) + '% = Eligible base: ' + fmt(eligibleARR) + '<br>' +
+    'Monthly target: ' + fmt(monthly) + ' &nbsp;×&nbsp; 12 = Target ARR: ' + fmt(rawTargetARR) + '<br>' +
+    regionNote +
+    'Blended pricing budget: ' + fmt(targetARR) + ' &nbsp;×&nbsp; ' + (100-discPct) + '% = Eligible base: ' + fmt(eligibleARR) + '<br>' +
     'Intel rate: ' + rateLabel + ' &nbsp;×&nbsp; ' + fmt(eligibleARR) + ' = <strong>DNE: ' + fmt(modCap) + '</strong><br>' +
     'Monthly Intel benefit: ' + fmt(modCap) + ' ÷ 12 = ' + fmt(monthlyBenefit) + '/month<br>' +
     '<span style="color:#92400e;font-size:.68rem">DNE is the Do Not Exceed ceiling, not a guaranteed payout. 75% of target ARR is treated as full completion. Cost Explorer POP is collected by TCC after SOW signing.</span>';
@@ -3734,6 +3689,10 @@ function updateTotals(){
   document.getElementById('tot-rebate').textContent=fmt(totRebate);
   const roiEl=document.getElementById('tot-roi');
   if(roiEl) roiEl.textContent=fmt(totRebate*10);
+
+  // Fleet Builder is now the primary source for ACE ARR / DNE — Simple Monthly is link-only.
+  const aceEl=document.getElementById('ace-amount');
+  if(aceEl && !aceEl.dataset.userEdited && totList>0) aceEl.value=Math.round(totList);
 }
 
 function renderCEPanel(){
@@ -3954,53 +3913,123 @@ function generateSummary(){
   const totalARR = d.arrEc2 + d.arrRds + d.arrElastiCache + d.arrOpenSearch;
   const dne = d.dne || 0;
   const fmtD = v => '$' + Math.round(v||0).toLocaleString();
+  const row = (label, val) => `<div style="display:flex;justify-content:space-between;gap:10px;padding:4px 0;border-bottom:1px solid #eee;font-size:.76rem"><span style="color:var(--ink3)">${label}</span><span style="font-weight:600;color:var(--ink);text-align:right">${(val===0||val) ? val : '<span style=\"color:#b91c1c;font-weight:400\">— not entered</span>'}</span></div>`;
+  const section = (title, rowsHtml) => `<div style="background:var(--bg);border-radius:6px;padding:12px 14px;border:1px solid var(--border);margin-bottom:12px"><div style="font-size:.65rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;font-weight:700">${title}</div>${rowsHtml}</div>`;
 
   const endD = d.closeDate ? new Date(d.closeDate) : null;
   const claimD = endD ? new Date(endD) : null;
   if(claimD) claimD.setDate(claimD.getDate()+30);
-  const claimDate = (claimD && !isNaN(claimD)) ? claimD.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '[Set migration end date]';
+  const claimDate = (claimD && !isNaN(claimD)) ? claimD.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+
+  const rise = window._computedRiseBOM;
 
   const html = `
     <div style="padding:4px 0">
-      <div style="font-size:1rem;font-weight:700;color:var(--ink);margin-bottom:16px">Deal Summary — ${custName}</div>
+      <div style="font-size:1rem;font-weight:700;color:var(--ink);margin-bottom:16px">Deal Summary — ${custName} — every field captured, nothing curated out</div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
-        <div style="background:var(--bg);border-radius:6px;padding:12px;border:1px solid var(--border)">
-          <div style="font-size:.65rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Customer</div>
-          <div style="font-size:.85rem;font-weight:600">${custName}</div>
-          <div style="font-size:.72rem;color:var(--ink2)">${d.awsRegion || '[Region pending]'}</div>
-          <div style="font-size:.72rem;color:var(--ink2)">Workload: ${d.workload || '[Not specified]'}</div>
-        </div>
-        <div style="background:var(--bg);border-radius:6px;padding:12px;border:1px solid var(--border)">
-          <div style="font-size:.65rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Deal Type &amp; Program</div>
-          <div style="font-size:.85rem;font-weight:600">${d.actType || '[Not selected]'} — ${rateInfo.label}</div>
-          <div style="font-size:.72rem;color:var(--ink2)">Start: ${d.migStart || '[TBD]'} → End: ${d.closeDate || '[TBD]'}</div>
-          <div style="font-size:.72rem;color:var(--ink2)">Final Claim Date: ${claimDate}</div>
-        </div>
-        <div style="background:#f0fdf4;border-radius:6px;padding:12px;border:1px solid #86efac">
-          <div style="font-size:.65rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Estimated Intel Co-Investment (DNE)</div>
-          <div style="font-size:1.3rem;font-weight:800;color:var(--green)">${fmtD(dne)}</div>
-          <div style="font-size:.68rem;color:var(--ink3)">Net program revenue — after discounts and credits. Ceiling, not a guaranteed payout. Subject to Proof of Performance.</div>
-        </div>
-        <div style="background:var(--bg);border-radius:6px;padding:12px;border:1px solid var(--border)">
-          <div style="font-size:.65rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">ACE / Co-Sell</div>
-          <div style="font-size:.85rem;font-weight:600">${d.aceID || '[Pending]'}</div>
-          <div style="font-size:.72rem;color:var(--ink2)">Partner: ${d.partnerName || 'None'}</div>
-          <div style="font-size:.72rem;color:var(--ink2)">Payment Option: ${d.paymentOption || '[Not selected]'}</div>
-        </div>
+      <div style="background:#f0fdf4;border-radius:6px;padding:12px;border:1px solid #86efac;margin-bottom:16px">
+        <div style="font-size:.65rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Headline</div>
+        <div style="font-size:1.3rem;font-weight:800;color:var(--green)">${fmtD(dne)} DNE</div>
+        <div style="font-size:.68rem;color:var(--ink3)">Ceiling, not a guaranteed payout. Subject to Proof of Performance. ${rateInfo.label}.</div>
       </div>
 
-      <div style="background:var(--bg);border-radius:6px;padding:12px;border:1px solid var(--border);margin-bottom:12px">
-        <div style="font-size:.65rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">AWS ARR Breakdown</div>
-        <div style="font-size:.78rem;color:var(--ink2)">EC2: ${fmtD(d.arrEc2)} · RDS: ${fmtD(d.arrRds)} · ElastiCache: ${fmtD(d.arrElastiCache)} · OpenSearch: ${fmtD(d.arrOpenSearch)}</div>
-        <div style="font-size:.78rem;color:var(--ink2);margin-top:4px">Total ARR: ${fmtD(totalARR)} · Discount: ${d.custEdpDiscount||20}% (${d.discountMode||'blended'}, ${d.discountVerified||'assumed'})</div>
-      </div>
+      ${section('Deal Identity', [
+        row('Deal Name', d.dealName),
+        row('Customer Legal Name', d.custName),
+        row('AWS Account ID', d.custAcct),
+        row('Customer Industry', d.industry),
+        row('Workload Selection', (d.workloadSelection||[]).join(', ')),
+        row('Workload Description', d.workload),
+        row('Benefit Recipient', d.recipient),
+        row('Win Wire', d.winWire ? 'Yes' : 'No'),
+      ].join(''))}
 
-      <div style="background:var(--bg);border-radius:6px;padding:12px;border:1px solid var(--border);margin-bottom:12px">
-        <div style="font-size:.65rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Team</div>
-        <div style="font-size:.78rem;color:var(--ink2)">${(d.team||[]).map(t=>t.name+' ('+(t.roleLabel||t.role)+')').join(', ') || '[No team members added]'}</div>
-        <div style="font-size:.72rem;color:var(--ink2);margin-top:4px">Win Wire: ${d.winWire ? 'Yes — fast-tracked, draw entry' : 'No'}</div>
-      </div>
+      ${section('Deal Origination', [
+        row('How Originated', d.origin),
+        row('Origination Notes', d.originNotes),
+        row('GTM Region', d.region),
+        row('Country', d.country),
+        row('AWS Segment', d.segment),
+      ].join(''))}
+
+      ${section('Deal Metadata', [
+        row('Migration Start Date', d.migStart),
+        row('Migration End Date', d.closeDate),
+        row('Final Claim Date (+30 days)', claimDate),
+        row('Deal Type', d.actType),
+        row('Payment Option', d.paymentOption),
+        row('IAP Program', d.iapProgram),
+        row('Intel Budget Year', d.intelBudgetYear),
+        row('Claim Quarter', d.claimQuarter),
+        row('Activity Type', d.activityType),
+      ].join(''))}
+
+      ${section('Migration Path & Blended Pricing', [
+        row('Migrating From', d.migFrom),
+        row('Migrating To', d.migTo),
+        row('Blended Pricing (%)', d.discountModel!=null ? d.discountModel+'%' : ''),
+        row('Customer Pricing Benefit Mode', d.discountMode),
+        row('Pricing Benefit Verified', d.discountVerified),
+        row('AWS Region (for pricing)', d.awsRegion),
+      ].join(''))}
+
+      ${section('AWS ARR Breakdown', [
+        row('EC2 ARR', fmtD(d.arrEc2)),
+        row('RDS ARR', fmtD(d.arrRds)),
+        row('ElastiCache ARR', fmtD(d.arrElastiCache)),
+        row('OpenSearch ARR', fmtD(d.arrOpenSearch)),
+        row('Total ARR (sum of above)', fmtD(totalARR)),
+        row('Target ARR (Simple Monthly, region-adjusted)', fmtD(d.targetArr)),
+        row('Customer EDP Discount / Pricing Benefit (%)', d.custEdpDiscount!=null ? d.custEdpDiscount+'%' : ''),
+      ].join(''))}
+
+      ${rise ? section('SAP RISE BOM — Compute-Only ARR', [
+        row('AWS Avg ARR (from BOM)', fmtD(rise.avgARR)),
+        row('EBS Snapshot (excluded)', fmtD(rise.ebs)),
+        row('Network Connectivity (excluded)', fmtD(rise.netConn)),
+        row('Compute-Only ARR', fmtD(rise.computeOnlyARR)),
+        row('Annual IAP (this layer)', fmtD(rise.annualIAP)),
+        row('IAP Term (years)', rise.termYears),
+        row('Total IAP over term', fmtD(rise.totalIAP)),
+        row('RISE Funding Total (stacked)', fmtD(rise.riseFundingTotal)),
+        row('Stacked Total', fmtD(rise.stackedTotal)),
+      ].join('')) : ''}
+
+      ${section('ACE / Co-Sell / Opportunity IDs', [
+        row('ACE Opportunity ID', d.aceID),
+        row('SFDC Opportunity ID', d.sfdcID),
+        row('Campaign Code', d.campaignCode),
+        row('Pricing Calc Link', d.pricingCalcLink),
+        row('ACE Stage', d.aceStage),
+        row('ACE Notes', d.aceNotes),
+        row('ACE ARR', fmtD(d.aceAmount)),
+        row('IPIC #', d.ipicNum),
+      ].join(''))}
+
+      ${section('Partner Context', [
+        row('SI / ISV Partner Name', d.partnerName),
+        row('Partner SPMS ID', d.partnerSpmsId),
+        row('Partner Type', d.partnerTier),
+        row('Partner Role', d.partnerRole),
+        row('Cost of Migration — Engineering', d.migrationCost ? fmtD(d.migrationCost) : ''),
+      ].join(''))}
+
+      ${section('Deal Team', [
+        row('All Members', (d.team||[]).map(t=>t.name+' ('+(t.roleLabel||t.role)+')').join(', ')),
+        row('Intel Rep Name', d.intelRepName),
+        row('AWS Rep Name', d.awsRepName),
+      ].join(''))}
+
+      ${section('Sales Plays & ROI', [
+        row('Selected Plays', (d.selectedPlays||[]).join(', ')),
+        row('Total Rebate (fleets)', fmtD(d.totRebate)),
+        row('Expected ROI (10×)', fmtD((d.totRebate||0)*10)),
+      ].join(''))}
+
+      ${section('Attached Files', [
+        row('Cost Explorer File', d.ceFileName),
+        row('Simple Monthly Calc File', d.smcFileName),
+      ].join(''))}
 
       <div style="padding:10px 14px;background:#fff7ed;border-radius:6px;border-left:3px solid #fb923c;font-size:.74rem;color:#9a3412">
         <strong>Before generating the SOW:</strong> TCC confirms this summary against the submitted deal record once Intel leadership has approved.
@@ -4178,6 +4207,23 @@ function openPrintableWindow(title, bodyHtml){
   w.document.close();
 }
 
+function printInternalSummary(){
+  const d = getCurrentDealData();
+  const box = document.getElementById('summary-content');
+  if(!box || !box.innerHTML || box.innerHTML.includes('Click Generate Summary')){
+    generateSummary();
+  }
+  const html = `
+    <div class="banner">
+      <div class="tag">Intel × AWS Deal Desk — Internal</div>
+      <h1 style="color:#fff;margin-top:4px">${d.custName || 'Deal Summary'}</h1>
+      <div style="color:rgba(255,255,255,.7);font-size:.85rem">Full internal record — not for customer distribution</div>
+    </div>
+    ${document.getElementById('summary-content').innerHTML}
+  `;
+  openPrintableWindow((d.custName||'Deal')+' — Internal Summary', html);
+}
+
 function downloadProgramOnePager(){
   const html = `
     <div class="banner">
@@ -4213,7 +4259,7 @@ function downloadProgramOnePager(){
     <div class="card">Collected each quarter after SOW signing, directly between TCC and the customer or partner: a <strong>Cost Explorer export</strong> filtered to Gen 8 families (m8i, c8i, r8i, x8i), for the billing quarter. AWS never shares customer cost data.</div>
 
     <h2>The SOW Number</h2>
-    <div class="card">The Do Not Exceed figure on the SOW is the <strong>instance ARR × the blended discount</strong>, paid out on the agreed schedule (quarterly, milestone, or lump sum) once POP is confirmed.</div>
+    <div class="card">The Do Not Exceed figure on the SOW is the <strong>instance ARR × blended pricing</strong>, paid out on the agreed schedule (quarterly, milestone, or lump sum) once POP is confirmed.</div>
   `;
   openPrintableWindow('IAP Program Details', html);
 }
@@ -4221,6 +4267,7 @@ function downloadProgramOnePager(){
 function downloadCustomerSafeSummary(){
   const d = getCurrentDealData();
   const isMigrate = (d.actType||'').toLowerCase().startsWith('migrat');
+  const fmtD = v => '$' + Math.round(v||0).toLocaleString();
   const valueStory = isMigrate
     ? "Moving to Intel Xeon 6 (8th Gen) on AWS means faster performance, lower infrastructure footprint, and a modern foundation for what comes next — including GenAI workloads."
     : "Upgrading your existing AWS fleet to Intel Xeon 6 (8th Gen) unlocks meaningful performance and efficiency gains on infrastructure you already run, with no disruption to your architecture.";
@@ -4232,6 +4279,8 @@ function downloadCustomerSafeSummary(){
     </div>
     <h2>What This Is</h2>
     <div class="card">${valueStory}</div>
+    <h2>Estimated Program Funding</h2>
+    <div class="card"><strong style="font-size:1.1rem">${fmtD(d.dne)}</strong> — ceiling amount, not a guaranteed payout, subject to Proof of Performance and milestone confirmation.</div>
     <h2>The Path</h2>
     <table>
       <tr><th>Milestone</th><th>Date</th></tr>
@@ -4282,7 +4331,7 @@ function downloadWorkflowOnePager(){
     <div class="card">Proof of Performance flows directly between <strong>TCC and the customer or partner</strong> — never through AWS. It is the quarterly <strong>Cost Explorer export</strong>, filtered to Gen 8 families, confirming actual spend against target ARR.</div>
 
     <h2>What the SOW Pays</h2>
-    <div class="card">The Do Not Exceed number is <strong>instance ARR × blended discount</strong>, paid on the schedule set at submission.</div>
+    <div class="card">The Do Not Exceed number is <strong>instance ARR × blended pricing</strong>, paid on the schedule set at submission.</div>
   `;
   openPrintableWindow('IAP Workflow Guide', html);
 }
@@ -4384,26 +4433,6 @@ function proceedToLogin(){
     else if(_selectedRole === 'admin') emailField.placeholder = 'yasmine@cloudzero.ca';
     else emailField.placeholder = 'your-aws-email@amazon.com';
   }
-}
-
-function toggleCEGuide(){
-  const body = document.getElementById('ce-guide-body');
-  const arrow = document.getElementById('ce-guide-arrow');
-  if(!body) return;
-  const open = body.style.display !== 'none';
-  body.style.display = open ? 'none' : 'block';
-  if(arrow) arrow.textContent = open ? '▼' : '▲';
-}
-
-function copyCETemplate(){
-  const el = document.getElementById('ce-email-template');
-  if(!el) return;
-  const text = el.innerText;
-  navigator.clipboard.writeText(text).then(()=>{
-    const btn = event.target;
-    btn.textContent = 'Copied!';
-    setTimeout(()=>btn.textContent='Copy', 2000);
-  });
 }
 
 function validateACE(el){
@@ -4750,7 +4779,7 @@ async function renderApprovalQueue(){
             <button class="btn btn-secondary btn-sm" onclick="setDNE('${deal.id}')">Calculate + Save DNE</button>
             <span id="dne-out-${deal.id}" style="font-size:.78rem;font-weight:700;color:#0068B5">${deal.dne?('DNE: '+fmt(deal.dne)):''}</span>
           </div>
-          <div style="font-size:.68rem;color:#555;margin-top:5px">DNE = Target ARR × 70% (30% blended discount) × ${(deal.actType||'').startsWith('Opt')?'1% (cap $250K)':'4.5%'}</div>
+          <div style="font-size:.68rem;color:#555;margin-top:5px">DNE = Target ARR × 70% (30% blended pricing) × ${(deal.actType||'').startsWith('Opt')?'1% (cap $250K)':'4.5%'}</div>
         </div>`:''}
         ${myTier==='intel'?`
         <div style="background:#fff8f0;border:1px solid #fed7aa;border-radius:8px;padding:10px 12px;margin-top:10px">
