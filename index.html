@@ -1402,46 +1402,56 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
     <p style="margin-bottom:20px"><a href="https://www.intel.com/content/www/us/en/products/details/processors/xeon.html" target="_blank" rel="noopener" style="color:#0068B5;font-size:.82rem;font-weight:600">See what's new in Intel Xeon 6 (Gen 8) ↗</a></p>
 
     <div style="display:flex;gap:0;margin-bottom:16px;border:1px solid var(--border);border-radius:6px;overflow:hidden">
-      <button id="login-tab-btn-admin" onclick="setLoginTab('admin')"
+      <button id="login-tab-btn-aws" onclick="setLoginTab('aws')"
         style="flex:1;padding:9px;font-family:Arial,sans-serif;font-size:.75rem;font-weight:700;border:none;background:var(--intel);color:#fff;cursor:pointer;border-right:1px solid rgba(255,255,255,.2)">
-        Sign In
+        AWS
       </button>
-      <button id="login-tab-btn-code" onclick="setLoginTab('code')"
+      <button id="login-tab-btn-intel" onclick="setLoginTab('intel')"
+        style="flex:1;padding:9px;font-family:Arial,sans-serif;font-size:.75rem;font-weight:700;border:none;background:var(--bg);color:var(--ink2);cursor:pointer;border-right:1px solid var(--border)">
+        Intel
+      </button>
+      <button id="login-tab-btn-admin" onclick="setLoginTab('admin')"
         style="flex:1;padding:9px;font-family:Arial,sans-serif;font-size:.75rem;font-weight:700;border:none;background:var(--bg);color:var(--ink2);cursor:pointer">
-        AWS / Intel Email
+        Admin
       </button>
     </div>
 
-    <!-- Path 1: Everyone with a pre-provisioned password -->
-    <div id="login-tab-admin" class="login-form">
+    <!-- AWS — any real @amazon.com email, one shared password -->
+    <div id="login-tab-aws" class="login-form">
+      <label>Amazon Email</label>
+      <input type="email" id="login-aws-email" placeholder="you@amazon.com" autocomplete="email" onkeydown="if(event.key==='Enter')domainLogin('aws')">
+      <label>Password</label>
+      <input type="password" id="login-aws-pass" autocomplete="current-password" onkeydown="if(event.key==='Enter')domainLogin('aws')">
+      <div class="login-error" id="login-aws-error">Use a real @amazon.com email and the current password.</div>
+      <button class="btn-login" onclick="domainLogin('aws')">Sign In</button>
+    </div>
+
+    <!-- Intel — any real @intel.com email, one shared password -->
+    <div id="login-tab-intel" class="login-form" style="display:none">
+      <label>Intel Email</label>
+      <input type="email" id="login-intel-email" placeholder="you@intel.com" autocomplete="email" onkeydown="if(event.key==='Enter')domainLogin('intel')">
+      <label>Password</label>
+      <input type="password" id="login-intel-pass" autocomplete="current-password" onkeydown="if(event.key==='Enter')domainLogin('intel')">
+      <div class="login-error" id="login-intel-error">Use a real @intel.com email and the current password.</div>
+      <button class="btn-login" onclick="domainLogin('intel')">Sign In</button>
+    </div>
+
+    <!-- Admin — named accounts only -->
+    <div id="login-tab-admin" class="login-form" style="display:none">
       <label>Email Address</label>
       <input type="email" id="login-email" placeholder="email address" autocomplete="email" onkeydown="if(event.key==='Enter')doLogin()">
       <label>Password</label>
-      <input type="password" id="login-pass" placeholder="Password provided by yasmine@cloudzero.ca" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+      <input type="password" id="login-pass" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
       <div class="login-error" id="login-error">Incorrect email or password. Contact yasmine@cloudzero.ca for access.</div>
       <button class="btn-login" onclick="doLogin()">Sign In</button>
-    </div>
-
-    <!-- Path 2: Any amazon.com or intel.com email — one-time code, no pre-provisioned account needed -->
-    <div id="login-tab-code" class="login-form" style="display:none">
-      <label>Work Email (amazon.com or intel.com)</label>
-      <input type="email" id="login-code-email" placeholder="you@amazon.com or you@intel.com" autocomplete="email" onkeydown="if(event.key==='Enter')requestLoginCode()">
-      <div class="login-error" id="login-code-error"></div>
-      <button class="btn-login" id="login-code-request-btn" onclick="requestLoginCode()">Send Me a Code</button>
-
-      <div id="login-code-verify-wrap" style="display:none;margin-top:14px">
-        <label>6-Digit Code</label>
-        <input type="text" id="login-code-value" placeholder="123456" maxlength="6" inputmode="numeric" onkeydown="if(event.key==='Enter')verifyLoginCode()">
-        <div class="login-error" id="login-code-verify-error"></div>
-        <button class="btn-login" onclick="verifyLoginCode()">Verify &amp; Sign In</button>
-        <div style="text-align:center;margin-top:8px"><a href="#" onclick="requestLoginCode();return false" style="font-size:.72rem;color:#0068B5">Resend code</a></div>
-      </div>
     </div>
 
     <div class="login-tiers">
       <span class="tier-badge tier-aws">Seller</span> Submit &amp; track deals<br style="margin-bottom:6px">
       <span class="tier-badge tier-admin">Admin</span> Full access — approval, pipeline &amp; budget
     </div>
+
+    <div style="text-align:center;margin-top:18px;font-size:.68rem;color:var(--ink3)">Produced by Groupe CloudZero Inc.</div>
   </div>
 </div>
 
@@ -1554,21 +1564,13 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
       <div class="step-panel active" id="step1">
         <div class="step-header">
           <div class="step-badge">Step 01 · Deal Desk</div>
-          <div class="step-title">Deal Info</div>
+          <div class="step-title">Start Your Deal Journey</div>
           <div class="step-desc" id="step1-desc">Fast-track intake for the Intel × AWS co-investment program — the fields below are everything needed to route this opportunity.</div>
         </div>
 
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
-          <button class="btn btn-secondary btn-sm" onclick="goStep(3);setTimeout(()=>{setBaselineMethod(1);document.getElementById('baseline-method-1').scrollIntoView({behavior:'smooth',block:'start'});},80)">⚡ Open Pricing Calculator</button>
           <button class="btn btn-secondary btn-sm" onclick="downloadProgramOnePager()">⇩ Program Details (one-pager)</button>
           <button class="btn btn-secondary btn-sm" onclick="downloadWorkflowOnePager()">⇩ Workflow — how a deal moves</button>
-        </div>
-
-        <div class="section-card" style="background:linear-gradient(135deg,#f0f5ff,#fff);border:1px solid #c7d7f5">
-          <div class="section-card-title">Autofill from a Document</div>
-          <div style="font-size:.78rem;color:#555;margin-bottom:10px">Upload an email thread, BOM, or deal doc. It reads the file and proposes values for the fields below — nothing is applied until you review and confirm.</div>
-          <input type="file" id="autofill-upload" accept=".pdf,.doc,.docx,.txt,.csv,.xlsx,.xls,.png,.jpg,.jpeg" onchange="handleAutofillUpload(this)" style="max-width:360px">
-          <span id="autofill-status" style="font-size:.76rem;color:#0068B5;margin-left:10px"></span>
         </div>
 
         <!-- Intel Seller simplified view -->
@@ -2034,12 +2036,20 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
           </div>
         </div>
 
-        <div class="section-card">
-          <div class="section-card-title">AWS ARR Breakdown</div>
-          <div style="font-size:.75rem;color:var(--ink3);margin-bottom:10px">ACE ARR comes from Simple Monthly (Step 3) by default — Monthly × 12, region-adjusted. Only fill in the four fields below if you need the total split out by service; doing so overrides the Simple Monthly figure.</div>
+        <div class="section-card" style="border:2px solid #0068B5">
+          <div class="section-card-title">Deal ARR</div>
+          <div style="font-size:.76rem;color:#92400e;background:#FEF3C7;border-left:3px solid #F59E0B;border-radius:5px;padding:8px 12px;margin-bottom:12px">This section needs to be reviewed by Chris Chlee before submission — he's an approver on this step.</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px">
+            <a href="https://calculator.aws" target="_blank" rel="noopener" class="btn btn-aws btn-sm" style="text-decoration:none;display:inline-flex;align-items:center">⧉ AWS Pricing Calculator ↗</a>
+            <button class="btn btn-secondary btn-sm" onclick="goStep(3);setTimeout(()=>{setBaselineMethod(1);document.getElementById('baseline-method-1').scrollIntoView({behavior:'smooth',block:'start'});},80)">⚡ Calculate Potential Funding</button>
+          </div>
+          <div style="font-size:.68rem;color:var(--ink3);margin-bottom:8px">AWS Pricing Calculator is the official tool. Calculate Potential Funding is the one built into this app — a fast approximation, not a substitute.</div>
+          <div style="font-size:.7rem;color:var(--ink3);margin-bottom:16px">The Fleet Calculator does not replace Simple Monthly or the AWS Pricing Calculator — it's a resource for sizing large fleets, not a substitute for the official AWS tools.</div>
+
+          <div style="font-size:.75rem;color:var(--ink3);margin-bottom:10px">Split by service — Compute, RDS, ElastiCache, OpenSearch. Enter figures directly, or use the Fleet Calculator above for large fleets and bring the total in here.</div>
           <div class="form-grid">
             <div class="f-group">
-              <label>EC2 ARR ($)</label>
+              <label>Compute (EC2) ARR ($)</label>
               <input type="number" id="arr-ec2" placeholder="0" min="0" oninput="recalcAceFromServices()">
             </div>
             <div class="f-group">
@@ -2063,12 +2073,19 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
               <div id="arr-bar-os" style="background:#7c3aed;width:0%"></div>
             </div>
             <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:6px;font-size:.7rem;color:var(--ink2)">
-              <span><span style="display:inline-block;width:8px;height:8px;background:#0068B5;border-radius:2px;margin-right:4px"></span>EC2</span>
+              <span><span style="display:inline-block;width:8px;height:8px;background:#0068B5;border-radius:2px;margin-right:4px"></span>Compute (EC2)</span>
               <span><span style="display:inline-block;width:8px;height:8px;background:#FF9900;border-radius:2px;margin-right:4px"></span>RDS</span>
               <span><span style="display:inline-block;width:8px;height:8px;background:#16a34a;border-radius:2px;margin-right:4px"></span>ElastiCache</span>
               <span><span style="display:inline-block;width:8px;height:8px;background:#7c3aed;border-radius:2px;margin-right:4px"></span>OpenSearch</span>
             </div>
-            <div id="arr-total-line" style="font-size:.78rem;color:var(--ink2);margin-top:8px">Total: $0 — enter figures above</div>
+            <div id="arr-total-line" style="font-size:.78rem;color:var(--ink2);margin-top:8px">Total ARR: $0 — enter figures above</div>
+            <div style="display:flex;gap:12px;margin-top:10px;flex-wrap:wrap">
+              <div class="f-group" style="min-width:220px">
+                <label>Intel-Eligible ARR ($) <span class="req">*</span></label>
+                <input type="number" id="intel-eligible-arr" placeholder="0" min="0" oninput="this.dataset.userEdited=1">
+                <span class="hint">This is the number that drives DNE and the funding math — not total ARR, and not necessarily the same as ACE ARR.</span>
+              </div>
+            </div>
             <div id="arr-eligible-line" style="font-size:.78rem;color:var(--intel);font-weight:700;margin-top:2px"></div>
           </div>
           <div class="form-grid" style="margin-top:14px">
@@ -2171,8 +2188,8 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
             </div>
             <div class="f-group">
               <label>ACE ARR ($) <span class="req">*</span></label>
-              <input type="number" id="ace-amount" placeholder="Pulled from AWS MRR breakdown" min="0" oninput="this.dataset.userEdited=1">
-              <span class="hint" id="ace-arr-hint">Pulled from the AWS MRR breakdown (Simple Monthly, Step 3): monthly × 12, region-adjusted. Open the calculator below to check the figure.</span>
+              <input type="number" id="ace-amount" placeholder="From ACE / Salesforce" min="0" oninput="this.dataset.userEdited=1">
+              <span class="hint" id="ace-arr-hint">This is the ACE/Salesforce figure — enter it directly. It's tracked separately from Intel-Eligible ARR below, and the two numbers won't always match.</span>
             </div>
             <div class="f-group">
               <label>Deal Type <span class="req">*</span></label>
@@ -2227,12 +2244,17 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
             </div>
             <div class="f-group">
               <label>Competitive Situation</label>
-              <select id="deal-competitive">
+              <select id="deal-competitive" onchange="handleCompetitiveChange()">
                 <option value="">— Select —</option>
                 <option value="yes">Yes — active competition on this deal</option>
                 <option value="no">No — no other cloud in the conversation</option>
                 <option value="unsure">Unsure</option>
               </select>
+            </div>
+            <div class="f-group" id="deal-win-amount-wrap" style="display:none">
+              <label>Amount Required to Win vs. Competition ($)</label>
+              <input type="number" id="deal-win-amount" placeholder="0" min="0">
+              <span class="hint">Custom — the funding level that would actually beat the competing offer, if known</span>
             </div>
             <div class="f-group">
               <label>Time Sensitive?</label>
@@ -2305,6 +2327,15 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
             <div class="alert alert-info" style="margin-bottom:12px">
               <strong>One fleet per region.</strong> If the same deal spans regions with different pricing, add a fleet for each — the totals below combine automatically.
             </div>
+            <div style="background:#f8fafc;border:1px solid var(--border);border-radius:6px;padding:10px 14px;margin-bottom:12px">
+              <div style="font-size:.78rem;font-weight:700;color:var(--ink);margin-bottom:6px">Large fleet? Upload it instead of typing each row.</div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+                <button class="btn btn-secondary btn-sm" onclick="downloadFleetTemplate()">⇩ Download Template (CSV)</button>
+                <input type="file" id="fleet-bulk-upload" accept=".csv,.xlsx,.xls" onchange="handleFleetBulkUpload(this)" style="max-width:260px;font-size:.76rem">
+              </div>
+              <div id="fleet-bulk-status" style="font-size:.72rem;color:var(--ink3);margin-top:6px"></div>
+              <div style="font-size:.68rem;color:var(--ink3);margin-top:4px">Columns: instance_family, size, count, region, monthly_price. One row per fleet — it creates and prices every row automatically.</div>
+            </div>
             <div class="fleet-container" id="fleet-container">
               <!-- Fleet rows injected by JS -->
             </div>
@@ -2368,10 +2399,11 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
               <button onclick="askIntelPrompt('Price m8i.2xlarge in ca-central-1')" style="background:#fff;border:1px solid var(--border);border-radius:16px;padding:6px 14px;font-size:.72rem;cursor:pointer;font-family:Arial,sans-serif;color:var(--ink2)">Price m8i.2xlarge in ca-central-1</button>
-              <button onclick="askIntelPrompt('What is the IAP rate for r8i vs m8i?')" style="background:#fff;border:1px solid var(--border);border-radius:16px;padding:6px 14px;font-size:.72rem;cursor:pointer;font-family:Arial,sans-serif;color:var(--ink2)">IAP rate for r8i vs m8i</button>
-              <button onclick="askIntelPrompt('Compare m8i vs m7i cost and performance')" style="background:#fff;border:1px solid var(--border);border-radius:16px;padding:6px 14px;font-size:.72rem;cursor:pointer;font-family:Arial,sans-serif;color:var(--ink2)">Compare m8i vs m7i</button>
-              <button onclick="askIntelPrompt('What Gen 8 instance types are available in eu-west-1?')" style="background:#fff;border:1px solid var(--border);border-radius:16px;padding:6px 14px;font-size:.72rem;cursor:pointer;font-family:Arial,sans-serif;color:var(--ink2)">Gen 8 availability in eu-west-1</button>
-              <button onclick="askIntelPrompt('How is the Modernization rate calculated and capped?')" style="background:#fff;border:1px solid var(--border);border-radius:16px;padding:6px 14px;font-size:.72rem;cursor:pointer;font-family:Arial,sans-serif;color:var(--ink2)">How the Modernization cap works</button>
+              <button onclick="askIntelPrompt('What is the customer pricing benefit and how is DNE calculated?')" style="background:#fff;border:1px solid var(--border);border-radius:16px;padding:6px 14px;font-size:.72rem;cursor:pointer;font-family:Arial,sans-serif;color:var(--ink2)">How is DNE actually calculated?</button>
+              <button onclick="askIntelPrompt('What is the payment schedule and when does each milestone pay out?')" style="background:#fff;border:1px solid var(--border);border-radius:16px;padding:6px 14px;font-size:.72rem;cursor:pointer;font-family:Arial,sans-serif;color:var(--ink2)">When does each payment milestone hit?</button>
+              <button onclick="askIntelPrompt('What counts as Proof of Performance and when is it collected?')" style="background:#fff;border:1px solid var(--border);border-radius:16px;padding:6px 14px;font-size:.72rem;cursor:pointer;font-family:Arial,sans-serif;color:var(--ink2)">What counts as Proof of Performance?</button>
+              <button onclick="askIntelPrompt('Which instance families are actually eligible for IAP funding?')" style="background:#fff;border:1px solid var(--border);border-radius:16px;padding:6px 14px;font-size:.72rem;cursor:pointer;font-family:Arial,sans-serif;color:var(--ink2)">Which families actually qualify?</button>
+              <button onclick="askIntelPrompt('What is the full approval chain from submission to payout?')" style="background:#fff;border:1px solid var(--border);border-radius:16px;padding:6px 14px;font-size:.72rem;cursor:pointer;font-family:Arial,sans-serif;color:var(--ink2)">Who approves this and in what order?</button>
             </div>
             <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:12px">
               <div id="intel-chat-messages" style="min-height:260px;max-height:480px;overflow-y:auto;padding:16px;background:#fafafa;font-size:.85rem;line-height:1.7">
@@ -2510,14 +2542,14 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
           <div id="funding-score-panel" style="display:none;padding:14px 22px;border-top:1px solid var(--border)"></div>
         </div>
 
-        <div class="section-card" id="smartsheet-preview" style="display:none;background:#f0fdf4;border:1px solid #86efac">
-          <div class="section-card-title" style="display:flex;align-items:center;justify-content:space-between">
-            <span>Smartsheet Preview — Admin / TCC Only</span>
+        <div class="section-card" id="smartsheet-preview" style="display:none;background:#f8fafc;border:1px solid var(--border)">
+          <div class="section-card-title" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+            <span>Smartsheet Row</span>
             <a href="https://app.smartsheet.com/sheets/P3J6GHmGxmJxQwgM6f7wqCmpjRFFrp8m2PFvxgx1" target="_blank" rel="noopener" style="font-size:.7rem;font-weight:600;color:#0068B5">Open sheet ↗</a>
           </div>
           <div style="font-size:.72rem;color:var(--ink3);margin-bottom:10px" id="smartsheet-sync-status">Not yet submitted — nothing synced.</div>
-          <button class="btn btn-aws btn-sm" onclick="renderSmartsheetPreview(getCurrentDealData())" style="margin-bottom:10px">Generate Smartsheet Row</button>
-          <div style="overflow-x:auto">
+          <button class="btn btn-aws btn-sm" onclick="downloadSmartsheetRow(getCurrentDealData())">⇩ Download Smartsheet Row (CSV)</button>
+          <div style="display:none">
             <table style="width:100%;border-collapse:collapse;font-size:.72rem">
               <tbody id="smartsheet-preview-rows"></tbody>
             </table>
@@ -2746,56 +2778,30 @@ function restoreSession(){
 }
 
 function setLoginTab(tab){
-  const isCode = tab === 'code';
-  document.getElementById('login-tab-code').style.display = isCode ? 'block' : 'none';
-  document.getElementById('login-tab-admin').style.display = isCode ? 'none' : 'block';
-  document.getElementById('login-tab-btn-code').style.background = isCode ? 'var(--intel)' : 'var(--bg)';
-  document.getElementById('login-tab-btn-code').style.color = isCode ? '#fff' : 'var(--ink2)';
-  document.getElementById('login-tab-btn-admin').style.background = isCode ? 'var(--bg)' : 'var(--intel)';
-  document.getElementById('login-tab-btn-admin').style.color = isCode ? 'var(--ink2)' : '#fff';
+  ['aws','intel','admin'].forEach(t=>{
+    const panel = document.getElementById('login-tab-'+t);
+    const btn = document.getElementById('login-tab-btn-'+t);
+    const active = t === tab;
+    if(panel) panel.style.display = active ? 'block' : 'none';
+    if(btn){
+      btn.style.background = active ? 'var(--intel)' : 'var(--bg)';
+      btn.style.color = active ? '#fff' : 'var(--ink2)';
+    }
+  });
 }
 
-async function requestLoginCode(){
-  const emailEl = document.getElementById('login-code-email');
-  const email = (emailEl.value||'').trim().toLowerCase();
-  const err = document.getElementById('login-code-error');
-  err.style.display = 'none';
-  const domain = email.split('@')[1] || '';
-  if(domain !== 'amazon.com' && domain !== 'intel.com'){
-    err.textContent = 'Use your amazon.com or intel.com email address.';
-    err.style.display = 'block';
-    return;
-  }
-  const btn = document.getElementById('login-code-request-btn');
-  btn.textContent = 'Sending...'; btn.disabled = true;
-  try {
-    const resp = await fetch(API_URL + '/auth/request-code', {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ email })
-    });
-    const data = await resp.json();
-    if(!resp.ok) throw new Error(data.error || 'Could not send code.');
-    document.getElementById('login-code-verify-wrap').style.display = 'block';
-    btn.textContent = 'Code Sent — Check Your Email';
-  } catch(e){
-    err.textContent = e.message;
-    err.style.display = 'block';
-    btn.textContent = 'Send Me a Code'; btn.disabled = false;
-  }
-}
-
-async function verifyLoginCode(){
-  const email = (document.getElementById('login-code-email').value||'').trim().toLowerCase();
-  const code = (document.getElementById('login-code-value').value||'').trim();
-  const err = document.getElementById('login-code-verify-error');
+async function domainLogin(which){
+  const email = (document.getElementById('login-'+which+'-email').value||'').trim().toLowerCase();
+  const pass = (document.getElementById('login-'+which+'-pass').value||'').trim();
+  const err = document.getElementById('login-'+which+'-error');
   err.style.display = 'none';
   try {
-    const resp = await fetch(API_URL + '/auth/verify-code', {
+    const resp = await fetch(API_URL + '/auth/domain-login', {
       method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ email, code })
+      body: JSON.stringify({ email, password: pass, domain: which })
     });
     const data = await resp.json();
-    if(!resp.ok) throw new Error(data.error || 'Incorrect or expired code.');
+    if(!resp.ok) throw new Error(data.error || 'Incorrect email or password.');
     completeLogin(data);
   } catch(e){
     err.textContent = e.message;
@@ -2911,7 +2917,7 @@ function completeLogin(u){
   });
 
   initApp();
-  goStep(3); // Workflow now starts with the Calculator (SAP RISE BOM is a tab within it), then moves to Deal Info
+  goStep(1); // Deal Info ("Start Your Deal Journey") is the landing page — Deal ARR / Fleet Calculator is a section reached after metadata, not a separate landing step
 }
 
 function doLogout(){
@@ -2921,12 +2927,11 @@ function doLogout(){
   document.getElementById('login-screen').style.display='flex';
   document.getElementById('login-email').value='';
   document.getElementById('login-pass').value='';
-  document.getElementById('login-code-email').value='';
-  document.getElementById('login-code-value').value='';
-  document.getElementById('login-code-verify-wrap').style.display='none';
-  document.getElementById('login-code-request-btn').textContent='Send Me a Code';
-  document.getElementById('login-code-request-btn').disabled=false;
-  setLoginTab('admin');
+  document.getElementById('login-aws-email').value='';
+  document.getElementById('login-aws-pass').value='';
+  document.getElementById('login-intel-email').value='';
+  document.getElementById('login-intel-pass').value='';
+  setLoginTab('aws');
 }
 
 
@@ -3095,6 +3100,71 @@ async function getIntelPricing(id){
     if(btn){ btn.textContent = '⚡ Intel Price'; btn.disabled = false; }
     alert('Couldn\'t reach live pricing right now — try again in a moment.');
   }
+}
+
+function downloadFleetTemplate(){
+  const csv = 'instance_family,size,count,region,monthly_price\n' +
+    'm8i,2xlarge,10,us-east-1 (N. Virginia),2100\n' +
+    'x8i,8xlarge,4,eu-central-1 (Frankfurt),9800\n';
+  const blob = new Blob([csv], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'fleet_upload_template.csv';
+  a.click();
+}
+
+function handleFleetBulkUpload(input){
+  const file = input.files[0];
+  if(!file) return;
+  const status = document.getElementById('fleet-bulk-status');
+  status.textContent = 'Reading file...';
+  status.style.color = 'var(--ink3)';
+
+  const reader = new FileReader();
+  reader.onload = function(e){
+    try {
+      const wb = XLSX.read(e.target.result, {type: 'binary'});
+      const sheet = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(sheet, {defval:''});
+      if(rows.length === 0){
+        status.textContent = 'No rows found in that file.';
+        status.style.color = '#b91c1c';
+        return;
+      }
+      let created = 0, skipped = 0;
+      rows.forEach(row => {
+        // Accept a few reasonable header variations rather than forcing exact names
+        const family = row.instance_family || row.family || row.instance || '';
+        const size = row.size || '2xlarge';
+        const count = parseFloat(row.count || row.instance_count || 0);
+        const region = row.region || '';
+        const monthlyPrice = parseFloat(row.monthly_price || row.monthly || row.price || 0);
+        if(!family || count <= 0){ skipped++; return; }
+
+        addFleet();
+        const id = fleets[fleets.length-1].id;
+        const instEl = document.getElementById('f'+id+'-inst');
+        const sizeEl = document.getElementById('f'+id+'-size');
+        const regionEl = document.getElementById('f'+id+'-region');
+        if(instEl) instEl.value = family;
+        if(sizeEl && [...sizeEl.options].some(o=>o.value===size)) sizeEl.value = size;
+        if(regionEl && [...regionEl.options].some(o=>o.value===region)) regionEl.value = region;
+        document.getElementById('f'+id+'-count').value = count;
+        document.getElementById('f'+id+'-perinst').value = monthlyPrice;
+        autoARR(id);
+        created++;
+      });
+      status.textContent = `${created} fleet${created===1?'':'s'} created` + (skipped>0 ? `, ${skipped} row${skipped===1?'':'s'} skipped (missing family or count)` : '') + '.';
+      status.style.color = created>0 ? '#166534' : '#b91c1c';
+    } catch(err){
+      status.textContent = 'Could not read that file — check it matches the template format.';
+      status.style.color = '#b91c1c';
+      console.error('Fleet upload error:', err);
+    }
+    input.value = '';
+  };
+  reader.readAsBinaryString(file);
 }
 
 function addFleet(){
@@ -3276,10 +3346,6 @@ const REGION_MULTIPLIERS = {
   'ap-northeast-1 (Tokyo)': 1.18, 'ap-south-1 (Mumbai)': 1.06,
   'Multi-region': 1.00,
 };
-function getRegionMultiplier(){
-  const region = (document.getElementById('cust-awsregion')||{}).value || '';
-  return REGION_MULTIPLIERS[region] || 1.00;
-}
 const REGION_OPTIONS = '<option value="">— Select —</option>' +
   Object.keys(REGION_MULTIPLIERS).map(r=>`<option value="${r}">${r}</option>`).join('');
 function getFleetRegionMultiplier(id){
@@ -3297,6 +3363,12 @@ function getRateInfo(){
   const dealType = (document.getElementById('prd-deal-type')||{}).value || '';
   const program = (document.getElementById('iap-program')||{}).value || 'standard';
   return computeRate(dealType, program);
+}
+
+function handleCompetitiveChange(){
+  const val = (document.getElementById('deal-competitive')||{}).value;
+  const wrap = document.getElementById('deal-win-amount-wrap');
+  if(wrap) wrap.style.display = (val === 'yes') ? 'block' : 'none';
 }
 
 function handleTimeSensitiveChange(){
@@ -3342,7 +3414,6 @@ function recalcAceFromServices(){
   const sum=ec2+rds+ec+os;
   const discountPct = parseFloat((document.getElementById('cust-edp-discount')||{}).value) || 0;
   const netExpected = sum * (1 - discountPct/100);
-  const aceEl=document.getElementById('ace-amount');
   const fmtD=v=>'$'+Math.round(v).toLocaleString();
   const bar={ec2:document.getElementById('arr-bar-ec2'),rds:document.getElementById('arr-bar-rds'),
              ec:document.getElementById('arr-bar-ec'),os:document.getElementById('arr-bar-os')};
@@ -3356,188 +3427,25 @@ function recalcAceFromServices(){
     bar.ec2.style.width=bar.rds.style.width=bar.ec.style.width=bar.os.style.width='0%';
   }
   if(totalLine){
-    const aceVal=parseFloat(aceEl.value)||0;
-    if(sum===0){
-      totalLine.textContent='Total (list, pre-discount): $0 — enter figures above';
-      totalLine.style.color='var(--ink2)';
-    } else if(aceEl.dataset.userEdited && Math.abs(aceVal-netExpected)/Math.max(netExpected,1) > 0.01){
-      totalLine.innerHTML='Total (list, pre-discount): '+fmtD(sum)+' — <strong style="color:#b91c1c">ACE ARR ('+fmtD(aceVal)+') does not match '+discountPct+'% discount applied ('+fmtD(netExpected)+' expected)</strong>';
-      totalLine.style.color='#b91c1c';
-    } else {
-      totalLine.textContent='Total (list, pre-discount): '+fmtD(sum)+' — ACE ARR below already reflects the '+discountPct+'% discount';
-      totalLine.style.color='#166534';
-    }
+    totalLine.textContent = sum===0
+      ? 'Total ARR: $0 — enter figures above'
+      : 'Total ARR: '+fmtD(sum)+' (list, pre-discount)';
+    totalLine.style.color='var(--ink2)';
   }
-  if(sum>0 && !(aceEl.dataset.userEdited && Math.abs((parseFloat(aceEl.value)||0)-netExpected)/Math.max(netExpected,1) > 0.01)){
-    aceEl.value=Math.round(netExpected);
+  // Intel-Eligible ARR — the number that actually drives DNE — auto-suggests
+  // from the service split x discount, but ONLY if the person hasn't typed
+  // their own value in. ACE ARR is untouched here entirely: it's a separate,
+  // Salesforce-sourced figure that can legitimately differ from this one.
+  const eligibleEl = document.getElementById('intel-eligible-arr');
+  if(eligibleEl && !eligibleEl.dataset.userEdited && sum>0){
+    eligibleEl.value = Math.round(netExpected);
   }
   const eligibleLine = document.getElementById('arr-eligible-line');
   if(eligibleLine){
-    eligibleLine.textContent = sum>0 ? 'ACE ARR above already reflects the '+discountPct+'% discount — this is what feeds DNE' : '';
+    eligibleLine.textContent = sum>0 ? 'Suggested Intel-Eligible ARR at '+discountPct+'% discount: '+fmtD(netExpected)+' — edit the field above if the real number differs' : '';
   }
 }
 
-async function handleAutofillUpload(input){
-  const file = input.files && input.files[0];
-  const status = document.getElementById('autofill-status');
-  if(!file) return;
-  status.textContent = 'Reading '+file.name+'…';
-  try{
-    const text = await extractTextFromFile(file);
-    const result = parseTextDeterministically(text, file.name);
-    status.textContent = '';
-    input.value = '';
-    showExtractionReview(result);
-  }catch(e){
-    status.textContent = '';
-    alert("Couldn't read that file. Plain text (.txt) and .csv work most reliably — for other formats, paste the key details in manually.");
-    console.error('Autofill error', e);
-  }
-}
-
-async function extractTextFromFile(file){
-  // .txt/.csv: read directly. Everything else: best-effort — pull printable
-  // ASCII runs out of the raw bytes. Works for many simple/uncompressed PDFs,
-  // won't work for scanned images or compressed PDF streams — that's a real
-  // limit of going deterministic, not a bug.
-  if(file.type==='text/plain' || file.type==='text/csv' || /\.(txt|csv)$/i.test(file.name)){
-    return await file.text();
-  }
-  const buf = await file.arrayBuffer();
-  const bytes = new Uint8Array(buf);
-  let out = '';
-  let run = '';
-  for(let i=0;i<bytes.length;i++){
-    const c = bytes[i];
-    if(c>=32 && c<=126){ run += String.fromCharCode(c); }
-    else { if(run.length>=4) out += run+' '; run=''; }
-  }
-  if(run.length>=4) out += run;
-  return out;
-}
-
-function parseTextDeterministically(text, filename){
-  const result = {confidence:{}, flags:[], missingForARR:[]};
-  const found = [];
-
-  // ACE Opportunity ID — distinctive format, high confidence when it matches
-  const aceMatch = text.match(/O-[A-Z0-9]{6,12}/i);
-  if(aceMatch){ result.aceID = aceMatch[0].toUpperCase(); result.confidence.aceID='high'; found.push('aceID'); }
-
-  // Customer name — look for an explicit label first, then fall back to filename
-  const custLabel = text.match(/(?:customer|client|account)\s*[:\-]\s*([A-Z][A-Za-z0-9&.,' ]{2,50})/i);
-  if(custLabel){ result.custName = custLabel[1].trim().replace(/[.,]$/,''); result.confidence.custName='medium'; found.push('custName'); }
-  else {
-    const fnGuess = filename.replace(/\.[^.]+$/,'').replace(/[_-]/g,' ').match(/^[A-Za-z0-9 ]{3,40}/);
-    if(fnGuess){ result.custName = fnGuess[0].trim(); result.confidence.custName='low'; found.push('custName'); }
-  }
-
-  // Partner name
-  const partnerLabel = text.match(/partner\s*[:\-]\s*([A-Z][A-Za-z0-9&.,'\s]{2,50})/i);
-  if(partnerLabel){ result.partnerName = partnerLabel[1].trim().replace(/[.,]$/,''); result.confidence.partnerName='medium'; found.push('partnerName'); }
-
-  // Deal type — keyword presence
-  const hasModernize = /moderniz/i.test(text);
-  const hasMigrate = /migrat/i.test(text);
-  if(hasModernize && !hasMigrate){ result.actType='Modernize'; result.confidence.actType='medium'; found.push('actType'); }
-  else if(hasMigrate && !hasModernize){ result.actType='Migrate'; result.confidence.actType='medium'; found.push('actType'); }
-  else if(hasMigrate && hasModernize){ result.actType='Migrate'; result.confidence.actType='low'; found.push('actType'); result.flags.push('Both "migrate" and "modernize" appear — confirm which track applies.'); }
-
-  // Target ARR — dollar figure near ARR/annual/target keywords
-  const arrMatch = text.match(/(?:target\s*arr|annual\s*(?:run\s*rate|revenue|spend)|arr)\D{0,15}\$?\s*([\d,]+(?:\.\d+)?)\s*(k|m)?/i);
-  if(arrMatch){
-    let n = parseFloat(arrMatch[1].replace(/,/g,''));
-    if(/k/i.test(arrMatch[2]||'')) n *= 1000;
-    if(/m/i.test(arrMatch[2]||'')) n *= 1000000;
-    result.targetArr = Math.round(n); result.confidence.targetArr='medium'; found.push('targetArr');
-  } else {
-    result.missingForARR.push('Target ARR — not found in this document, enter manually');
-  }
-
-  // Dates — start and end/close
-  const dateRe = /(\d{4}-\d{2}-\d{2})|(\d{1,2}\/\d{1,2}\/\d{2,4})|((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s+\d{1,2},?\s+\d{4})/gi;
-  const startCtx = text.match(new RegExp('(?:start|kickoff|begin)[^.\\n]{0,20}('+dateRe.source+')','i'));
-  const endCtx = text.match(new RegExp('(?:end|close|complete|target\\s*completion)[^.\\n]{0,20}('+dateRe.source+')','i'));
-  if(startCtx){ result.migStart = normalizeDateGuess(startCtx[1]); result.confidence.migStart='medium'; found.push('migStart'); }
-  if(endCtx){ result.closeDate = normalizeDateGuess(endCtx[1]); result.confidence.closeDate='medium'; found.push('closeDate'); }
-
-  result.dealName = result.custName ? (result.custName + ' — IAP Deal') : '';
-  if(result.dealName){ result.confidence.dealName='low'; found.push('dealName'); }
-
-  if(found.length===0){
-    result.flags.push('Nothing recognizable was found automatically. This works best on plain text or simple PDFs with clear labels like "Customer:", "ACE ID:", or dollar figures near "ARR."');
-  } else if(found.length < 4){
-    result.flags.push('Only '+found.length+' of 8 fields were found automatically — review carefully and fill in the rest by hand.');
-  }
-  return result;
-}
-
-function normalizeDateGuess(raw){
-  const d = new Date(raw);
-  if(isNaN(d)) return raw;
-  return d.toISOString().slice(0,10);
-}
-
-function showExtractionReview(result){
-  const conf = result.confidence||{};
-  const fields = Object.keys(AUTOFILL_LABELS);
-  let rows='';
-  fields.forEach(f=>{
-    const val = result[f];
-    if(val===undefined||val===null||val==='') return;
-    const c = conf[f]||'low';
-    const cColor = c==='high'?'#16a34a':c==='medium'?'#d97706':'#dc2626';
-    rows += '<label style="display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid #eee;cursor:pointer">'+
-      '<input type="checkbox" data-field="'+f+'" data-value="'+String(val).replace(/"/g,'&quot;')+'" checked style="margin-top:3px">'+
-      '<div style="flex:1"><div style="font-size:.75rem;font-weight:700;color:#0A1628">'+AUTOFILL_LABELS[f]+'</div>'+
-      '<div style="font-size:.8rem;color:#333">'+val+'</div></div>'+
-      '<div style="font-size:.65rem;font-weight:700;color:'+cColor+';text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;padding-top:2px">'+c+'</div>'+
-      '</label>';
-  });
-  if(!rows) rows='<div style="font-size:.8rem;color:#666;padding:10px 0">Nothing recognizable was found in this document for the deal fields.</div>';
-  const flags = (result.flags||[]);
-  let flagHtml = flags.length ? '<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 12px;margin-top:12px"><div style="font-size:.7rem;font-weight:700;color:#92400e;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Worth checking</div><div style="font-size:.78rem;color:#78350f;line-height:1.6">'+flags.join('<br>')+'</div></div>' : '';
-
-  const missing = (result.missingForARR||[]);
-  let missingHtml = missing.length ? '<div style="background:#f0f5ff;border:1px solid #c7d7f5;border-radius:8px;padding:10px 12px;margin-top:12px">'+
-    '<div style="font-size:.7rem;font-weight:700;color:#0068B5;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">To calculate Target ARR, still needed</div>'+
-    '<div style="font-size:.78rem;color:#0A1628;line-height:1.7">'+missing.map(m=>'· '+m).join('<br>')+'</div>'+
-    '<button class="btn btn-secondary btn-sm" style="margin-top:8px" onclick="document.getElementById(\'autofill-modal\').style.display=\'none\';goStep(3)">Go to Calculators</button>'+
-    '</div>' : '';
-
-  let m=document.getElementById('autofill-modal');
-  if(!m){
-    m=document.createElement('div'); m.id='autofill-modal';
-    m.style.cssText='position:fixed;inset:0;background:rgba(10,22,40,.55);display:flex;align-items:center;justify-content:center;z-index:9000';
-    m.innerHTML='<div id="autofill-modal-box" style="background:#fff;border-radius:14px;max-width:520px;width:92%;padding:24px 26px;box-shadow:0 24px 64px rgba(0,0,0,.3);max-height:82vh;overflow:auto"></div>';
-    document.body.appendChild(m);
-  }
-  m.style.display='flex';
-  document.getElementById('autofill-modal-box').innerHTML=
-    '<div style="font-weight:700;font-size:1rem;margin-bottom:4px;color:#0A1628">What I found</div>'+
-    '<div style="font-size:.78rem;color:#666;margin-bottom:12px">Checked items will be applied to the form. Uncheck anything that looks wrong.</div>'+
-    '<div>'+rows+'</div>'+flagHtml+missingHtml+
-    '<div style="display:flex;gap:10px;margin-top:16px;justify-content:flex-end">'+
-    '<button class="btn btn-secondary" onclick="document.getElementById(\'autofill-modal\').style.display=\'none\'">Discard</button>'+
-    '<button class="btn btn-primary" onclick="applyExtraction(this)">Apply to Form</button></div>';
-}
-
-function applyExtraction(btn){
-  const box = btn.closest('#autofill-modal-box');
-  const checks = box.querySelectorAll('input[type="checkbox"]:checked');
-  let applied=0;
-  checks.forEach(cb=>{
-    const field = cb.dataset.field;
-    const value = cb.dataset.value;
-    const fieldId = AUTOFILL_FIELD_MAP[field];
-    if(fieldId){
-      const el = document.getElementById(fieldId);
-      if(el){ el.value = value; applied++; }
-    }
-  });
-  document.getElementById('autofill-modal').style.display='none';
-  if(applied) alert('Applied '+applied+' field'+(applied===1?'':'s')+'. Review before continuing.');
-}
 let smcFileName = '';
 let smcS3Key = '';
 let ceS3Key = '';
@@ -3683,9 +3591,10 @@ function updateTotals(){
   const roiEl=document.getElementById('tot-roi');
   if(roiEl) roiEl.textContent=fmt(totRebate*10);
 
-  // Fleet Builder is now the primary source for ACE ARR / DNE — Simple Monthly is link-only.
-  const aceEl=document.getElementById('ace-amount');
-  if(aceEl && !aceEl.dataset.userEdited && totList>0) aceEl.value=Math.round(totList);
+  // Fleet Builder feeds Intel-Eligible ARR, not ACE ARR — ACE ARR is a
+  // separate, Salesforce-sourced figure that can legitimately differ.
+  const eligibleEl=document.getElementById('intel-eligible-arr');
+  if(eligibleEl && !eligibleEl.dataset.userEdited && totList>0) eligibleEl.value=Math.round(totActual);
 }
 
 function renderCEPanel(){
@@ -3870,7 +3779,9 @@ function computeRecommendation(d, dne, rateInfo){
   const competitive = (d.competitive||'').toLowerCase();
   const timeSensitive = (d.timeSensitive||'').toLowerCase();
 
-  const competitiveAnswer = competitive==='yes' ? 'Yes' : competitive==='no' ? 'No' : competitive==='unsure' ? 'Unsure' : 'Not answered yet';
+  const competitiveAnswer = competitive==='yes'
+    ? 'Yes' + (d.winAmount>0 ? ' — needs ' + ('$'+Math.round(d.winAmount).toLocaleString()) + ' to win' : '')
+    : competitive==='no' ? 'No' : competitive==='unsure' ? 'Unsure' : 'Not answered yet';
   const competitiveColor = competitive==='yes' ? '#b91c1c' : competitive==='no' ? '#166534' : '#92400e';
 
   let timeSensitiveAnswer = 'Not answered yet';
@@ -3900,6 +3811,15 @@ function computeRecommendation(d, dne, rateInfo){
   } else {
     headline = 'Competitive and time-sensitivity haven\'t been answered yet — fill in both to get a real recommendation instead of a guess.';
     rationale = 'This recommendation is only as good as the two answers above. An unanswered field defaults to "unknown," not "low risk."';
+  }
+
+  if(competitive==='yes' && d.winAmount>0){
+    if(dne < d.winAmount){
+      const gap = d.winAmount - dne;
+      rationale += ` Current DNE of $${Math.round(dne).toLocaleString()} falls short of the $${Math.round(d.winAmount).toLocaleString()} needed to win by $${Math.round(gap).toLocaleString()} — this gap needs a plan before submission, not after.`;
+    } else {
+      rationale += ` Current DNE of $${Math.round(dne).toLocaleString()} already covers the $${Math.round(d.winAmount).toLocaleString()} needed to win.`;
+    }
   }
 
   if(dne > 500000){
@@ -3980,6 +3900,7 @@ function generateSummary(){
         row('Claim Quarter', d.claimQuarter),
         row('Activity Type', d.activityType),
         row('Competitive Situation', d.competitive),
+        row('Amount Required to Win vs. Competition', d.winAmount ? fmtD(d.winAmount) : ''),
         row('Time Sensitive', d.timeSensitive),
         row('Deadline / Key Date', d.deadline),
       ].join(''))}
@@ -4024,7 +3945,8 @@ function generateSummary(){
         row('Pricing Calc Link', d.pricingCalcLink),
         row('ACE Stage', d.aceStage),
         row('ACE Notes', d.aceNotes),
-        row('ACE ARR', fmtD(d.aceAmount)),
+        row('ACE ARR (Salesforce figure)', fmtD(d.aceAmount)),
+        row('Intel-Eligible ARR (drives DNE)', fmtD(d.intelEligibleArr)),
         row('IPIC #', d.ipicNum),
       ].join(''))}
 
@@ -5229,22 +5151,6 @@ async function apiSaveDeal(deal, prevStage, nextStage, submitted){
   }catch(e){ console.error('API save failed', e); return null; }
 }
 
-async function apiUploadFile(file, dealId){
-  if(!API_URL) return null;
-  return new Promise((resolve)=>{
-    const reader = new FileReader();
-    reader.onload = async function(e){
-      try{
-        const b64 = e.target.result.split(',')[1];
-        const r = await fetch(API_URL+'/upload', {method:'POST', headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({filename:file.name, data:b64, dealId:dealId||'unassigned'})});
-        resolve(await r.json());
-      }catch(err){ console.error('Upload failed', err); resolve(null); }
-    };
-    reader.readAsDataURL(file);
-  });
-}
-
 /* ── SAVE / LOAD ─────────────────────────────────────────────── */
 function getCurrentDealData(){
   return{
@@ -5277,11 +5183,13 @@ function getCurrentDealData(){
     dealName:v('deal-name'),
     winWire:v('win-wire')==='yes',
     aceAmount:parseFloat(v('ace-amount'))||0,
+    intelEligibleArr:parseFloat(v('intel-eligible-arr'))||0,
     actType:v('prd-deal-type')||v('activity-type'),
     paymentOption:v('payment-option'),
     migTargetDate:v('mig-start'),
     intelSegment:v('intel-segment'),
     competitive:v('deal-competitive'), timeSensitive:v('deal-time-sensitive'), deadline:v('deal-deadline'),
+    winAmount:parseFloat(v('deal-win-amount'))||0,
     arrEc2:parseFloat(v('arr-ec2'))||0, arrRds:parseFloat(v('arr-rds'))||0,
     arrElastiCache:parseFloat(v('arr-elasticache'))||0, arrOpenSearch:parseFloat(v('arr-opensearch'))||0,
     awsRegion:v('cust-awsregion'), custEdpDiscount:parseFloat(v('cust-edp-discount'))||20,
@@ -5294,13 +5202,13 @@ function getCurrentDealData(){
     smcS3Key: smcS3Key || '',
     targetArr: fleets.reduce((s,f)=>s+(f.listARR||0),0) || (parseFloat(v('arr-ec2'))||0)+(parseFloat(v('arr-rds'))||0)+(parseFloat(v('arr-elasticache'))||0)+(parseFloat(v('arr-opensearch'))||0),
     dne: (function(){
-      // ACE ARR already reflects the blended/on-demand discount (see recalcAceFromServices).
-      // DNE = ACE ARR x rate, capped for Modernize. Falls back to the Fleet
-      // Builder's own summed rebate if ACE ARR hasn't been entered yet.
-      const aceArr = parseFloat(v('ace-amount'))||0;
-      if(aceArr>0){
+      // Intel-Eligible ARR is the number that drives DNE — NOT ACE ARR, which
+      // is a separate, Salesforce-sourced figure that can legitimately differ.
+      // Falls back to Fleet Builder's own summed rebate if neither is entered.
+      const eligibleArr = parseFloat(v('intel-eligible-arr'))||0;
+      if(eligibleArr>0){
         const info = computeRate(v('prd-deal-type')||v('activity-type'));
-        let d = aceArr * info.rate;
+        let d = eligibleArr * info.rate;
         if(info.cap && d>info.cap) d = info.cap;
         return Math.round(d);
       }
@@ -5663,16 +5571,7 @@ function refreshCRMHeader(){
   renderSmartsheetPreview(d);
 }
 
-function renderSmartsheetPreview(d){
-  const card = document.getElementById('smartsheet-preview');
-  if(!card) return;
-  const canSee = currentUser && (currentUser.tier==='admin' || currentUser.tier==='tcc');
-  card.style.display = canSee ? 'block' : 'none';
-  if(!canSee) return;
-
-  const statusEl = document.getElementById('smartsheet-sync-status');
-  if(statusEl) statusEl.textContent = d.smartsheetSync || 'Not yet submitted — nothing synced.';
-
+function getSmartsheetRows(d){
   const infraArr = (d.arrEc2||0)+(d.arrRds||0)+(d.arrElastiCache||0)+(d.arrOpenSearch||0) || d.targetArr || 0;
   const isMigrate = (d.actType||'').toLowerCase().startsWith('migrat');
   const activityType = isMigrate ? 'Migration' : (d.actType ? 'Modernization' : '');
@@ -5681,7 +5580,7 @@ function renderSmartsheetPreview(d){
   const isMigrationYN = d.actType ? (isMigrate ? 'Yes' : 'No') : '';
   const activityDesc = [d.actType||'Deal', 'for', d.custName||'', '—', d.workload||'workload not specified'].join(' ');
 
-  const rows = [
+  return [
     ['IPIC Activity #', d.ipicNum || '(TCC assigns after SOW)'],
     ['Activity Name', d.dealName],
     ['Activity Type', activityType],
@@ -5714,6 +5613,33 @@ function renderSmartsheetPreview(d){
     ['Is this for a Migration activity?', isMigrationYN],
     ['Expected ROI', (d.dne && d.migrationCost>0) ? Math.round((d.dne-d.migrationCost)/d.migrationCost*100)+'%' : ''],
   ];
+}
+
+function downloadSmartsheetRow(d){
+  const rows = getSmartsheetRows(d);
+  let csv = 'Field,Value\n';
+  rows.forEach(([label,val]) => {
+    csv += '"'+String(label).replace(/"/g,'""')+'","'+String(val||'').replace(/"/g,'""')+'"\n';
+  });
+  const blob = new Blob([csv], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'Smartsheet_Row_' + (d.custName||'deal').replace(/[^a-z0-9]/gi,'_') + '.csv';
+  a.click();
+}
+
+function renderSmartsheetPreview(d){
+  const card = document.getElementById('smartsheet-preview');
+  if(!card) return;
+  const canSee = currentUser && (currentUser.tier==='admin' || currentUser.tier==='tcc');
+  card.style.display = canSee ? 'block' : 'none';
+  if(!canSee) return;
+
+  const statusEl = document.getElementById('smartsheet-sync-status');
+  if(statusEl) statusEl.textContent = d.smartsheetSync || 'Not yet submitted — nothing synced.';
+
+  const rows = getSmartsheetRows(d);
   document.getElementById('smartsheet-preview-rows').innerHTML = rows.map(([label,val])=>
     `<tr style="border-bottom:1px solid #d1fae5"><td style="padding:4px 8px;color:#166534;font-weight:600;white-space:nowrap">${label}</td><td style="padding:4px 8px;color:#0A1628">${val||'—'}</td></tr>`
   ).join('');
@@ -5762,6 +5688,25 @@ async function loadDealById(id){
 }
 
 function restoreDeal(d){
+  setVal('deal-name',d.dealName);
+  setVal('prd-deal-type',d.actType); handleProgramChange();
+  setVal('iap-program',d.iapProgram);
+  setVal('payment-option',d.paymentOption); handlePaymentOptionChange();
+  setVal('intel-segment',d.intelSegment);
+  setVal('arr-ec2',d.arrEc2); setVal('arr-rds',d.arrRds);
+  setVal('arr-elasticache',d.arrElastiCache); setVal('arr-opensearch',d.arrOpenSearch);
+  setVal('cust-edp-discount',d.custEdpDiscount);
+  setVal('discount-mode',d.discountMode); setVal('discount-verified',d.discountVerified);
+  const aceEl=document.getElementById('ace-amount'); if(aceEl){ aceEl.value=d.aceAmount||''; aceEl.dataset.userEdited=1; }
+  const eligibleEl=document.getElementById('intel-eligible-arr'); if(eligibleEl){ eligibleEl.value=d.intelEligibleArr||''; eligibleEl.dataset.userEdited=1; }
+  setVal('migration-cost',d.migrationCost);
+  setVal('partner-spms-id',d.partnerSpmsId);
+  setVal('deal-competitive',d.competitive); handleCompetitiveChange();
+  setVal('deal-time-sensitive',d.timeSensitive); handleTimeSensitiveChange();
+  setVal('deal-deadline',d.deadline);
+  setVal('deal-win-amount',d.winAmount);
+  setVal('win-wire',d.winWire ? 'yes' : '');
+  recalcAceFromServices();
   setVal('fh-region',d.region);
   updateCountries();
   setVal('fh-country',d.country);
@@ -5826,14 +5771,6 @@ function getWorkloadSelection(){
 
 function pct(n){return Math.round((n||0)*100)+'%'}
 function today(){return new Date().toISOString().split('T')[0]}
-function formatDate(d){
-  return d.toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric'});
-}
-function formatDateWeek(d){
-  const end=new Date(d);end.setDate(end.getDate()+4);
-  return formatDate(d)+' – '+end.getDate()+' '+end.toLocaleString('en-US',{month:'short'});
-}
-
 /* ── INIT ────────────────────────────────────────────────────── */
 // ── DEAL TEAM ──────────────────────────────────────────────
 
@@ -6061,9 +5998,24 @@ function refreshAccordionStatus(){
 <script>
 window.addEventListener('load', restoreSession);
 if('serviceWorker' in navigator){
+  let refreshing = false;
+  // When a new service worker takes control (i.e. a new build is live),
+  // reload once automatically instead of relying on someone remembering
+  // to hard-refresh. Guarded so it only ever fires once per page load.
+  navigator.serviceWorker.addEventListener('controllerchange', function(){
+    if(refreshing) return;
+    refreshing = true;
+    window.location.reload();
+  });
+
   window.addEventListener('load', function(){
     navigator.serviceWorker.register('sw.js')
-      .then(function(reg){ console.log('SW registered'); })
+      .then(function(reg){
+        console.log('SW registered');
+        // Check the server for a newer sw.js/app right now, don't wait for
+        // the browser's own periodic check (which can take up to 24 hours).
+        reg.update();
+      })
       .catch(function(err){ console.log('SW failed:', err); });
   });
 }
