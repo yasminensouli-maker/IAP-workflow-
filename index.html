@@ -1564,33 +1564,6 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
           <button class="btn btn-secondary btn-sm" onclick="downloadWorkflowOnePager()">⇩ Workflow — how a deal moves</button>
         </div>
 
-        <div class="section-card" style="background:linear-gradient(135deg,#f0f5ff,#fff8f0);border:1px solid #c7d7f5">
-          <div class="section-card-title">What could this earn?</div>
-          <div style="font-size:.74rem;color:#555;margin-bottom:12px">Enter monthly spend (MRR) on EC2, RDS, ElastiCache, or OpenSearch running on Intel — see the estimate instantly, before you fill in a single field below.</div>
-          <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
-            <input type="number" id="calc-spend" placeholder="Monthly spend (MRR), e.g. 42000" oninput="calcTopEarnings()" style="flex:1;min-width:180px;padding:9px 10px;border:1px solid #c7d7f5;border-radius:6px;font-size:.85rem">
-            <select id="calc-type" onchange="calcTopEarnings()" style="padding:9px 10px;border:1px solid #c7d7f5;border-radius:6px;font-size:.82rem">
-              <option value="Migrate">Migrate (4.5%)</option>
-              <option value="Modernize">Modernization (1%, cap $250K)</option>
-            </select>
-            <select id="calc-family" onchange="calcTopEarnings()" style="padding:9px 10px;border:1px solid #c7d7f5;border-radius:6px;font-size:.82rem">
-              <option value="">Instance family (optional)</option>
-              <option value="m8i">m8i — General Purpose, Gen 8</option>
-              <option value="c8i">c8i — Compute Optimized, Gen 8</option>
-              <option value="r8i">r8i — Memory Optimized, Gen 8</option>
-              <option value="x8i">x8i — Extra Large Memory, Gen 8, SAP RISE</option>
-              <option value="u7i">u7i — Ultra Large Memory, largest memory footprint on AWS, not always Gen 8 but eligible under Migrate for SAP RISE and similar</option>
-            </select>
-          </div>
-          <div style="font-size:.66rem;color:#888;margin-bottom:10px">MRR × 12 = target ARR, same as the Simple Monthly calculation used everywhere else in the app</div>
-          <div id="calc-result" style="display:none">
-            <div style="font-size:1.3rem;font-weight:800;color:#0068B5" id="calc-earning">—</div>
-            <div style="font-size:.68rem;color:#666;margin-bottom:10px">Undiscounted estimate against full target ARR — no blended pricing assumption applied. Set blended pricing explicitly in Simple Monthly below.</div>
-            <div style="font-size:.68rem;color:#0A1628;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">How it would pay out — Quarterly (15/15/20/50)</div>
-            <div id="calc-schedule" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px"></div>
-          </div>
-        </div>
-
         <div class="section-card" style="background:linear-gradient(135deg,#f0f5ff,#fff);border:1px solid #c7d7f5">
           <div class="section-card-title">Autofill from a Document</div>
           <div style="font-size:.78rem;color:#555;margin-bottom:10px">Upload an email thread, BOM, or deal doc. It reads the file and proposes values for the fields below — nothing is applied until you review and confirm.</div>
@@ -2252,6 +2225,28 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
               <input type="text" id="campaign-code" placeholder="e.g. IAP-2026-Q3-NAMER" class="mono">
               <span class="hint">Intel campaign code if applicable</span>
             </div>
+            <div class="f-group">
+              <label>Competitive Situation</label>
+              <select id="deal-competitive">
+                <option value="">— Select —</option>
+                <option value="yes">Yes — active competition on this deal</option>
+                <option value="no">No — no other cloud in the conversation</option>
+                <option value="unsure">Unsure</option>
+              </select>
+            </div>
+            <div class="f-group">
+              <label>Time Sensitive?</label>
+              <select id="deal-time-sensitive" onchange="handleTimeSensitiveChange()">
+                <option value="">— Select —</option>
+                <option value="yes">Yes — there's a real deadline</option>
+                <option value="no">No — standard pace</option>
+              </select>
+            </div>
+            <div class="f-group" id="deal-deadline-wrap" style="display:none">
+              <label>Deadline / Key Date</label>
+              <input type="date" id="deal-deadline">
+              <span class="hint">Contract renewal, budget cycle, competitive RFP close, etc.</span>
+            </div>
             <div class="f-group span2">
               <label>Notes</label>
               <textarea id="ace-notes" placeholder="Migration timeline, exec sponsor, competitive context..."></textarea>
@@ -2521,6 +2516,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
             <a href="https://app.smartsheet.com/sheets/P3J6GHmGxmJxQwgM6f7wqCmpjRFFrp8m2PFvxgx1" target="_blank" rel="noopener" style="font-size:.7rem;font-weight:600;color:#0068B5">Open sheet ↗</a>
           </div>
           <div style="font-size:.72rem;color:var(--ink3);margin-bottom:10px" id="smartsheet-sync-status">Not yet submitted — nothing synced.</div>
+          <button class="btn btn-aws btn-sm" onclick="renderSmartsheetPreview(getCurrentDealData())" style="margin-bottom:10px">Generate Smartsheet Row</button>
           <div style="overflow-x:auto">
             <table style="width:100%;border-collapse:collapse;font-size:.72rem">
               <tbody id="smartsheet-preview-rows"></tbody>
@@ -2638,10 +2634,14 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
 
         <div class="section-card">
           <div class="section-card-title">All Deals</div>
-        <button class="btn btn-aws btn-sm" onclick="downloadDealsCSV()" style="margin-bottom:12px">Download Deals (Excel)</button>
+        <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
+          <button class="btn btn-aws btn-sm" onclick="downloadDealsCSV()">Download Deals (Excel)</button>
+          <button class="btn btn-secondary btn-sm" id="delete-selected-btn" style="display:none;background:#fef2f2;color:#b91c1c;border-color:#fecaca" onclick="deleteSelectedDeals()">Delete Selected</button>
+        </div>
           <table class="deals-table">
             <thead>
               <tr>
+                <th id="pipe-th-check" style="display:none"><input type="checkbox" id="pipe-select-all" onchange="toggleSelectAllDeals(this)"></th>
                 <th>Customer</th>
                 <th id="pipe-th-submitter">Submitter</th>
                 <th id="pipe-th-segment">Segment</th>
@@ -2706,31 +2706,6 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
 let currentUser = null;
 let teamMembers = [];
 let teamCount = 0;
-
-function calcTopEarnings(){
-  const mrr = parseFloat(document.getElementById('calc-spend').value) || 0;
-  const type = document.getElementById('calc-type').value;
-  const result = document.getElementById('calc-result');
-  if(mrr <= 0){ result.style.display = 'none'; return; }
-  result.style.display = 'block';
-  const targetArr = mrr * 12;
-  // No blended pricing assumption baked in here — this is a quick, undiscounted
-  // estimate against full target ARR. Blended pricing is set explicitly in
-  // Simple Monthly (Step 3), where it's a visible, editable field, not a hidden default.
-  let benefit = targetArr * (type==='Modernize' ? 0.01 : 0.045);
-  const isModernize = type === 'Modernize';
-  if(isModernize && benefit > 250000) benefit = 250000;
-  const fmtD = v => '$' + Math.round(v).toLocaleString();
-  document.getElementById('calc-earning').textContent = fmtD(benefit) + ' estimated annual benefit (on ' + fmtD(targetArr) + ' target ARR, undiscounted)';
-  const pcts = [0.15, 0.15, 0.20, 0.50];
-  const labels = ['Q1','Q2','Q3','Q4'];
-  document.getElementById('calc-schedule').innerHTML = pcts.map((p,i) =>
-    `<div style="background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:6px 4px;text-align:center">
-      <div style="font-size:.62rem;color:#888;text-transform:uppercase">${labels[i]}</div>
-      <div style="font-size:.72rem;font-weight:700;color:#0A1628">${fmtD(benefit*p)}</div>
-    </div>`
-  ).join('');
-}
 
 /* ── SESSION PERSISTENCE ──────────────────────────────────────
    Keeps someone logged in across a reload or a backgrounded/reclaimed
@@ -3324,6 +3299,12 @@ function getRateInfo(){
   return computeRate(dealType, program);
 }
 
+function handleTimeSensitiveChange(){
+  const val = (document.getElementById('deal-time-sensitive')||{}).value;
+  const wrap = document.getElementById('deal-deadline-wrap');
+  if(wrap) wrap.style.display = (val === 'yes') ? 'block' : 'none';
+}
+
 function handlePaymentOptionChange(){
   const val = (document.getElementById('payment-option')||{}).value;
   const wrap = document.getElementById('payment-custom-wrap');
@@ -3885,6 +3866,49 @@ function updateSOWActivityName(){
 }
 
 /* ── SUMMARY STEP ─────────────────────────────────────────── */
+function computeRecommendation(d, dne, rateInfo){
+  const competitive = (d.competitive||'').toLowerCase();
+  const timeSensitive = (d.timeSensitive||'').toLowerCase();
+
+  const competitiveAnswer = competitive==='yes' ? 'Yes' : competitive==='no' ? 'No' : competitive==='unsure' ? 'Unsure' : 'Not answered yet';
+  const competitiveColor = competitive==='yes' ? '#b91c1c' : competitive==='no' ? '#166534' : '#92400e';
+
+  let timeSensitiveAnswer = 'Not answered yet';
+  let timeSensitiveColor = '#92400e';
+  if(timeSensitive==='yes'){
+    timeSensitiveAnswer = d.deadline ? `Yes — ${new Date(d.deadline).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}` : 'Yes — no date given';
+    timeSensitiveColor = '#b91c1c';
+  } else if(timeSensitive==='no'){
+    timeSensitiveAnswer = 'No';
+    timeSensitiveColor = '#166534';
+  }
+
+  // Simple, transparent rules — not a black box. Every input is visible above.
+  let headline, rationale;
+  if(competitive==='yes' && timeSensitive==='yes'){
+    headline = 'Fast-track this deal — active competition and a real deadline both push toward urgency.';
+    rationale = 'Competitive pressure plus a firm deadline is the combination most likely to lose ground to a delay. Prioritize getting this through internal review quickly.';
+  } else if(competitive==='yes'){
+    headline = 'Move with normal urgency, but don\'t let this one sit — there\'s competition even without a hard deadline.';
+    rationale = 'No fixed deadline reduces the time pressure, but active competition means a slow internal process still carries real risk of losing the deal to another provider.';
+  } else if(timeSensitive==='yes'){
+    headline = 'Prioritize on timeline — there\'s a real deadline even without known competition.';
+    rationale = 'A firm date (renewal, budget cycle, or otherwise) is a hard constraint regardless of competitive pressure. Treat the deadline as the driver here.';
+  } else if(competitive==='no' && timeSensitive==='no'){
+    headline = 'Standard pace is appropriate — no competitive pressure and no deadline identified.';
+    rationale = 'Nothing here indicates urgency. Process this through the normal review cadence.';
+  } else {
+    headline = 'Competitive and time-sensitivity haven\'t been answered yet — fill in both to get a real recommendation instead of a guess.';
+    rationale = 'This recommendation is only as good as the two answers above. An unanswered field defaults to "unknown," not "low risk."';
+  }
+
+  if(dne > 500000){
+    rationale += ' Note: this DNE is large enough that it likely needs Intel Leadership\'s attention early rather than at the end of a long internal review.';
+  }
+
+  return { competitiveAnswer, competitiveColor, timeSensitiveAnswer, timeSensitiveColor, headline, rationale };
+}
+
 function generateSummary(){
   const d = getCurrentDealData();
   const rateInfo = computeRate(d.actType, d.iapProgram);
@@ -3893,7 +3917,10 @@ function generateSummary(){
   const dne = d.dne || 0;
   const fmtD = v => '$' + Math.round(v||0).toLocaleString();
   const row = (label, val) => `<div style="display:flex;justify-content:space-between;gap:10px;padding:4px 0;border-bottom:1px solid #eee;font-size:.76rem"><span style="color:var(--ink3)">${label}</span><span style="font-weight:600;color:var(--ink);text-align:right">${(val===0||val) ? val : '<span style=\"color:#b91c1c;font-weight:400\">— not entered</span>'}</span></div>`;
-  const section = (title, rowsHtml) => `<div style="background:var(--bg);border-radius:6px;padding:12px 14px;border:1px solid var(--border);margin-bottom:12px"><div style="font-size:.65rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;font-weight:700">${title}</div>${rowsHtml}</div>`;
+  // Sections are collapsible <details> now — everything is still here, nothing
+  // removed, but only the Recommendation and Headline are open by default.
+  // This is the direct fix for "the summary is too much" without losing data.
+  const section = (title, rowsHtml, openByDefault) => `<details ${openByDefault?'open':''} style="background:var(--bg);border-radius:6px;padding:10px 14px;border:1px solid var(--border);margin-bottom:10px"><summary style="font-size:.68rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em;font-weight:700;cursor:pointer;list-style:none">${title}</summary><div style="margin-top:8px">${rowsHtml}</div></details>`;
 
   const endD = d.closeDate ? new Date(d.closeDate) : null;
   const claimD = endD ? new Date(endD) : null;
@@ -3901,15 +3928,26 @@ function generateSummary(){
   const claimDate = (claimD && !isNaN(claimD)) ? claimD.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
 
   const rise = window._computedRiseBOM;
+  const rec = computeRecommendation(d, dne, rateInfo);
 
   const html = `
     <div style="padding:4px 0">
-      <div style="font-size:1rem;font-weight:700;color:var(--ink);margin-bottom:16px">Deal Summary — ${custName} — every field captured, nothing curated out</div>
+      <div style="font-size:1rem;font-weight:700;color:var(--ink);margin-bottom:16px">${custName}</div>
 
-      <div style="background:#f0fdf4;border-radius:6px;padding:12px;border:1px solid #86efac;margin-bottom:16px">
+      <div style="background:#f0fdf4;border-radius:6px;padding:12px;border:1px solid #86efac;margin-bottom:12px">
         <div style="font-size:.65rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Headline</div>
         <div style="font-size:1.3rem;font-weight:800;color:var(--green)">${fmtD(dne)} DNE</div>
         <div style="font-size:.68rem;color:var(--ink3)">Ceiling, not a guaranteed payout. Subject to Proof of Performance. ${rateInfo.label}.</div>
+      </div>
+
+      <div style="background:#eff6ff;border-radius:6px;padding:12px;border:1px solid #93c5fd;margin-bottom:16px">
+        <div style="font-size:.65rem;color:#1e3a8a;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;font-weight:700">Recommendation</div>
+        <div style="font-size:.85rem;color:#0A1628;font-weight:600;margin-bottom:8px">${rec.headline}</div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:8px">
+          <div><span style="font-size:.65rem;color:#1e3a8a;text-transform:uppercase;letter-spacing:.05em">Competitive?</span><br><span style="font-weight:700;color:${rec.competitiveColor}">${rec.competitiveAnswer}</span></div>
+          <div><span style="font-size:.65rem;color:#1e3a8a;text-transform:uppercase;letter-spacing:.05em">Time Sensitive?</span><br><span style="font-weight:700;color:${rec.timeSensitiveColor}">${rec.timeSensitiveAnswer}</span></div>
+        </div>
+        <div style="font-size:.76rem;color:#1e3a8a;line-height:1.6">${rec.rationale}</div>
       </div>
 
       ${section('Deal Identity', [
@@ -3941,6 +3979,9 @@ function generateSummary(){
         row('Intel Budget Year', d.intelBudgetYear),
         row('Claim Quarter', d.claimQuarter),
         row('Activity Type', d.activityType),
+        row('Competitive Situation', d.competitive),
+        row('Time Sensitive', d.timeSensitive),
+        row('Deadline / Key Date', d.deadline),
       ].join(''))}
 
       ${section('Blended Pricing & Region', [
@@ -5026,6 +5067,12 @@ async function renderPipeline(){
     if(el) el.style.display = isSeller ? 'none' : '';
   });
 
+  // Delete is admin-only
+  const checkTh = document.getElementById('pipe-th-check');
+  const deleteBtn = document.getElementById('delete-selected-btn');
+  if(checkTh) checkTh.style.display = canEdit ? '' : 'none';
+  if(deleteBtn) deleteBtn.style.display = 'none'; // shown again if a checkbox is actually ticked
+
   const activeDeals = deals.filter(d=>{
     const s=(d.status||'').toLowerCase();
     return !s.includes('paid') && !s.includes('draft');
@@ -5051,6 +5098,7 @@ async function renderPipeline(){
     const daysColor = daysIn>10 ? 'color:var(--red)' : daysIn>5 ? 'color:#d97706' : '';
     return `
     <tr>
+      <td style="${canEdit?'':'display:none'}"><input type="checkbox" class="deal-select-cb" value="${d.id}" onchange="onDealCheckboxChange()"></td>
       <td>${d.custName||'—'}</td>
       <td style="${isSeller?'display:none':''}">${d.fhName||'—'}</td>
       <td style="${isSeller?'display:none':''}">${d.segment||'—'}</td>
@@ -5059,7 +5107,10 @@ async function renderPipeline(){
       <td><span class="status-pill ${statusClass(d.status)}">${d.status||'Draft'}</span></td>
       <td style="${isSeller?'display:none':''};${daysColor}">${daysIn} day${daysIn===1?'':'s'}</td>
       <td style="${isSeller?'display:none':''}">${d.date||'—'}</td>
-      <td><button class="btn btn-secondary btn-sm" onclick="loadDealById('${d.id}')">View</button></td>
+      <td>
+        <button class="btn btn-secondary btn-sm" onclick="loadDealById('${d.id}')">View</button>
+        ${canEdit ? `<button class="btn btn-secondary btn-sm" style="color:#b91c1c" onclick="deleteOneDeal('${d.id}','${(d.custName||'this deal').replace(/'/g,"\\'")}')">Delete</button>` : ''}
+      </td>
     </tr>`;
   }).join('');
 }
@@ -5071,6 +5122,47 @@ function statusClass(s){
   if(sl.includes('approv')||sl.includes('launch')) return 's-approved';
   if(sl.includes('paid')) return 's-paid';
   return 's-draft';
+}
+
+function toggleSelectAllDeals(masterCb){
+  document.querySelectorAll('.deal-select-cb').forEach(cb => cb.checked = masterCb.checked);
+  onDealCheckboxChange();
+}
+
+function onDealCheckboxChange(){
+  const anyChecked = document.querySelectorAll('.deal-select-cb:checked').length > 0;
+  const btn = document.getElementById('delete-selected-btn');
+  if(btn) btn.style.display = anyChecked ? '' : 'none';
+}
+
+async function deleteOneDeal(id, custName){
+  if(!confirm(`Delete "${custName}"? This removes the deal record permanently — it cannot be undone.`)) return;
+  await apiDeleteDeal(id);
+  renderPipeline();
+}
+
+async function deleteSelectedDeals(){
+  const ids = Array.from(document.querySelectorAll('.deal-select-cb:checked')).map(cb => cb.value);
+  if(ids.length === 0) return;
+  if(!confirm(`Delete ${ids.length} deal${ids.length===1?'':'s'}? This removes ${ids.length===1?'it':'them'} permanently — this cannot be undone.`)) return;
+  for(const id of ids){
+    await apiDeleteDeal(id);
+  }
+  renderPipeline();
+}
+
+async function apiDeleteDeal(id){
+  if(!API_URL) return { deleted:false };
+  try{
+    const r = await fetch(API_URL+'/deals/delete', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ id, deletedBy: currentUser ? currentUser.email : '' })
+    });
+    return await r.json();
+  }catch(e){
+    console.error('Delete failed:', e);
+    return { deleted:false, error: e.message };
+  }
 }
 
 function loadPipelineDeals(){
@@ -5189,6 +5281,7 @@ function getCurrentDealData(){
     paymentOption:v('payment-option'),
     migTargetDate:v('mig-start'),
     intelSegment:v('intel-segment'),
+    competitive:v('deal-competitive'), timeSensitive:v('deal-time-sensitive'), deadline:v('deal-deadline'),
     arrEc2:parseFloat(v('arr-ec2'))||0, arrRds:parseFloat(v('arr-rds'))||0,
     arrElastiCache:parseFloat(v('arr-elasticache'))||0, arrOpenSearch:parseFloat(v('arr-opensearch'))||0,
     awsRegion:v('cust-awsregion'), custEdpDiscount:parseFloat(v('cust-edp-discount'))||20,

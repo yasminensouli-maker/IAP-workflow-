@@ -426,6 +426,20 @@ def lambda_handler(event, context):
             items = [d for d in resp.get('Items', []) if not str(d.get('id', '')).startswith('config#')]
             return ok(headers, {'deals': items})
 
+        # ── DELETE A DEAL — permanent, no undo. Logged to CloudWatch for an audit
+        # trail since there's no server-side session token yet to verify tier;
+        # the frontend only shows this to admins, but that's a UI gate, not a
+        # security boundary. Flagged as a known gap, not treated as fixed.
+        if path == '/deals/delete' and method == 'POST':
+            deal_id = body.get('id')
+            deleted_by = body.get('deletedBy', 'unknown')
+            if not deal_id:
+                return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'Missing deal id.'})}
+            existing = table.get_item(Key={'id': deal_id}).get('Item')
+            print(f"[DELETE DEAL] id={deal_id} custName={(existing or {}).get('custName')} deletedBy={deleted_by} existed={existing is not None}")
+            table.delete_item(Key={'id': deal_id})
+            return ok(headers, {'deleted': True, 'id': deal_id})
+
         # ── DNE CALC (server-side source of truth) ──
         if path == '/dne' and method == 'POST':
             dne = compute_dne(body.get('targetArr', 0), body.get('dealType', 'Migrate'), body.get('program', 'standard'))
@@ -576,8 +590,14 @@ def lambda_handler(event, context):
             email = (body.get('email') or '').strip().lower()
             password = (body.get('password') or '').strip()
             admin = ADMIN_USERS.get(email)
-            if not admin or admin['pass'] != password:
+            print(f"[LOGIN ATTEMPT] email received: '{email}' | email recognized: {admin is not None} | password length received: {len(password)}")
+            if not admin:
+                print(f"[LOGIN FAIL] '{email}' is not a key in ADMIN_USERS. Known keys: {list(ADMIN_USERS.keys())}")
                 return {'statusCode': 401, 'headers': headers, 'body': json.dumps({'error': 'Incorrect email or password.'})}
+            if admin['pass'] != password:
+                print(f"[LOGIN FAIL] email matched '{email}' but password did not match stored value (lengths: received={len(password)}, stored={len(admin['pass'])})")
+                return {'statusCode': 401, 'headers': headers, 'body': json.dumps({'error': 'Incorrect email or password.'})}
+            print(f"[LOGIN OK] '{email}' authenticated successfully as tier={admin['tier']}")
             notify_login(email, admin['tier'], admin['label'], 'password')
             return ok(headers, {
                 'email': email, 'name': admin['name'], 'tier': admin['tier'],
