@@ -4,6 +4,7 @@ import boto3
 import time
 import os
 import re
+import secrets
 from datetime import datetime, timezone
 
 dynamodb = boto3.resource('dynamodb')
@@ -37,6 +38,32 @@ INTEL_EMAILS = [e.strip() for e in os.environ.get(
 TCC_EMAIL = os.environ.get('TCC_EMAIL', 'jacobx.barksdale@intel.com').strip()
 ELIGIBLE_FAMILIES = [f.strip() for f in os.environ.get(
     'ELIGIBLE_FAMILIES', 'm8i,c8i,r8i,x8i').split(',') if f.strip()]
+
+# ── ADMIN & APPROVER LOGINS — fixed named list, lives here only, never sent
+# to the browser. Override any password via Lambda console env vars (e.g.
+# ADMIN_PASS_YASMINE) without a code change or redeploy of secrets in git. ──
+def _admin_pass(env_key, default):
+    return os.environ.get(env_key, default)
+
+ADMIN_USERS = {
+    'yasmine@cloudzero.ca':        {'pass': _admin_pass('ADMIN_PASS_YASMINE','CZ@dmin1'),  'tier':'admin', 'name':'Yasmine',        'label':'CloudZero Admin', 'approver':'core'},
+    'hisham@cloudzero.ca':         {'pass': _admin_pass('ADMIN_PASS_HISHAM','CZ@dmin1'),   'tier':'admin', 'name':'Hisham',         'label':'CloudZero Admin', 'approver':'core'},
+    'reidelj@amazon.com':          {'pass': _admin_pass('ADMIN_PASS_JEANINE','Core2026'),  'tier':'core',  'name':'Jeanine Reidel', 'label':'AWS Approval',    'approver':'core'},
+    'akanksha.r.bilani@intel.com': {'pass': _admin_pass('ADMIN_PASS_AKANKSHA','Intel2026'),'tier':'intel_approver','name':'Akanksha Bilani','label':'Intel Leadership','approver':'intel'},
+    'brendon.roosken@intel.com':   {'pass': _admin_pass('ADMIN_PASS_BRENDON','Intel2026'), 'tier':'intel_approver','name':'Brendon Roosken','label':'Intel Leadership','approver':'intel'},
+    'deep.grewal@intel.com':       {'pass': _admin_pass('ADMIN_PASS_DEEP','Intel2026'),    'tier':'intel_approver','name':'Deep Grewal',    'label':'Intel Leadership','approver':'intel'},
+    'jacobx.barksdale@intel.com':  {'pass': _admin_pass('ADMIN_PASS_TCC','TCC2026'),       'tier':'tcc',   'name':'Jacob Barksdale','label':'TCC',             'approver':'tcc'},
+    'partner@slalom.com':          {'pass': _admin_pass('ADMIN_PASS_SLALOM','Slalom2026'), 'tier':'partner','name':'Slalom Partner Team','label':'Partner — Slalom','partnerFilter':'Slalom'},
+    # Generic seller/guest fallback logins — active only while the email
+    # one-time-code path is on hold pending SES production access.
+    # Once SES is out of sandbox, these can be retired in favor of the
+    # /auth/request-code + /auth/verify-code flow for real Amazon/Intel emails.
+    'sarah.chen@intel.com':        {'pass': _admin_pass('ADMIN_PASS_SARAH','IAP2026'),     'tier':'intel', 'name':'Sarah Chen',     'label':'AWS Specialist'},
+    'funded.head@intel.com':       {'pass': _admin_pass('ADMIN_PASS_FUNDEDHEAD','IAP2026'),'tier':'intel', 'name':'Intel User',     'label':'AWS Specialist'},
+    'field@amazon.com':            {'pass': _admin_pass('ADMIN_PASS_FIELD','CZFIELD'),     'tier':'aws',   'name':'AWS Field',      'label':'AWS Field'},
+    'pdm@amazon.com':              {'pass': _admin_pass('ADMIN_PASS_PDM','CZFIELD'),       'tier':'aws',   'name':'AWS PDM',        'label':'AWS PDM'},
+    'seller@intel.com':            {'pass': _admin_pass('ADMIN_PASS_SELLER','Intel2026'),  'tier':'intel', 'name':'Intel Field',    'label':'Intel Field'},
+}
 
 # PRD Section 7 statuses. Old stage values map forward for existing records.
 STATUS_MAP_OLD_TO_NEW = {
@@ -311,11 +338,20 @@ def push_to_smartsheet(deal):
         return f'Sync failed — {str(e)[:120]}'
 
 def lambda_handler(event, context):
+    # CORS locked to this app's actual domain(s) — no more wildcard '*'.
+    # Add a custom domain via ALLOWED_ORIGINS env var (comma-separated) if one
+    # ever gets set up in front of the Amplify URL.
+    ALLOWED_ORIGINS = [APP_URL] + [
+        o.strip() for o in os.environ.get('ALLOWED_ORIGINS', '').split(',') if o.strip()
+    ]
+    request_origin = event.get('headers', {}).get('origin', '') or event.get('headers', {}).get('Origin', '')
+    allow_origin = request_origin if request_origin in ALLOWED_ORIGINS else APP_URL
     headers = {
-        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Origin': allow_origin,
         'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type',
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Vary': 'Origin'
     }
     method = event.get('requestContext', {}).get('http', {}).get('method', 'GET')
     if method == 'OPTIONS':
@@ -526,6 +562,62 @@ def lambda_handler(event, context):
                 method='POST')
             with _ur.urlopen(req, timeout=15) as intel_resp:
                 return ok(headers, json.loads(intel_resp.read().decode()))
+
+        def notify_login(email, tier, label, via):
+            send_email([FROM_EMAIL], f'IAP Deal Desk sign-in — {email}',
+                       f'{email} signed in just now.\n\nTier: {tier} ({label})\nMethod: {via}\nTime (UTC): {now_utc()}')
+
+        # ── AUTH: ADMIN & APPROVER LOGIN (fixed named list, server-side only) ──
+        # These are the people who don't rotate: CloudZero (Yasmine, Hisham),
+        # AWS Approval (Jeanine), Intel Leadership (Akanksha, Brendon, Deep), TCC (Jacob).
+        # Passwords live here, in the backend, never shipped to the browser.
+        # Override any password via Lambda env vars without touching code.
+        if path == '/auth/admin-login' and method == 'POST':
+            email = (body.get('email') or '').strip().lower()
+            password = (body.get('password') or '').strip()
+            admin = ADMIN_USERS.get(email)
+            if not admin or admin['pass'] != password:
+                return {'statusCode': 401, 'headers': headers, 'body': json.dumps({'error': 'Incorrect email or password.'})}
+            notify_login(email, admin['tier'], admin['label'], 'password')
+            return ok(headers, {
+                'email': email, 'name': admin['name'], 'tier': admin['tier'],
+                'label': admin['label'], 'approver': admin.get('approver'),
+                'partnerFilter': admin.get('partnerFilter')
+            })
+
+        # ── AUTH: REQUEST ONE-TIME CODE (Amazon / Intel email only) ──
+        if path == '/auth/request-code' and method == 'POST':
+            email = (body.get('email') or '').strip().lower()
+            domain = email.split('@')[-1] if '@' in email else ''
+            if domain not in ('amazon.com', 'intel.com'):
+                return {'statusCode': 403, 'headers': headers,
+                        'body': json.dumps({'error': 'Sign-in codes are only issued to amazon.com or intel.com email addresses.'})}
+            code = ''.join(secrets.choice('0123456789') for _ in range(6))
+            expires = int(time.time()) + 600  # 10 minutes
+            table.put_item(Item={'id': 'AUTHCODE#' + email, 'code': code, 'expires': expires})
+            tier = 'aws' if domain == 'amazon.com' else 'intel'
+            sent = send_email([email], 'Your IAP Deal Desk sign-in code',
+                        f'Your sign-in code is {code}. It expires in 10 minutes.\n\nIf you did not request this, ignore this email.')
+            if not sent:
+                return {'statusCode': 502, 'headers': headers,
+                        'body': json.dumps({'error': "Couldn't send that code — email delivery failed. Contact yasmine@cloudzero.ca."})}
+            return ok(headers, {'sent': True, 'tier': tier})
+
+        # ── AUTH: VERIFY ONE-TIME CODE ──
+        if path == '/auth/verify-code' and method == 'POST':
+            email = (body.get('email') or '').strip().lower()
+            code = (body.get('code') or '').strip()
+            domain = email.split('@')[-1] if '@' in email else ''
+            item = table.get_item(Key={'id': 'AUTHCODE#' + email}).get('Item')
+            if not item or item.get('code') != code:
+                return {'statusCode': 401, 'headers': headers, 'body': json.dumps({'error': 'Incorrect or expired code.'})}
+            if int(time.time()) > int(item.get('expires', 0)):
+                return {'statusCode': 401, 'headers': headers, 'body': json.dumps({'error': 'That code has expired — request a new one.'})}
+            table.delete_item(Key={'id': 'AUTHCODE#' + email})
+            tier = 'aws' if domain == 'amazon.com' else 'intel'
+            label = 'AWS Field' if tier == 'aws' else 'Intel Field'
+            notify_login(email, tier, label, 'email code')
+            return ok(headers, {'email': email, 'name': email.split('@')[0], 'tier': tier, 'label': label})
 
         return {'statusCode': 404, 'headers': headers, 'body': json.dumps({'error': 'not found'})}
 
