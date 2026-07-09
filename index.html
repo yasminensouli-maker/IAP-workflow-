@@ -2541,20 +2541,6 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
           <div id="funding-score-panel" style="display:none;padding:14px 22px;border-top:1px solid var(--border)"></div>
         </div>
 
-        <div class="section-card" id="smartsheet-preview" style="display:none;background:#f8fafc;border:1px solid var(--border)">
-          <div class="section-card-title" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
-            <span>Smartsheet Row</span>
-            <a href="https://app.smartsheet.com/sheets/P3J6GHmGxmJxQwgM6f7wqCmpjRFFrp8m2PFvxgx1" target="_blank" rel="noopener" style="font-size:.7rem;font-weight:600;color:#0068B5">Open sheet ↗</a>
-          </div>
-          <div style="font-size:.72rem;color:var(--ink3);margin-bottom:10px" id="smartsheet-sync-status">Not yet submitted — nothing synced.</div>
-          <button class="btn btn-aws btn-sm" onclick="downloadSmartsheetRow(getCurrentDealData())">⇩ Download Smartsheet Row (CSV)</button>
-          <div style="display:none">
-            <table style="width:100%;border-collapse:collapse;font-size:.72rem">
-              <tbody id="smartsheet-preview-rows"></tbody>
-            </table>
-          </div>
-        </div>
-
         <div class="section-card" id="summary-content">
           <div style="text-align:center;padding:30px;color:var(--ink3);font-size:.8rem">Click Generate Summary to populate.</div>
         </div>
@@ -2564,6 +2550,25 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
           <button class="btn btn-secondary" onclick="printInternalSummary()">🖨 Print Summary</button>
           <button class="btn btn-secondary" onclick="downloadCustomerSafeSummary()">📄 Customer-Safe Summary (no internal figures)</button>
           
+        </div>
+
+        <div class="section-card" id="smartsheet-preview" style="background:#f8fafc;border:1px solid var(--border)">
+          <div class="section-card-title" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+            <span>Smartsheet Row — select the row below and paste directly into Smartsheet</span>
+            <a href="https://app.smartsheet.com/sheets/P3J6GHmGxmJxQwgM6f7wqCmpjRFFrp8m2PFvxgx1" target="_blank" rel="noopener" style="font-size:.7rem;font-weight:600;color:#0068B5">Open sheet ↗</a>
+          </div>
+          <div style="font-size:.72rem;color:var(--ink3);margin-bottom:10px">This is a live table, not a link — it auto-fills from whatever's entered above. Click a cell, select the row (or the whole table), copy, then paste directly into a new row in Smartsheet. Columns match the sheet's actual order.</div>
+          <div style="display:flex;gap:8px;margin-bottom:10px">
+            <button class="btn btn-secondary btn-sm" onclick="refreshSmartsheetRow()">↺ Refresh from current deal</button>
+            <button class="btn btn-aws btn-sm" onclick="copySmartsheetRow()">⧉ Copy Row</button>
+            <button class="btn btn-secondary btn-sm" onclick="downloadSmartsheetRow(getCurrentDealData())">⇩ Download (CSV)</button>
+          </div>
+          <div style="overflow-x:auto;border:1px solid var(--border);border-radius:6px">
+            <table id="smartsheet-live-table" style="border-collapse:collapse;font-size:.68rem;white-space:nowrap">
+              <thead><tr id="smartsheet-header-row"></tr></thead>
+              <tbody><tr id="smartsheet-value-row"></tr></tbody>
+            </table>
+          </div>
         </div>
 
         <div class="btn-row">
@@ -3877,6 +3882,7 @@ function computeRecommendation(d, dne, rateInfo){
 }
 
 function generateSummary(){
+  refreshSmartsheetRow();
   const d = getCurrentDealData();
   const rateInfo = computeRate(d.actType, d.iapProgram);
   const custName = d.custName || '[Customer name pending]';
@@ -5665,19 +5671,46 @@ function downloadSmartsheetRow(d){
 }
 
 function renderSmartsheetPreview(d){
-  const card = document.getElementById('smartsheet-preview');
-  if(!card) return;
-  const canSee = currentUser && (currentUser.tier==='admin' || currentUser.tier==='tcc');
-  card.style.display = canSee ? 'block' : 'none';
-  if(!canSee) return;
+  // Kept for backward compatibility with existing call sites (goStep(6) etc) —
+  // now just delegates to the real live-table builder.
+  refreshSmartsheetRow();
+}
 
-  const statusEl = document.getElementById('smartsheet-sync-status');
-  if(statusEl) statusEl.textContent = d.smartsheetSync || 'Not yet submitted — nothing synced.';
-
+function refreshSmartsheetRow(){
+  const d = getCurrentDealData();
   const rows = getSmartsheetRows(d);
-  document.getElementById('smartsheet-preview-rows').innerHTML = rows.map(([label,val])=>
-    `<tr style="border-bottom:1px solid #d1fae5"><td style="padding:4px 8px;color:#166534;font-weight:600;white-space:nowrap">${label}</td><td style="padding:4px 8px;color:#0A1628">${val||'—'}</td></tr>`
+  const headerRow = document.getElementById('smartsheet-header-row');
+  const valueRow = document.getElementById('smartsheet-value-row');
+  if(!headerRow || !valueRow) return;
+  headerRow.innerHTML = rows.map(([label]) =>
+    `<th style="padding:6px 10px;background:#0068B5;color:#fff;text-align:left;font-weight:700;border-right:1px solid rgba(255,255,255,.2)">${label}</th>`
   ).join('');
+  valueRow.innerHTML = rows.map(([,val]) =>
+    `<td style="padding:6px 10px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);background:#fff">${(val===0||val) ? val : ''}</td>`
+  ).join('');
+}
+
+async function copySmartsheetRow(){
+  const d = getCurrentDealData();
+  const rows = getSmartsheetRows(d);
+  // Tab-separated values — this is the exact format spreadsheet apps
+  // (Smartsheet, Excel, Google Sheets) expect when pasting from clipboard,
+  // so each value lands in its own column automatically, not all in one cell.
+  const headerLine = rows.map(([label]) => label).join('\t');
+  const valueLine = rows.map(([,val]) => (val===0||val) ? String(val).replace(/\t/g,' ') : '').join('\t');
+  const tsv = headerLine + '\n' + valueLine;
+  try {
+    await navigator.clipboard.writeText(tsv);
+    const btn = event.target.closest('button');
+    if(btn){
+      const original = btn.textContent;
+      btn.textContent = '✓ Copied — paste into Smartsheet';
+      setTimeout(() => { btn.textContent = original; }, 2500);
+    }
+  } catch(e){
+    alert('Could not copy automatically — select the row in the table below and copy it manually instead.');
+    console.error('Clipboard copy failed:', e);
+  }
 }
 
 function scoreFunding(){
