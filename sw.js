@@ -38,13 +38,19 @@ self.addEventListener('fetch', function(e){
   // working around the browser caching this exact file. Removing the
   // interception entirely removes the whole class of bug.
   if(e.request.mode === 'navigate' || e.request.url.endsWith('/index.html') || e.request.url.endsWith('/')){
-    e.respondWith(fetch(e.request));
+    e.respondWith(fetch(e.request).catch(function(err){
+      console.error('Navigation fetch failed:', err);
+      throw err; // let the page's own error handling see it too
+    }));
     return;
   }
 
   // Always go to network for API calls — never cache these
   if(e.request.url.includes('execute-api') || e.request.url.includes('amazonaws.com')){
-    e.respondWith(fetch(e.request));
+    e.respondWith(fetch(e.request).catch(function(err){
+      console.error('API fetch failed (likely CORS or network):', e.request.url, err);
+      throw err;
+    }));
     return;
   }
 

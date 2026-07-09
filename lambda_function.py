@@ -48,6 +48,7 @@ def _admin_pass(env_key, default):
 ADMIN_USERS = {
     'yasmine@cloudzero.ca':        {'pass': _admin_pass('ADMIN_PASS_YASMINE','CZ@dmin1'),  'tier':'admin', 'name':'Yasmine',        'label':'CloudZero Admin', 'approver':'core'},
     'reidelj@amazon.com':          {'pass': _admin_pass('ADMIN_PASS_JEANINE','Core2026'),  'tier':'core',  'name':'Jeanine Reidel', 'label':'AWS Approval',    'approver':'core'},
+    'clchrisz@amazon.com':         {'pass': _admin_pass('ADMIN_PASS_CHRIS','Core2026'),    'tier':'core',  'name':'Chris Chlee',    'label':'AWS Approval (SA)', 'approver':'core'},
     'akanksha.r.bilani@intel.com': {'pass': _admin_pass('ADMIN_PASS_AKANKSHA','Intel2026'),'tier':'intel_approver','name':'Akanksha Bilani','label':'Intel Leadership','approver':'intel'},
     'brendon.roosken@intel.com':   {'pass': _admin_pass('ADMIN_PASS_BRENDON','Intel2026'), 'tier':'intel_approver','name':'Brendon Roosken','label':'Intel Leadership','approver':'intel'},
     'deep.grewal@intel.com':       {'pass': _admin_pass('ADMIN_PASS_DEEP','Intel2026'),    'tier':'intel_approver','name':'Deep Grewal',    'label':'Intel Leadership','approver':'intel'},
@@ -338,11 +339,19 @@ def lambda_handler(event, context):
     # CORS locked to this app's actual domain(s) — no more wildcard '*'.
     # Add a custom domain via ALLOWED_ORIGINS env var (comma-separated) if one
     # ever gets set up in front of the Amplify URL.
-    ALLOWED_ORIGINS = [APP_URL] + [
+    ALLOWED_ORIGINS = [APP_URL, 'https://iapflow.com', 'https://www.iapflow.com'] + [
         o.strip() for o in os.environ.get('ALLOWED_ORIGINS', '').split(',') if o.strip()
     ]
     request_origin = event.get('headers', {}).get('origin', '') or event.get('headers', {}).get('Origin', '')
-    allow_origin = request_origin if request_origin in ALLOWED_ORIGINS else APP_URL
+    # Accept an exact match OR any real *.amplifyapp.com subdomain — Amplify
+    # assigns a URL per branch/preview, all legitimately under your account,
+    # and requiring an exact match to one hardcoded URL was silently
+    # rejecting any of those with no visible error beyond "Failed to fetch".
+    origin_is_valid = (
+        request_origin in ALLOWED_ORIGINS
+        or (request_origin.startswith('https://') and request_origin.endswith('.amplifyapp.com'))
+    )
+    allow_origin = request_origin if origin_is_valid else APP_URL
     headers = {
         'Access-Control-Allow-Origin': allow_origin,
         'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
