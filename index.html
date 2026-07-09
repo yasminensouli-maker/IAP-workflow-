@@ -1463,8 +1463,9 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
   <!-- HEADER -->
   <header class="app-header">
     <div class="app-header-left">
-      <div class="app-header-logo">INTEL × AWS</div>
-      <div class="app-header-title">Deal Desk</div>
+      <button id="global-back-btn" onclick="goBack()" style="display:none;align-items:center;gap:4px;background:transparent;color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:5px;padding:6px 12px;font-size:.75rem;cursor:pointer;font-family:Arial,sans-serif;margin-right:12px">← Back</button>
+      <div class="app-header-logo" onclick="goStep(1)" style="cursor:pointer" title="Back to Start Your Deal Journey">INTEL × AWS</div>
+      <div class="app-header-title" onclick="goStep(1)" style="cursor:pointer" title="Back to Start Your Deal Journey">Deal Desk</div>
     </div>
     <div class="app-header-right">
       <span class="user-pill" id="user-pill">—</span>
@@ -1568,9 +1569,21 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
           <div class="step-desc" id="step1-desc">Fast-track intake for the Intel × AWS co-investment program — the fields below are everything needed to route this opportunity.</div>
         </div>
 
+        <div style="font-size:.78rem;color:#92400e;background:#FEF3C7;border-left:3px solid #F59E0B;border-radius:5px;padding:8px 12px;margin-bottom:16px">
+          Fill this out once the opportunity has been scoped by an SA (Solutions Architect) — this form needs a real architecture and instance picture behind it, not a placeholder.
+        </div>
+
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
           <button class="btn btn-secondary btn-sm" onclick="downloadProgramOnePager()">⇩ Program Details (one-pager)</button>
           <button class="btn btn-secondary btn-sm" onclick="downloadWorkflowOnePager()">⇩ Workflow — how a deal moves</button>
+        </div>
+
+        <div class="section-card" style="background:linear-gradient(135deg,#f0f5ff,#fff);border:1px solid #c7d7f5;margin-bottom:16px">
+          <div class="section-card-title">Collateral &amp; Customer Assets</div>
+          <div style="font-size:.76rem;color:var(--ink3);margin-bottom:10px">Customer-facing material for the conversation — safe to send externally.</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <a href="aws-powered-by-intel-customer.pdf" target="_blank" rel="noopener" class="btn btn-secondary btn-sm" style="text-decoration:none;display:inline-flex;align-items:center">⇩ AWS Powered by Intel — Customer One-Pager (PDF)</a>
+          </div>
         </div>
 
         <!-- Intel Seller simplified view -->
@@ -2664,6 +2677,18 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
           <!-- Injected by JS -->
         </div>
 
+        <div class="section-card" id="login-activity-card" style="display:none">
+          <div class="section-card-title">Login Activity</div>
+          <button class="btn btn-secondary btn-sm" onclick="loadLoginActivity()" style="margin-bottom:10px">Refresh</button>
+          <div id="login-activity-summary" style="font-size:.8rem;color:var(--ink2);margin-bottom:10px">Click Refresh to load.</div>
+          <div style="max-height:280px;overflow-y:auto">
+            <table class="deals-table">
+              <thead><tr><th>Email</th><th>Tier</th><th>Method</th><th>When (UTC)</th></tr></thead>
+              <tbody id="login-activity-rows"></tbody>
+            </table>
+          </div>
+        </div>
+
         <div class="section-card">
           <div class="section-card-title">All Deals</div>
         <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
@@ -2939,7 +2964,13 @@ function doLogout(){
 let currentStep = 1;
 const TOTAL_STEPS = 7;
 
+let stepHistory = [];
+
 function goStep(n){
+  // Track where we came from so Back actually goes somewhere sensible —
+  // this app has no browser-history integration, so the browser's own
+  // back button doesn't know about in-app steps at all.
+  if(currentStep && currentStep !== n) stepHistory.push(currentStep);
   if(n===6){ setTimeout(refreshCRMHeader, 50); }
   // Handle step 7 SOW which has id step7-sow
   document.querySelectorAll('.step-panel').forEach(p=>p.classList.remove('active'));
@@ -2959,11 +2990,26 @@ function goStep(n){
   if(nav) nav.classList.add('active');
   currentStep=n;
   window.scrollTo(0,0);
+  updateBackButtonVisibility();
 
   if(n===4) renderPlays();
   if(n===9) renderPipeline();
   if(n===8) renderApprovalQueue();
   if(n===10) renderPartnerDeals();
+}
+
+function goBack(){
+  const prev = stepHistory.pop();
+  if(prev === undefined) return;
+  // Null currentStep first so goStep doesn't re-push the step we're leaving
+  currentStep = null;
+  goStep(prev);
+  updateBackButtonVisibility();
+}
+
+function updateBackButtonVisibility(){
+  const btn = document.getElementById('global-back-btn');
+  if(btn) btn.style.display = stepHistory.length > 0 ? 'flex' : 'none';
 }
 
 /* ── COUNTRY LISTS ───────────────────────────────────────────── */
@@ -4955,6 +5001,8 @@ async function renderPipeline(){
   const committedPct = pool>0 ? (committed/pool*100) : 0;
   const pendingPct = pool>0 ? (pending/pool*100) : 0;
   const canEdit = currentUser && currentUser.tier==='admin';
+  const loginActivityCard = document.getElementById('login-activity-card');
+  if(loginActivityCard) loginActivityCard.style.display = canEdit ? 'block' : 'none';
   const isSeller = currentUser && (currentUser.tier==='aws' || currentUser.tier==='intel');
 
   // Budget figures, including Remaining, are admin-only — everyone else gets no budget tracker at all
@@ -5035,6 +5083,25 @@ async function renderPipeline(){
       </td>
     </tr>`;
   }).join('');
+}
+
+async function loadLoginActivity(){
+  const summary = document.getElementById('login-activity-summary');
+  const rows = document.getElementById('login-activity-rows');
+  summary.textContent = 'Loading...';
+  try {
+    const resp = await fetch(API_URL + '/auth/login-log');
+    const data = await resp.json();
+    const logins = data.logins || [];
+    const uniqueEmails = new Set(logins.map(l => l.email));
+    summary.textContent = `${logins.length} sign-in${logins.length===1?'':'s'} recorded, from ${uniqueEmails.size} unique ${uniqueEmails.size===1?'person':'people'}.`;
+    rows.innerHTML = logins.slice(0, 100).map(l =>
+      `<tr><td>${l.email||'—'}</td><td>${l.tier||'—'}</td><td>${l.method||'—'}</td><td>${l.timestamp||'—'}</td></tr>`
+    ).join('') || '<tr><td colspan="4" style="text-align:center;color:var(--ink3)">No logins recorded yet.</td></tr>';
+  } catch(e){
+    summary.textContent = 'Could not load login activity — check network/API.';
+    console.error('Login activity load failed:', e);
+  }
 }
 
 function statusClass(s){
