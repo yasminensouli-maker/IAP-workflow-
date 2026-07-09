@@ -1,0 +1,33 @@
+customHeaders:
+  # index.html and sw.js must NEVER be cached by the browser or Amplify's CDN.
+  # Every prior fix (service worker cache-busting, controllerchange reload,
+  # version bumps) was working around browsers caching THESE two files at the
+  # HTTP level before the service worker's own logic ever got a chance to run.
+  # This is the actual root-cause fix: tell the browser not to cache them at
+  # all, so there's nothing left for any JS-layer workaround to fight against.
+  - pattern: 'index.html'
+    headers:
+      - key: 'Cache-Control'
+        value: 'no-cache, no-store, must-revalidate'
+      - key: 'Pragma'
+        value: 'no-cache'
+      - key: 'Expires'
+        value: '0'
+  - pattern: 'sw.js'
+    headers:
+      - key: 'Cache-Control'
+        value: 'no-cache, no-store, must-revalidate'
+      - key: 'Pragma'
+        value: 'no-cache'
+      - key: 'Expires'
+        value: '0'
+  # Genuinely static assets are fine to cache aggressively — they're not the
+  # source of staleness and rarely change.
+  - pattern: '**/*.png'
+    headers:
+      - key: 'Cache-Control'
+        value: 'public, max-age=604800'
+  - pattern: 'manifest.json'
+    headers:
+      - key: 'Cache-Control'
+        value: 'public, max-age=3600'

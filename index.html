@@ -1419,9 +1419,9 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
     <!-- AWS — any real @amazon.com email, one shared password -->
     <div id="login-tab-aws" class="login-form">
       <label>Amazon Email</label>
-      <input type="email" id="login-aws-email" placeholder="you@amazon.com" autocomplete="email" onkeydown="if(event.key==='Enter')domainLogin('aws')">
+      <input type="email" id="login-aws-email" placeholder="you@amazon.com" autocomplete="email" onkeydown="if(event.key==='Enter'){event.preventDefault();domainLogin('aws');}">
       <label>Password</label>
-      <input type="password" id="login-aws-pass" autocomplete="current-password" onkeydown="if(event.key==='Enter')domainLogin('aws')">
+      <input type="password" id="login-aws-pass" autocomplete="current-password" onkeydown="if(event.key==='Enter'){event.preventDefault();domainLogin('aws');}">
       <div class="login-error" id="login-aws-error">Use a real @amazon.com email and the current password.</div>
       <button class="btn-login" onclick="domainLogin('aws')">Sign In</button>
     </div>
@@ -1429,9 +1429,9 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
     <!-- Intel — any real @intel.com email, one shared password -->
     <div id="login-tab-intel" class="login-form" style="display:none">
       <label>Intel Email</label>
-      <input type="email" id="login-intel-email" placeholder="you@intel.com" autocomplete="email" onkeydown="if(event.key==='Enter')domainLogin('intel')">
+      <input type="email" id="login-intel-email" placeholder="you@intel.com" autocomplete="email" onkeydown="if(event.key==='Enter'){event.preventDefault();domainLogin('intel');}">
       <label>Password</label>
-      <input type="password" id="login-intel-pass" autocomplete="current-password" onkeydown="if(event.key==='Enter')domainLogin('intel')">
+      <input type="password" id="login-intel-pass" autocomplete="current-password" onkeydown="if(event.key==='Enter'){event.preventDefault();domainLogin('intel');}">
       <div class="login-error" id="login-intel-error">Use a real @intel.com email and the current password.</div>
       <button class="btn-login" onclick="domainLogin('intel')">Sign In</button>
     </div>
@@ -1439,9 +1439,9 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
     <!-- Admin — named accounts only -->
     <div id="login-tab-admin" class="login-form" style="display:none">
       <label>Email Address</label>
-      <input type="email" id="login-email" placeholder="email address" autocomplete="email" onkeydown="if(event.key==='Enter')doLogin()">
+      <input type="email" id="login-email" placeholder="email address" autocomplete="email" onkeydown="if(event.key==='Enter'){event.preventDefault();doLogin();}">
       <label>Password</label>
-      <input type="password" id="login-pass" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+      <input type="password" id="login-pass" autocomplete="current-password" onkeydown="if(event.key==='Enter'){event.preventDefault();doLogin();}">
       <div class="login-error" id="login-error">Incorrect email or password. Contact yasmine@cloudzero.ca for access.</div>
       <button class="btn-login" onclick="doLogin()">Sign In</button>
     </div>
@@ -1570,7 +1570,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
         </div>
 
         <div style="font-size:.78rem;color:#92400e;background:#FEF3C7;border-left:3px solid #F59E0B;border-radius:5px;padding:8px 12px;margin-bottom:16px">
-          Fill this out once the opportunity has been scoped by an SA (Solutions Architect) — this form needs a real architecture and instance picture behind it, not a placeholder.
+          Ensure you have scoped this with an SA, and/or review with Chris Chlee (<a href="mailto:CHRIS_EMAIL_PLACEHOLDER" style="color:#92400e;text-decoration:underline">CHRIS_EMAIL_PLACEHOLDER</a>).
         </div>
 
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
@@ -1582,7 +1582,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
           <div class="section-card-title">Collateral &amp; Customer Assets</div>
           <div style="font-size:.76rem;color:var(--ink3);margin-bottom:10px">Customer-facing material for the conversation — safe to send externally.</div>
           <div style="display:flex;gap:10px;flex-wrap:wrap">
-            <a href="aws-powered-by-intel-customer.pdf" target="_blank" rel="noopener" class="btn btn-secondary btn-sm" style="text-decoration:none;display:inline-flex;align-items:center">⇩ AWS Powered by Intel — Customer One-Pager (PDF)</a>
+            <a href="/aws-powered-by-intel-customer.pdf" target="_blank" rel="noopener" class="btn btn-secondary btn-sm" style="text-decoration:none;display:inline-flex;align-items:center">⇩ AWS Powered by Intel — Customer One-Pager (PDF)</a>
           </div>
         </div>
 
@@ -2051,7 +2051,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
 
         <div class="section-card" style="border:2px solid #0068B5">
           <div class="section-card-title">Deal ARR</div>
-          <div style="font-size:.76rem;color:#92400e;background:#FEF3C7;border-left:3px solid #F59E0B;border-radius:5px;padding:8px 12px;margin-bottom:12px">This section needs to be reviewed by Chris Chlee before submission — he's an approver on this step.</div>
+          <div style="font-size:.76rem;color:#92400e;background:#FEF3C7;border-left:3px solid #F59E0B;border-radius:5px;padding:8px 12px;margin-bottom:12px">This section needs to be reviewed by Chris Chlee (<a href="mailto:CHRIS_EMAIL_PLACEHOLDER" style="color:#92400e;text-decoration:underline">CHRIS_EMAIL_PLACEHOLDER</a>) before submission — he's an approver on this step.</div>
           <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px">
             <a href="https://calculator.aws" target="_blank" rel="noopener" class="btn btn-aws btn-sm" style="text-decoration:none;display:inline-flex;align-items:center">⧉ AWS Pricing Calculator ↗</a>
             <button class="btn btn-secondary btn-sm" onclick="goStep(3);setTimeout(()=>{setBaselineMethod(1);document.getElementById('baseline-method-1').scrollIntoView({behavior:'smooth',block:'start'});},80)">⚡ Calculate Potential Funding</button>
