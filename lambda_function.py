@@ -8,24 +8,35 @@ import secrets
 from datetime import datetime, timezone
 
 dynamodb = boto3.resource('dynamodb')
-s3 = boto3.client('s3')
 ses = boto3.client('ses', region_name='ca-central-1')
-# Bedrock/Nova removed entirely — scoring, extraction, and Q&A are now
-# deterministic logic in index.html. See scoreFunding(), parseTextDeterministically(),
-# answerIntelQuestion(), draftPOPWithNova().
+# Bedrock/Nova removed entirely — scoring and Q&A are deterministic logic in
+# index.html (scoreFunding, answerIntelQuestion). S3 upload removed together
+# with the attach-calculator requirement (July 2026 security/QA build).
 
 # ── CONFIG (env vars — PRD Section 10; change via console, no code edit) ──
 TABLE = os.environ.get('TABLE', 'iap-deals')
-BUCKET = os.environ.get('BUCKET', '')
 FROM_EMAIL = os.environ.get('FROM_EMAIL', 'yasmine@cloudzero.ca')
 APP_URL = os.environ.get('APP_URL', 'https://main.dgxv59n7ru973.amplifyapp.com')
 
 RATE_MIGRATE = float(os.environ.get('RATE_MIGRATE', '0.045'))      # Migrate / Modernize
 RATE_OPTIMIZE = float(os.environ.get('RATE_OPTIMIZE', '0.01'))
 OPTIMIZE_CAP = float(os.environ.get('OPTIMIZE_CAP', '250000'))
-BLENDED_DISCOUNT = float(os.environ.get('BLENDED_DISCOUNT', '0.20'))
+# BLENDED_DISCOUNT removed — it was a hidden 20% haircut applied underneath
+# the visible math (the exact double-discount pattern this program's tooling
+# has been burned by before). Discounts are applied once, visibly, in the
+# Fleet Builder — never as an invisible server-side constant.
 REVIEW_REMINDER_DAYS = int(os.environ.get('REVIEW_REMINDER_DAYS', '5'))
 MILESTONE_LEAD_DAYS = int(os.environ.get('MILESTONE_LEAD_DAYS', '30'))
+SESSION_TTL_SECONDS = int(os.environ.get('SESSION_TTL_SECONDS', str(12 * 3600)))  # matches the frontend's 12h
+LOCKOUT_MAX_FAILS = 5           # failed logins per email before temporary lockout
+LOCKOUT_WINDOW_SECONDS = 900    # 15 minutes
+REMINDER_KEY = os.environ.get('REMINDER_KEY', '')  # shared secret for the EventBridge reminder call
+
+# Intel pricing service — the key and endpoint now live in env vars only,
+# never in source. If INTEL_PRICING_KEY is unset, the price route returns a
+# clear config error instead of silently failing.
+INTEL_PRICING_ENDPOINT = os.environ.get('INTEL_PRICING_ENDPOINT', 'http://52.26.245.170:8502/api/chat')
+INTEL_PRICING_KEY = os.environ.get('INTEL_PRICING_KEY', '')
 
 # Approver emails — comma-separated env vars. CHRIS_EMAIL empty until provided.
 REVIEWER_EMAILS = [e.strip() for e in os.environ.get(
@@ -40,19 +51,20 @@ ELIGIBLE_FAMILIES = [f.strip() for f in os.environ.get(
     'ELIGIBLE_FAMILIES', 'm8i,c8i,r8i,x8i').split(',') if f.strip()]
 
 # ── ADMIN & APPROVER LOGINS — fixed named list, lives here only, never sent
-# to the browser. Override any password via Lambda console env vars (e.g.
-# ADMIN_PASS_YASMINE) without a code change or redeploy of secrets in git. ──
-def _admin_pass(env_key, default):
-    return os.environ.get(env_key, default)
+# to the browser. Passwords come ONLY from Lambda env vars. No defaults in
+# source: an account whose env var is missing simply cannot log in (fails
+# closed). Every zip of this code ever shared is now credential-free. ──
+def _admin_pass(env_key):
+    return os.environ.get(env_key) or None
 
 ADMIN_USERS = {
-    'yasmine@cloudzero.ca':        {'pass': _admin_pass('ADMIN_PASS_YASMINE','CZ@dmin1'),  'tier':'admin', 'name':'Yasmine',        'label':'CloudZero Admin', 'approver':'core'},
-    'reidelj@amazon.com':          {'pass': _admin_pass('ADMIN_PASS_JEANINE','Core2026'),  'tier':'core',  'name':'Jeanine Reidel', 'label':'AWS Approval',    'approver':'core'},
-    'clchrisz@amazon.com':         {'pass': _admin_pass('ADMIN_PASS_CHRIS','Core2026'),    'tier':'core',  'name':'Chris Chlee',    'label':'AWS Approval (SA)', 'approver':'core'},
-    'akanksha.r.bilani@intel.com': {'pass': _admin_pass('ADMIN_PASS_AKANKSHA','Intel2026'),'tier':'intel_approver','name':'Akanksha Bilani','label':'Intel Leadership','approver':'intel'},
-    'brendon.roosken@intel.com':   {'pass': _admin_pass('ADMIN_PASS_BRENDON','Intel2026'), 'tier':'intel_approver','name':'Brendon Roosken','label':'Intel Leadership','approver':'intel'},
-    'deep.grewal@intel.com':       {'pass': _admin_pass('ADMIN_PASS_DEEP','Intel2026'),    'tier':'intel_approver','name':'Deep Grewal',    'label':'Intel Leadership','approver':'intel'},
-    'jacobx.barksdale@intel.com':  {'pass': _admin_pass('ADMIN_PASS_TCC','TCC2026'),       'tier':'tcc',   'name':'Jacob Barksdale','label':'TCC',             'approver':'tcc'},
+    'yasmine@cloudzero.ca':        {'pass': _admin_pass('ADMIN_PASS_YASMINE'),  'tier':'admin', 'name':'Yasmine',        'label':'CloudZero Admin', 'approver':'core'},
+    'reidelj@amazon.com':          {'pass': _admin_pass('ADMIN_PASS_JEANINE'),  'tier':'core',  'name':'Jeanine Reidel', 'label':'AWS Approval',    'approver':'core'},
+    'clchrisz@amazon.com':         {'pass': _admin_pass('ADMIN_PASS_CHRIS'),    'tier':'core',  'name':'Chris Chlee',    'label':'AWS Approval (SA)', 'approver':'core'},
+    'akanksha.r.bilani@intel.com': {'pass': _admin_pass('ADMIN_PASS_AKANKSHA'),'tier':'intel_approver','name':'Akanksha Bilani','label':'Intel Leadership','approver':'intel'},
+    'brendon.roosken@intel.com':   {'pass': _admin_pass('ADMIN_PASS_BRENDON'), 'tier':'intel_approver','name':'Brendon Roosken','label':'Intel Leadership','approver':'intel'},
+    'deep.grewal@intel.com':       {'pass': _admin_pass('ADMIN_PASS_DEEP'),    'tier':'intel_approver','name':'Deep Grewal',    'label':'Intel Leadership','approver':'intel'},
+    'jacobx.barksdale@intel.com':  {'pass': _admin_pass('ADMIN_PASS_TCC'),     'tier':'tcc',   'name':'Jacob Barksdale','label':'TCC',             'approver':'tcc'},
 }
 
 # People who log in through the open @amazon.com / @intel.com domain buttons
@@ -96,17 +108,101 @@ def log_email(deal, recipients, subject):
         'at': now_utc(), 'to': recipients, 'subject': subject
     })
 
-def compute_dne(target_arr, deal_type, program='standard'):
-    """DNE = ARR x (1 - blended discount) x rate.
-    Migrate: 4.5%, uncapped. Modernize: 1%, capped $250K.
-    Same rate table for both Standard and Program 2 (Modernization) —
-    program only changes which governance/payment rules apply."""
-    arr = float(target_arr or 0)
-    eligible = arr * (1 - BLENDED_DISCOUNT)
-    dt = str(deal_type or '').lower()
-    if dt.startswith('mod'):
-        return min(eligible * RATE_OPTIMIZE, OPTIMIZE_CAP)
-    return eligible * RATE_MIGRATE
+def compute_dne(eligible_arr, deal_type):
+    """Canonical funding formula — the single source of truth, mirrored by
+    computeRate() in index.html:
+        Funding = Eligible ARR x Rate. Migrate 4.5% uncapped;
+        Modernize 1% capped at $250,000 per deal.
+    Eligible ARR arrives already net of any visible, user-chosen discount —
+    no hidden haircut is applied here (the old fixed 20% was removed).
+    Unrecognized deal types get the CONSERVATIVE track (1%, capped): a rate
+    default must never silently grant the more generous uncapped 4.5%."""
+    arr = float(eligible_arr or 0)
+    dt = str(deal_type or '').strip().lower()
+    if dt.startswith('migrat'):
+        return arr * RATE_MIGRATE
+    return min(arr * RATE_OPTIMIZE, OPTIMIZE_CAP)
+
+def compute_deal_dne(deal):
+    """Recompute a deal's DNE server-side so the funded amount is never a
+    client-asserted number. Basis, in priority order:
+    1. intelEligibleArr (the field that drives DNE by design)
+    2. the fleets' actualARR values (recomputed here, not trusted from
+       the client's per-fleet 'rebate' figures), with the Modernize cap
+       applied at the DEAL level."""
+    eligible = float(deal.get('intelEligibleArr', 0) or 0)
+    if eligible > 0:
+        return round(compute_dne(eligible, deal.get('actType', '')), 2)
+    fleets = deal.get('fleets') or []
+    mig_total, mod_total = 0.0, 0.0
+    for f in fleets:
+        try:
+            actual = float(f.get('actualARR', 0) or 0)
+        except (TypeError, ValueError):
+            actual = 0.0
+        if str(f.get('type', '')).lower() == 'mod':
+            mod_total += actual * RATE_OPTIMIZE
+        else:
+            mig_total += actual * RATE_MIGRATE
+    mod_total = min(mod_total, OPTIMIZE_CAP)  # deal-level cap, not per-fleet
+    return round(mig_total + mod_total, 2)
+
+# ── SESSIONS & LOCKOUT (server-side auth — the login screen is no longer
+# the only gate; every data route verifies a token issued at login) ──
+def create_session(table, email, tier, name, label, approver):
+    token = secrets.token_urlsafe(32)
+    table.put_item(Item={
+        'id': 'SESSION#' + token, 'email': email, 'tier': tier, 'name': name,
+        'label': label, 'approver': approver or '',
+        'expires': int(time.time()) + SESSION_TTL_SECONDS
+    })
+    return token
+
+def get_session(event, table):
+    """Return the session record for a valid Bearer token, else None."""
+    auth = (event.get('headers', {}) or {}).get('authorization', '') or \
+           (event.get('headers', {}) or {}).get('Authorization', '')
+    if not auth.startswith('Bearer '):
+        return None
+    token = auth[7:].strip()
+    if not token:
+        return None
+    try:
+        item = table.get_item(Key={'id': 'SESSION#' + token}).get('Item')
+    except Exception:
+        return None
+    if not item or int(float(item.get('expires', 0))) < int(time.time()):
+        return None
+    return item
+
+def check_lockout(table, email):
+    """True if this email is locked out from repeated failed logins."""
+    try:
+        item = table.get_item(Key={'id': 'FAIL#' + email}).get('Item')
+    except Exception:
+        return False
+    if not item:
+        return False
+    if time.time() - float(item.get('firstAt', 0)) > LOCKOUT_WINDOW_SECONDS:
+        return False
+    return int(item.get('count', 0)) >= LOCKOUT_MAX_FAILS
+
+def record_failed_login(table, email):
+    try:
+        item = table.get_item(Key={'id': 'FAIL#' + email}).get('Item') or {}
+        if time.time() - float(item.get('firstAt', 0)) > LOCKOUT_WINDOW_SECONDS:
+            item = {}
+        table.put_item(Item={'id': 'FAIL#' + email,
+                             'firstAt': item.get('firstAt', str(time.time())),
+                             'count': int(item.get('count', 0)) + 1})
+    except Exception as e:
+        print(f"[LOCKOUT] failed to record attempt: {e}")
+
+def clear_failed_logins(table, email):
+    try:
+        table.delete_item(Key={'id': 'FAIL#' + email})
+    except Exception:
+        pass
 
 def deal_summary_block(deal):
     dne = float(deal.get('dne', 0) or 0)
@@ -126,6 +222,47 @@ def deal_summary_block(deal):
 Review in the app: {APP_URL}"""
 
 # ── SES TRIGGERS (PRD Section 8) ──
+def notify_submitter(deal, curr_status):
+    """A short status note to the person who submitted the deal, at every
+    stage change. Sent as its OWN SES call, never bundled with approver
+    recipients — in SES sandbox mode one unverified address rejects the whole
+    send, and the approver chain must never fail because a field seller's
+    inbox isn't verified. Failure here is logged on the deal and ignored."""
+    team = deal.get('team') or []
+    submitter = (team[0].get('email') if team and isinstance(team[0], dict) else '') or ''
+    if not submitter or '@' not in submitter:
+        return True  # nothing to send to; not an error
+    stage_notes = {
+        'Submitted': 'It is now with the AWS review team.',
+        'Under Review': 'The AWS review team is working on it and setting the funding amount.',
+        'Approved (DNE Set)': 'AWS review is complete and it is now with Intel Leadership for approval.',
+        'Intel Leadership Approved': 'Intel Leadership has approved it. TCC will issue the SOW next.',
+        'SOW Issued': 'The SOW has been issued. Watch for it via TCC and complete signature to start the funding schedule.',
+    }
+    note = stage_notes.get(curr_status)
+    if not note:
+        return True
+    subject = f"Your IAP deal — {deal.get('custName', 'deal')}: {curr_status}"
+    body = f"""Your Intel Accelerate Program deal for {deal.get('custName', '(customer pending)')} moved to: {curr_status}.
+
+{note}
+
+DNE on record: ${float(deal.get('dne', 0) or 0):,.0f}
+Track status any time: {APP_URL}
+
+This is an automated status note from the IAP Deal Desk.
+{time.strftime('%B %d, %Y')}"""
+    try:
+        sent = send_email([submitter], subject, body)
+        if sent:
+            log_email(deal, [submitter], subject)
+        else:
+            deal.setdefault('emailFailures', []).append({'at': now_utc(), 'stage': curr_status, 'note': f'Submitter status note to {submitter} failed — likely unverified in SES sandbox. Approver notifications unaffected.'})
+        return sent
+    except Exception as e:
+        print(f"[SUBMITTER EMAIL] failed: {e}")
+        return False
+
 def notify_submitted(deal):
     subject = f"IAP Deal Submitted: {deal.get('custName', 'New Deal')}"
     body = f"""A new deal has been submitted to the Intel Accelerate Program and is pending internal review.
@@ -343,19 +480,17 @@ def lambda_handler(event, context):
         o.strip() for o in os.environ.get('ALLOWED_ORIGINS', '').split(',') if o.strip()
     ]
     request_origin = event.get('headers', {}).get('origin', '') or event.get('headers', {}).get('Origin', '')
-    # Accept an exact match OR any real *.amplifyapp.com subdomain — Amplify
-    # assigns a URL per branch/preview, all legitimately under your account,
-    # and requiring an exact match to one hardcoded URL was silently
-    # rejecting any of those with no visible error beyond "Failed to fetch".
-    origin_is_valid = (
-        request_origin in ALLOWED_ORIGINS
-        or (request_origin.startswith('https://') and request_origin.endswith('.amplifyapp.com'))
-    )
+    # Exact allowlist only. The old '*.amplifyapp.com' suffix match accepted
+    # ANY Amplify app from ANY AWS account worldwide, not just this one —
+    # a hostile page on that domain could make credentialed browser calls
+    # here. Every legitimate branch URL belongs in ALLOWED_ORIGINS (env var,
+    # comma-separated), added deliberately, not matched by suffix.
+    origin_is_valid = request_origin in ALLOWED_ORIGINS
     allow_origin = request_origin if origin_is_valid else APP_URL
     headers = {
         'Access-Control-Allow-Origin': allow_origin,
         'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Headers': 'Content-Type,Authorization',
         'Content-Type': 'application/json',
         'Vary': 'Origin'
     }
@@ -373,10 +508,25 @@ def lambda_handler(event, context):
             body = json.loads(raw)
         table = dynamodb.Table(TABLE)
 
+        # Resolve the caller's session once. Login routes don't need one;
+        # every data route below checks `session` (and tier where relevant).
+        session = get_session(event, table)
+
+        def deny_unauthenticated():
+            return {'statusCode': 401, 'headers': headers,
+                    'body': json.dumps({'error': 'Your session has expired. Please sign in again.'})}
+
+        def deny_tier(needed):
+            return {'statusCode': 403, 'headers': headers,
+                    'body': json.dumps({'error': f'This action requires {needed} access.'})}
+
         # ── SAVE DEAL (with audit diff + status-driven emails) ──
         if path == '/deal' and method == 'POST':
+            if not session:
+                return deny_unauthenticated()
             deal = body.get('deal', {})
-            editor = body.get('editor', '')
+            # The editor is whoever the token says it is — not a client field.
+            editor = session.get('email', '')
             if not deal.get('id'):
                 deal['id'] = str(int(time.time() * 1000))
             deal['updatedAt'] = int(time.time())
@@ -400,8 +550,37 @@ def lambda_handler(event, context):
                     if f in deal:
                         audit(deal, editor, f, old_item.get(f), deal.get(f))
 
+            # An edit-save with a blank status keeps the stored status — a
+            # deal's approval position is never erased by an incomplete form.
+            if old_item and not deal.get('status'):
+                deal['status'] = old_item.get('status', '')
+
             prev_status = old_item.get('status', '')
             curr_status = deal.get('status', '')
+
+            # ── DNE is computed HERE, never accepted from the browser. ──
+            # On submission: derived from Intel-Eligible ARR or the fleets.
+            # On an explicit admin/core DNE-set: derived from the ARR basis
+            # they entered (sent as dneBasisArr). On any other save: the
+            # previously stored value is preserved, whatever the client sent.
+            if body.get('submitted') and not old_item:
+                deal['dne'] = compute_deal_dne(deal)
+            elif body.get('dneBasisArr') is not None:
+                if session.get('tier') not in ('admin', 'core'):
+                    return deny_tier('AWS Approval')
+                deal['dne'] = round(compute_dne(body.get('dneBasisArr', 0), deal.get('actType', '')), 2)
+            elif old_item:
+                deal['dne'] = old_item.get('dne', deal.get('dne', 0))
+
+            # ── Approval-stage transitions require the right approver tier. ──
+            if prev_status != curr_status and curr_status:
+                required = {
+                    'Approved (DNE Set)': ('admin', 'core'),
+                    'Intel Leadership Approved': ('admin', 'intel_approver'),
+                    'SOW Issued': ('admin', 'tcc'),
+                }.get(curr_status)
+                if required and session.get('tier') not in required:
+                    return deny_tier(' / '.join(required))
 
             # Status-transition emails (PRD Section 8)
             if body.get('submitted') and not old_item:
@@ -410,6 +589,7 @@ def lambda_handler(event, context):
                 deal['stageEnteredAt'] = deal['submittedAt']
                 if not notify_submitted(deal):
                     deal.setdefault('emailFailures', []).append({'at': now_utc(), 'stage': 'Submitted', 'note': 'Submit notification failed to send — check SES verification for recipients.'})
+                notify_submitter(deal, 'Submitted')
                 deal['smartsheetSync'] = push_to_smartsheet(deal)
             elif prev_status != curr_status:
                 deal['stageEnteredAt'] = now_utc()
@@ -422,46 +602,56 @@ def lambda_handler(event, context):
                 elif curr_status == 'SOW Issued':
                     if not notify_sow_issued(deal):
                         deal.setdefault('emailFailures', []).append({'at': now_utc(), 'stage': curr_status, 'note': 'SOW-issued notification failed — check SES verification.'})
+                notify_submitter(deal, curr_status)
 
             table.put_item(Item=json.loads(json.dumps(deal), parse_float=str))
-            return ok(headers, {'saved': True, 'id': deal['id'], 'status': deal.get('status', '')})
+            return ok(headers, {'saved': True, 'id': deal['id'], 'status': deal.get('status', ''),
+                                'dne': deal.get('dne', 0)})
 
-        # ── LIST DEALS ──
+        # ── LIST DEALS (any signed-in user) ──
         if path == '/deals' and method == 'GET':
+            if not session:
+                return deny_unauthenticated()
             resp = table.scan()
-            items = [d for d in resp.get('Items', []) if not str(d.get('id', '')).startswith('config#')]
+            items = [d for d in resp.get('Items', [])
+                     if not str(d.get('id', '')).startswith(('config#', 'SESSION#', 'FAIL#', 'LOGIN#', 'AUTHCODE#'))]
             return ok(headers, {'deals': items})
 
-        # ── LOGIN LOG — who signed in, when, how many times. Admin-facing. ──
+        # ── LOGIN LOG — admin only ──
         if path == '/auth/login-log' and method == 'GET':
+            if not session:
+                return deny_unauthenticated()
+            if session.get('tier') != 'admin':
+                return deny_tier('admin')
             resp = table.scan()
             items = [d for d in resp.get('Items', []) if str(d.get('id', '')).startswith('LOGIN#')]
             items.sort(key=lambda x: x.get('timestamp', ''), reverse=True)
             return ok(headers, {'logins': items})
 
-        # ── DELETE A DEAL — permanent, no undo. Logged to CloudWatch for an audit
-        # trail since there's no server-side session token yet to verify tier;
-        # the frontend only shows this to admins, but that's a UI gate, not a
-        # security boundary. Flagged as a known gap, not treated as fixed.
+        # ── DELETE A DEAL — permanent, no undo. Server-enforced: PRD Section 6
+        # says Jacob and Yasmine, so tiers admin and tcc only. The tier comes
+        # from the verified session token, not from anything the browser sent.
         if path == '/deals/delete' and method == 'POST':
+            if not session:
+                return deny_unauthenticated()
+            if session.get('tier') not in ('admin', 'tcc'):
+                return deny_tier('admin / TCC')
             deal_id = body.get('id')
-            deleted_by = body.get('deletedBy', 'unknown')
             if not deal_id:
                 return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'Missing deal id.'})}
             existing = table.get_item(Key={'id': deal_id}).get('Item')
-            print(f"[DELETE DEAL] id={deal_id} custName={(existing or {}).get('custName')} deletedBy={deleted_by} existed={existing is not None}")
+            print(f"[DELETE DEAL] id={deal_id} custName={(existing or {}).get('custName')} deletedBy={session.get('email')} existed={existing is not None}")
             table.delete_item(Key={'id': deal_id})
             return ok(headers, {'deleted': True, 'id': deal_id})
 
-        # ── DNE CALC (server-side source of truth) ──
-        if path == '/dne' and method == 'POST':
-            dne = compute_dne(body.get('targetArr', 0), body.get('dealType', 'Migrate'), body.get('program', 'standard'))
-            return ok(headers, {'dne': round(dne, 2), 'blendedDiscount': BLENDED_DISCOUNT,
-                                'rateMigrate': RATE_MIGRATE, 'rateOptimize': RATE_OPTIMIZE,
-                                'optimizeCap': OPTIMIZE_CAP})
+        # (The old /dne route is gone — it was never called by the frontend,
+        # and it carried the hidden 20% haircut. DNE is now computed inside
+        # the /deal save itself; see compute_deal_dne.)
 
         # ── Q&A LOG (PRD Stage 3) ──
         if path == '/question' and method == 'POST':
+            if not session:
+                return deny_unauthenticated()
             deal_id = body.get('dealId', '')
             question = body.get('question', '')
             asked_by = body.get('askedBy', '')
@@ -474,7 +664,11 @@ def lambda_handler(event, context):
             table.put_item(Item=json.loads(json.dumps(item), parse_float=str))
             return ok(headers, {'logged': True})
 
+        # (No frontend caller yet — kept, now auth-gated, for a future
+        # in-app answer box. Answers currently happen over email.)
         if path == '/answer' and method == 'POST':
+            if not session:
+                return deny_unauthenticated()
             deal_id = body.get('dealId', '')
             answer = body.get('answer', '')
             by = body.get('by', '')
@@ -496,6 +690,10 @@ def lambda_handler(event, context):
 
         # ── SOW VERSION (PRD Stage 4) ──
         if path == '/sow-version' and method == 'POST':
+            if not session:
+                return deny_unauthenticated()
+            if session.get('tier') not in ('admin', 'core', 'tcc'):
+                return deny_tier('admin / AWS Approval / TCC')
             deal_id = body.get('dealId', '')
             requested_by = body.get('requestedBy', '')
             content = body.get('content', '')
@@ -510,6 +708,10 @@ def lambda_handler(event, context):
 
         # ── REMINDERS (EventBridge daily — PRD Section 8 rows 5-7) ──
         if path == '/reminders' and method in ('GET', 'POST'):
+            reminder_hdr = (event.get('headers', {}) or {}).get('x-reminder-key', '')
+            is_scheduler = REMINDER_KEY and reminder_hdr == REMINDER_KEY
+            if not is_scheduler and not (session and session.get('tier') == 'admin'):
+                return deny_unauthenticated()
             sent = []
             resp = table.scan()
             now_ts = time.time()
@@ -551,41 +753,39 @@ def lambda_handler(event, context):
 
         # ── CONFIG (kept from v1) ──
         if path == '/config' and method == 'POST':
+            if not session:
+                return deny_unauthenticated()
+            if session.get('tier') != 'admin':
+                return deny_tier('admin')
             key = body.get('key', '')
             value = body.get('value', '')
             table.put_item(Item={'id': 'config#' + key, 'value': str(value), 'updatedAt': int(time.time())})
             return ok(headers, {'saved': True, 'key': key})
         if path == '/config' and method == 'GET':
+            if not session:
+                return deny_unauthenticated()
             key = event.get('queryStringParameters', {}).get('key', '') if event.get('queryStringParameters') else ''
             resp = table.get_item(Key={'id': 'config#' + key})
             return ok(headers, {'key': key, 'value': resp.get('Item', {}).get('value')})
 
-        # ── UPLOAD ATTACHMENT (Simple Monthly Calculator at submission; CE post-SOW) ──
-        if path == '/upload' and method == 'POST':
-            filename = body.get('filename', 'file')
-            filedata = body.get('data', '')
-            deal_id = body.get('dealId', 'unassigned')
-            kind = body.get('kind', 'attachment')
-            key = f"{kind}/{deal_id}/{int(time.time())}-{filename}"
-            s3.put_object(Bucket=BUCKET, Key=key, Body=base64.b64decode(filedata),
-                          ServerSideEncryption='AES256')
-            return ok(headers, {'uploaded': True, 'key': key})
+        # (The /upload route and its S3 dependency were removed with the
+        # attach-calculator requirement — it was never called by the frontend.)
 
-        # AI-based extraction, scoring, drafting, and Q&A were removed —
-        # replaced with deterministic logic entirely in the frontend.
-        # See index.html: scoreFunding(), parseTextDeterministically(),
-        # answerIntelQuestion(), and draftPOPWithNova().
-        # ── INTEL PRICING PROXY (kept) ──
+        # ── INTEL PRICING PROXY — signed-in users only, key from env var. ──
         if path == '/intel/price' and method == 'POST':
+            if not session:
+                return deny_unauthenticated()
+            if not INTEL_PRICING_KEY:
+                return ok(headers, {'error': 'Pricing service key not configured. Set INTEL_PRICING_KEY in the Lambda environment variables.'})
             import urllib.request as _ur
             message = body.get('message', '') or body.get('question', '')
             if not message:
                 return ok(headers, {'error': 'no message'})
             req = _ur.Request(
-                'http://52.26.245.170:8502/api/chat',
+                INTEL_PRICING_ENDPOINT,
                 data=json.dumps({'message': message}).encode(),
                 headers={'Content-Type': 'application/json',
-                         'X-API-Key': 'intel-arch-7f3a9c2e8b14d05f6a1e9d7c3b8f240a'},
+                         'X-API-Key': INTEL_PRICING_KEY},
                 method='POST')
             with _ur.urlopen(req, timeout=15) as intel_resp:
                 return ok(headers, json.loads(intel_resp.read().decode()))
@@ -612,39 +812,45 @@ def lambda_handler(event, context):
         if path == '/auth/admin-login' and method == 'POST':
             email = (body.get('email') or '').strip().lower()
             password = (body.get('password') or '').strip()
+            if check_lockout(table, email):
+                return {'statusCode': 429, 'headers': headers, 'body': json.dumps({'error': 'Too many failed attempts. Try again in 15 minutes.'})}
             admin = ADMIN_USERS.get(email)
-            print(f"[LOGIN ATTEMPT] email received: '{email}' | email recognized: {admin is not None} | password length received: {len(password)}")
-            if not admin:
-                print(f"[LOGIN FAIL] '{email}' is not a key in ADMIN_USERS. Known keys: {list(ADMIN_USERS.keys())}")
+            # No password material in logs — not even lengths. An account
+            # whose env-var password was never set has pass=None and can
+            # never authenticate (fails closed).
+            if not admin or not admin['pass'] or not secrets.compare_digest(admin['pass'], password):
+                print(f"[LOGIN FAIL] '{email}' — bad email or password")
+                record_failed_login(table, email)
                 return {'statusCode': 401, 'headers': headers, 'body': json.dumps({'error': 'Incorrect email or password.'})}
-            if admin['pass'] != password:
-                print(f"[LOGIN FAIL] email matched '{email}' but password did not match stored value (lengths: received={len(password)}, stored={len(admin['pass'])})")
-                return {'statusCode': 401, 'headers': headers, 'body': json.dumps({'error': 'Incorrect email or password.'})}
-            print(f"[LOGIN OK] '{email}' authenticated successfully as tier={admin['tier']}")
+            print(f"[LOGIN OK] '{email}' tier={admin['tier']}")
+            clear_failed_logins(table, email)
             notify_login(email, admin['tier'], admin['label'], 'password')
+            token = create_session(table, email, admin['tier'], admin['name'], admin['label'], admin.get('approver'))
             return ok(headers, {
                 'email': email, 'name': admin['name'], 'tier': admin['tier'],
                 'label': admin['label'], 'approver': admin.get('approver'),
-                'partnerFilter': admin.get('partnerFilter')
+                'partnerFilter': admin.get('partnerFilter'), 'token': token
             })
 
         # ── AUTH: DOMAIN LOGIN — any real @amazon.com or @intel.com email,
         # one shared password. No pre-provisioned account needed. Deep and
         # Jacob get bumped to approver tier automatically by email even
         # though they're using the shared password like everyone else.
-        DOMAIN_PASSWORD = os.environ.get('DOMAIN_PASSWORD', 'IAP@2026')
+        DOMAIN_PASSWORD = os.environ.get('DOMAIN_PASSWORD')  # env only — no default in source
         if path == '/auth/domain-login' and method == 'POST':
             email = (body.get('email') or '').strip().lower()
             password = (body.get('password') or '').strip()
             which = (body.get('domain') or '').strip().lower()  # 'aws' or 'intel'
             expected_domain = 'amazon.com' if which == 'aws' else 'intel.com'
             actual_domain = email.split('@')[-1] if '@' in email else ''
-            print(f"[DOMAIN LOGIN ATTEMPT] email='{email}' expected_domain='{expected_domain}' actual_domain='{actual_domain}'")
             if actual_domain != expected_domain:
                 return {'statusCode': 403, 'headers': headers,
                         'body': json.dumps({'error': f'Use a real @{expected_domain} email address.'})}
-            if password != DOMAIN_PASSWORD:
-                print(f"[DOMAIN LOGIN FAIL] '{email}' password did not match. Received length={len(password)}, expected length={len(DOMAIN_PASSWORD)}")
+            if check_lockout(table, email):
+                return {'statusCode': 429, 'headers': headers, 'body': json.dumps({'error': 'Too many failed attempts. Try again in 15 minutes.'})}
+            if not DOMAIN_PASSWORD or not secrets.compare_digest(DOMAIN_PASSWORD, password):
+                print(f"[DOMAIN LOGIN FAIL] '{email}'")
+                record_failed_login(table, email)
                 return {'statusCode': 401, 'headers': headers, 'body': json.dumps({'error': 'Incorrect password.'})}
             upgrade = DOMAIN_APPROVER_UPGRADES.get(email)
             tier = upgrade['tier'] if upgrade else ('aws' if which == 'aws' else 'intel')
@@ -652,8 +858,10 @@ def lambda_handler(event, context):
             label = upgrade['label'] if upgrade else ('AWS Field' if which == 'aws' else 'Intel Field')
             approver = upgrade.get('approver') if upgrade else None
             print(f"[DOMAIN LOGIN OK] '{email}' as tier={tier}")
+            clear_failed_logins(table, email)
             notify_login(email, tier, label, 'domain password')
-            return ok(headers, {'email': email, 'name': name, 'tier': tier, 'label': label, 'approver': approver})
+            token = create_session(table, email, tier, name, label, approver)
+            return ok(headers, {'email': email, 'name': name, 'tier': tier, 'label': label, 'approver': approver, 'token': token})
 
         return {'statusCode': 404, 'headers': headers, 'body': json.dumps({'error': 'not found'})}
 
