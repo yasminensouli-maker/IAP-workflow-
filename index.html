@@ -1617,7 +1617,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
               <div class="f-group">
                 <label>Estimated Annual EC2 Spend (USD)</label>
                 <input type="number" id="est-arr-intel" placeholder="e.g. 1000000" min="0" step="10000" oninput="calcIntelFunding()">
-                <span class="hint">This drives the Intel co-investment calculation</span>
+                <span class="hint">This drives the Intel co-investment calculation. Don't have this number yet? Build an estimate in the <a href="https://calculator.aws" target="_blank" rel="noopener" style="color:var(--intel);font-weight:600">AWS Pricing Calculator ↗</a> — add the target Gen 8 Intel instances (m8i, c8i, r8i, x8i) the customer will run, and it totals the monthly cost. Multiply that monthly total by 12 and type the result in here.</span>
               </div>
             </div>
           </div>
@@ -1641,6 +1641,8 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
               <div style="font-size:.72rem;color:var(--ink3);margin-bottom:4px">Estimated Intel Co-Investment</div>
               <div id="intel-funding-amount" style="font-size:1.6rem;font-weight:800;color:var(--intel)">$0</div>
               <div id="intel-funding-note" style="font-size:.68rem;color:var(--ink3);margin-top:4px"></div>
+              <button type="button" class="btn btn-secondary btn-sm" style="margin-top:10px" onclick="useEstimatedArr()">Use this ARR in the deal ↓</button>
+              <div id="use-arr-confirm" style="display:none;font-size:.7rem;color:#166534;margin-top:6px;font-weight:600">✓ Carried into Intel-Eligible ARR below.</div>
             </div>
           </div>
 
@@ -2403,6 +2405,19 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
               <button onclick="askIntelPrompt('Which instance families are actually eligible for IAP funding?')" style="background:#fff;border:1px solid var(--border);border-radius:16px;padding:6px 14px;font-size:.72rem;cursor:pointer;font-family:Arial,sans-serif;color:var(--ink2)">Which families actually qualify?</button>
               <button onclick="askIntelPrompt('What is the full approval chain from submission to payout?')" style="background:#fff;border:1px solid var(--border);border-radius:16px;padding:6px 14px;font-size:.72rem;cursor:pointer;font-family:Arial,sans-serif;color:var(--ink2)">Who approves this and in what order?</button>
             </div>
+            <div style="font-size:.68rem;color:var(--ink3);margin-bottom:4px">Live pricing examples — instance + region, tap any to run it:</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+              <button onclick="askIntelPrompt('Price m8i.2xlarge in us-east-1')" style="background:#f0f4ff;border:1px solid var(--intel);border-radius:16px;padding:6px 14px;font-size:.72rem;cursor:pointer;font-family:Arial,sans-serif;color:var(--intel)">m8i.2xlarge — Virginia</button>
+              <button onclick="askIntelPrompt('Price c8i.4xlarge in us-west-2')" style="background:#f0f4ff;border:1px solid var(--intel);border-radius:16px;padding:6px 14px;font-size:.72rem;cursor:pointer;font-family:Arial,sans-serif;color:var(--intel)">c8i.4xlarge — Oregon</button>
+              <button onclick="askIntelPrompt('Price r8i.2xlarge in ca-central-1')" style="background:#f0f4ff;border:1px solid var(--intel);border-radius:16px;padding:6px 14px;font-size:.72rem;cursor:pointer;font-family:Arial,sans-serif;color:var(--intel)">r8i.2xlarge — Canada Central</button>
+              <button onclick="askIntelPrompt('Price x8i.8xlarge in eu-central-1')" style="background:#f0f4ff;border:1px solid var(--intel);border-radius:16px;padding:6px 14px;font-size:.72rem;cursor:pointer;font-family:Arial,sans-serif;color:var(--intel)">x8i.8xlarge — Frankfurt</button>
+              <button onclick="askIntelPrompt('Price m8i.4xlarge in eu-west-1')" style="background:#f0f4ff;border:1px solid var(--intel);border-radius:16px;padding:6px 14px;font-size:.72rem;cursor:pointer;font-family:Arial,sans-serif;color:var(--intel)">m8i.4xlarge — Ireland</button>
+              <button onclick="askIntelPrompt('Price c8i.2xlarge in eu-west-2')" style="background:#f0f4ff;border:1px solid var(--intel);border-radius:16px;padding:6px 14px;font-size:.72rem;cursor:pointer;font-family:Arial,sans-serif;color:var(--intel)">c8i.2xlarge — London</button>
+              <button onclick="askIntelPrompt('Price r8i.4xlarge in ap-southeast-1')" style="background:#f0f4ff;border:1px solid var(--intel);border-radius:16px;padding:6px 14px;font-size:.72rem;cursor:pointer;font-family:Arial,sans-serif;color:var(--intel)">r8i.4xlarge — Singapore</button>
+              <button onclick="askIntelPrompt('Price m8i.2xlarge in ap-northeast-1')" style="background:#f0f4ff;border:1px solid var(--intel);border-radius:16px;padding:6px 14px;font-size:.72rem;cursor:pointer;font-family:Arial,sans-serif;color:var(--intel)">m8i.2xlarge — Tokyo</button>
+              <button onclick="askIntelPrompt('Price x8i.4xlarge in ap-south-1')" style="background:#f0f4ff;border:1px solid var(--intel);border-radius:16px;padding:6px 14px;font-size:.72rem;cursor:pointer;font-family:Arial,sans-serif;color:var(--intel)">x8i.4xlarge — Mumbai</button>
+              <button onclick="askIntelPrompt('Price c8i.8xlarge in ap-southeast-2')" style="background:#f0f4ff;border:1px solid var(--intel);border-radius:16px;padding:6px 14px;font-size:.72rem;cursor:pointer;font-family:Arial,sans-serif;color:var(--intel)">c8i.8xlarge — Sydney</button>
+            </div>
             <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:12px">
               <div id="intel-chat-messages" style="min-height:260px;max-height:480px;overflow-y:auto;padding:16px;background:#fafafa;font-size:.85rem;line-height:1.7">
                 <div style="color:var(--ink3);font-size:.78rem">Ask anything about Intel instance pricing, IAP rates, or regional availability — or tap a suggestion above.</div>
@@ -2872,6 +2887,20 @@ async function api(path, opts){
 function completeLogin(u){
   currentUser = {...u};
   saveSession(currentUser);
+  // Set the baseline browser-history entry once, right when the app
+  // actually becomes usable — everything from here on is a real entry via
+  // goStep's pushState, so the browser's back button has something correct
+  // to walk back through instead of leaving the app or landing on a blank tab.
+  if(!window._historyBaselineSet){
+    window._historyBaselineSet = true;
+    try { history.replaceState({step: currentStep}, '', ''); } catch(e){}
+    window.addEventListener('popstate', function(e){
+      const step = (e.state && e.state.step) ? e.state.step : 1;
+      _navigatingFromHistory = true;
+      goStep(step);
+      _navigatingFromHistory = false;
+    });
+  }
   // Draft auto-save: one delegated listener on the whole app — every input
   // or change anywhere schedules a snapshot. Attached once per page load.
   if(!window._draftListenerOn){
@@ -2953,6 +2982,11 @@ function doLogout(){
 
 /* ── NAVIGATION ─────────────────────────────────────────────── */
 let currentStep = 1;
+// Guards re-pushing a history entry when goStep() is called AS A RESULT of
+// the browser's own back/forward button (via popstate below) — without
+// this, pressing back would immediately push a new forward entry, breaking
+// the browser's back button on the very next press.
+let _navigatingFromHistory = false;
 const TOTAL_STEPS = 7;
 
 let stepHistory = [];
@@ -2962,6 +2996,14 @@ function goStep(n){
   // this app has no browser-history integration, so the browser's own
   // back button doesn't know about in-app steps at all.
   if(currentStep && currentStep !== n) stepHistory.push(currentStep);
+  // Tell the BROWSER about this navigation too — this is the actual fix for
+  // the browser's own back button/gesture jumping to the wrong place. Skip
+  // this when goStep was itself triggered by a popstate event (the user
+  // already pressed back/forward; pushing again here would break the very
+  // next press by inserting a duplicate forward entry).
+  if(!_navigatingFromHistory && n !== currentStep){
+    try { history.pushState({step: n}, '', ''); } catch(e){ /* non-fatal */ }
+  }
   if(n===6){ setTimeout(refreshCRMHeader, 50); }
   // Handle step 7 SOW which has id step7-sow
   document.querySelectorAll('.step-panel').forEach(p=>p.classList.remove('active'));
@@ -3029,6 +3071,78 @@ function updateCountries(){
 
 /* ── CALCULATOR ─────────────────────────────────────────────── */
 // Intel-eligible EC2 instance families with display names
+/* ── MODERNIZE UPGRADE ADVISOR ─────────────────────────────────
+   593 pre-vetted mappings from the Intel optimization workbook (May 2026):
+   old instance -> recommended Gen 8 target, performance factor, us-east-1
+   monthly list prices (Vantage-sourced), whether the move is positive ROI,
+   and any spec regressions to verify. Embedded as static data so Modernize
+   deals need no live API call and every recommendation is pre-vetted. */
+const MOD_MAPPINGS = {"c1.medium":["c8i.large",1.52,94.9,68.41,1,"local storage"],"c1.xlarge":["c8i.2xlarge",1.52,379.6,273.63,1,"local storage"],"c3.2xlarge":["c8i.2xlarge",1.52,306.6,273.63,1,"local storage"],"c3.4xlarge":["c8i.4xlarge",1.52,613.2,547.27,1,"local storage"],"c3.8xlarge":["c8i.8xlarge",1.52,1226.4,1094.53,1,"local storage"],"c3.large":["c8i.large",1.52,76.65,68.41,1,"local storage"],"c3.xlarge":["c8i.xlarge",1.52,153.3,136.82,1,"local storage"],"c4.2xlarge":["c8i.2xlarge",1.52,290.54,273.63,1,""],"c4.4xlarge":["c8i.4xlarge",1.52,581.08,547.27,1,""],"c4.8xlarge":["c8i.12xlarge",1.52,1161.43,1641.8,1,""],"c4.large":["c8i.large",1.52,73,68.41,1,""],"c4.xlarge":["c8i.xlarge",1.52,145.27,136.82,1,""],"c5.12xlarge":["c8i.12xlarge",1.52,1489.2,1641.8,1,""],"c5.18xlarge":["c8i.24xlarge",1.52,2233.8,3283.6,1,""],"c5.24xlarge":["c8i.24xlarge",1.52,2978.4,3283.6,1,""],"c5.2xlarge":["c8i.2xlarge",1.52,248.2,273.63,1,""],"c5.4xlarge":["c8i.4xlarge",1.52,496.4,547.27,1,""],"c5.9xlarge":["c8i.12xlarge",1.52,1116.9,1641.8,1,""],"c5.large":["c8i.large",1.52,62.05,68.41,1,""],"c5.metal":["c8i.24xlarge",1.52,2978.4,3283.6,1,"bare metal"],"c5.xlarge":["c8i.xlarge",1.52,124.1,136.82,1,""],"c5a.12xlarge":["c8i.12xlarge",1.52,1349.04,1641.8,1,""],"c5a.16xlarge":["c8i.16xlarge",1.52,1798.72,2189.07,1,""],"c5a.24xlarge":["c8i.24xlarge",1.52,2698.08,3283.6,1,""],"c5a.2xlarge":["c8i.2xlarge",1.52,224.84,273.63,1,""],"c5a.4xlarge":["c8i.4xlarge",1.52,449.68,547.27,1,""],"c5a.8xlarge":["c8i.8xlarge",1.52,899.36,1094.53,1,""],"c5a.large":["c8i.large",1.52,56.21,68.41,1,""],"c5a.xlarge":["c8i.xlarge",1.52,112.42,136.82,1,""],"c5ad.12xlarge":["c8id.12xlarge",1.52,1506.72,1942.62,1,""],"c5ad.16xlarge":["c8id.16xlarge",1.52,2008.96,2590.16,1,""],"c5ad.24xlarge":["c8id.24xlarge",1.52,3013.44,3885.24,1,""],"c5ad.2xlarge":["c8id.2xlarge",1.52,251.12,323.77,1,""],"c5ad.4xlarge":["c8id.4xlarge",1.52,502.24,647.54,1,""],"c5ad.8xlarge":["c8id.8xlarge",1.52,1004.48,1295.08,1,""],"c5ad.large":["c8id.large",1.52,62.78,80.94,1,""],"c5ad.xlarge":["c8id.xlarge",1.52,125.56,161.88,1,""],"c5d.12xlarge":["c8id.12xlarge",1.52,1681.92,1942.62,1,""],"c5d.18xlarge":["c8id.24xlarge",1.52,2522.88,3885.24,0,""],"c5d.24xlarge":["c8id.24xlarge",1.52,3363.84,3885.24,1,""],"c5d.2xlarge":["c8id.2xlarge",1.52,280.32,323.77,1,""],"c5d.4xlarge":["c8id.4xlarge",1.52,560.64,647.54,1,""],"c5d.9xlarge":["c8id.12xlarge",1.52,1261.44,1942.62,0,""],"c5d.large":["c8id.large",1.52,70.08,80.94,1,""],"c5d.metal":["c8id.24xlarge",1.52,3363.84,3885.24,1,"bare metal"],"c5d.xlarge":["c8id.xlarge",1.52,140.16,161.88,1,""],"c5n.18xlarge":["c8in.24xlarge",1.52,2838.24,4768.24,0,""],"c5n.2xlarge":["c8in.2xlarge",1.52,315.36,397.35,1,"memory"],"c5n.4xlarge":["c8in.4xlarge",1.52,630.72,794.71,1,"memory"],"c5n.9xlarge":["c8in.12xlarge",1.52,1419.12,2384.12,0,""],"c5n.large":["c8in.large",1.52,78.84,99.34,1,"memory"],"c5n.metal":["c8in.24xlarge",1.52,2838.24,4768.24,0,"bare metal"],"c5n.xlarge":["c8in.xlarge",1.52,157.68,198.68,1,"memory"],"c6a.12xlarge":["c8i.12xlarge",1.52,1340.28,1641.8,1,""],"c6a.16xlarge":["c8i.16xlarge",1.52,1787.04,2189.07,1,""],"c6a.24xlarge":["c8i.24xlarge",1.52,2680.56,3283.6,1,""],"c6a.2xlarge":["c8i.2xlarge",1.52,223.38,273.63,1,""],"c6a.32xlarge":["c8i.32xlarge",1.52,3574.08,4378.13,1,""],"c6a.48xlarge":["c8i.48xlarge",1.52,5361.12,6567.2,1,""],"c6a.4xlarge":["c8i.4xlarge",1.52,446.76,547.27,1,""],"c6a.8xlarge":["c8i.8xlarge",1.52,893.52,1094.53,1,""],"c6a.large":["c8i.large",1.52,55.84,68.41,1,""],"c6a.metal":["c8i.metal-48xl",1.52,5361.12,6567.2,1,""],"c6a.xlarge":["c8i.xlarge",1.52,111.69,136.82,1,""],"c6i.12xlarge":["c8i.12xlarge",1.52,1489.2,1641.8,1,""],"c6i.16xlarge":["c8i.16xlarge",1.52,1985.6,2189.07,1,""],"c6i.24xlarge":["c8i.24xlarge",1.52,2978.4,3283.6,1,""],"c6i.2xlarge":["c8i.2xlarge",1.52,248.2,273.63,1,""],"c6i.32xlarge":["c8i.32xlarge",1.52,3971.2,4378.13,1,""],"c6i.4xlarge":["c8i.4xlarge",1.52,496.4,547.27,1,""],"c6i.8xlarge":["c8i.8xlarge",1.52,992.8,1094.53,1,""],"c6i.large":["c8i.large",1.52,62.05,68.41,1,""],"c6i.metal":["c8i.32xlarge",1.52,3971.2,4378.13,1,"bare metal"],"c6i.xlarge":["c8i.xlarge",1.52,124.1,136.82,1,""],"c6id.12xlarge":["c8id.12xlarge",1.52,1766.02,1942.62,1,""],"c6id.16xlarge":["c8id.16xlarge",1.52,2354.69,2590.16,1,""],"c6id.24xlarge":["c8id.24xlarge",1.52,3532.03,3885.24,1,""],"c6id.2xlarge":["c8id.2xlarge",1.52,294.34,323.77,1,""],"c6id.32xlarge":["c8id.32xlarge",1.52,4709.38,5180.31,1,""],"c6id.4xlarge":["c8id.4xlarge",1.52,588.67,647.54,1,""],"c6id.8xlarge":["c8id.8xlarge",1.52,1177.34,1295.08,1,""],"c6id.large":["c8id.large",1.52,73.58,80.94,1,""],"c6id.metal":["c8id.32xlarge",1.52,4709.38,5180.31,1,"bare metal"],"c6id.xlarge":["c8id.xlarge",1.52,147.17,161.88,1,""],"c6in.12xlarge":["c8in.12xlarge",1.52,1986.77,2384.12,1,""],"c6in.16xlarge":["c8in.16xlarge",1.52,2649.02,3178.83,1,""],"c6in.24xlarge":["c8in.24xlarge",1.52,3973.54,4768.24,1,""],"c6in.2xlarge":["c8in.2xlarge",1.52,331.13,397.35,1,""],"c6in.32xlarge":["c8in.32xlarge",1.52,5298.05,6357.66,1,""],"c6in.4xlarge":["c8in.4xlarge",1.52,662.26,794.71,1,""],"c6in.8xlarge":["c8in.8xlarge",1.52,1324.51,1589.41,1,""],"c6in.large":["c8in.large",1.52,82.78,99.34,1,""],"c6in.metal":["c8in.32xlarge",1.52,5298.05,6357.66,1,"bare metal"],"c6in.xlarge":["c8in.xlarge",1.52,165.56,198.68,1,""],"c7a.12xlarge":["c8i.12xlarge",1.15,1798.25,1641.8,1,""],"c7a.16xlarge":["c8i.16xlarge",1.15,2397.67,2189.07,1,""],"c7a.24xlarge":["c8i.24xlarge",1.15,3596.51,3283.6,1,""],"c7a.2xlarge":["c8i.2xlarge",1.15,299.71,273.63,1,""],"c7a.32xlarge":["c8i.32xlarge",1.15,4795.34,4378.13,1,""],"c7a.48xlarge":["c8i.48xlarge",1.15,7193.01,6567.2,1,""],"c7a.4xlarge":["c8i.4xlarge",1.15,599.42,547.27,1,""],"c7a.8xlarge":["c8i.8xlarge",1.15,1198.84,1094.53,1,""],"c7a.large":["c8i.large",1.15,74.93,68.41,1,""],"c7a.medium":["c8i.large",1.15,37.46,68.41,0,""],"c7a.metal-48xl":["c8i.metal-48xl",1.15,7193.01,6567.2,1,""],"c7a.xlarge":["c8i.xlarge",1.15,149.85,136.82,1,""],"c7i.12xlarge":["c8i.12xlarge",1.52,1563.66,1641.8,1,""],"c7i.16xlarge":["c8i.16xlarge",1.52,2084.88,2189.07,1,""],"c7i.24xlarge":["c8i.24xlarge",1.52,3127.32,3283.6,1,""],"c7i.2xlarge":["c8i.2xlarge",1.52,260.61,273.63,1,""],"c7i.48xlarge":["c8i.48xlarge",1.52,6254.64,6567.2,1,""],"c7i.4xlarge":["c8i.4xlarge",1.52,521.22,547.27,1,""],"c7i.8xlarge":["c8i.8xlarge",1.52,1042.44,1094.53,1,""],"c7i.large":["c8i.large",1.52,65.15,68.41,1,""],"c7i.metal-24xl":["c8i.24xlarge",1.52,3127.32,3283.6,1,"bare metal"],"c7i.metal-48xl":["c8i.metal-48xl",1.52,6254.64,6567.2,1,""],"c7i.xlarge":["c8i.xlarge",1.52,130.31,136.82,1,""],"c7i-flex.12xlarge":["c8i-flex.12xlarge",1.52,1485.48,1559.63,1,""],"c7i-flex.16xlarge":["c8i-flex.16xlarge",1.52,1980.64,2079.51,1,""],"c7i-flex.2xlarge":["c8i-flex.2xlarge",1.52,247.58,259.94,1,""],"c7i-flex.4xlarge":["c8i-flex.4xlarge",1.52,495.16,519.88,1,""],"c7i-flex.8xlarge":["c8i-flex.8xlarge",1.52,990.32,1039.75,1,""],"c7i-flex.large":["c8i-flex.large",1.52,61.9,64.98,1,""],"c7i-flex.xlarge":["c8i-flex.xlarge",1.52,123.79,129.97,1,""],"d2.2xlarge":["i7i.2xlarge",1.52,1007.4,551.15,1,"local storage"],"d2.4xlarge":["i7i.4xlarge",1.52,2014.8,1102.37,1,"local storage"],"d2.8xlarge":["i7i.12xlarge",1.52,4029.6,3307.05,1,"local storage"],"d2.xlarge":["i7i.xlarge",1.52,503.7,275.57,1,"local storage"],"d3.2xlarge":["i7i.2xlarge",1.52,729.27,551.15,1,"local storage, network performance"],"d3.4xlarge":["i7i.4xlarge",1.52,1458.54,1102.37,1,"local storage"],"d3.8xlarge":["i7i.8xlarge",1.52,2916.73,2204.75,1,"local storage"],"d3.xlarge":["i7i.xlarge",1.52,364.27,275.57,1,"local storage, network performance"],"d3en.12xlarge":["i7i.12xlarge",1.52,4605.31,3307.05,1,"local storage, network performance"],"d3en.2xlarge":["i7i.2xlarge",1.52,767.23,551.15,1,"local storage, network performance"],"d3en.4xlarge":["i7i.4xlarge",1.52,1535.19,1102.37,1,"local storage"],"d3en.6xlarge":["i7i.8xlarge",1.52,2302.42,2204.75,1,"local storage, network performance"],"d3en.8xlarge":["i7i.8xlarge",1.52,3070.2,2204.75,1,"local storage, network performance"],"d3en.large":["i7i.large",1.52,191.99,137.82,1,"network performance"],"d3en.xlarge":["i7i.xlarge",1.52,383.98,275.57,1,"local storage, network performance"],"f1.16xlarge":["f2.48xlarge",1.52,9636,11563.2,1,""],"f1.2xlarge":["f2.6xlarge",1.52,1204.5,1445.4,1,""],"f1.4xlarge":["f2.6xlarge",1.52,2409,1445.4,1,""],"g2.2xlarge":["g7e.2xlarge",1.52,474.5,2455.08,0,""],"g2.8xlarge":["g7e.8xlarge",1.52,1898,3845.82,0,""],"g3.16xlarge":["g7e.24xlarge",1.52,3328.8,12097.68,0,""],"g3.4xlarge":["g7e.4xlarge",1.52,832.2,2918.66,0,""],"g3.8xlarge":["g7e.8xlarge",1.52,1664.4,3845.82,0,""],"g3s.xlarge":["g7e.2xlarge",1.52,547.5,2455.08,0,""],"g4ad.16xlarge":["g7e.24xlarge",1.52,2531.64,12097.68,0,""],"g4ad.2xlarge":["g7e.2xlarge",1.52,395.05,2455.08,0,""],"g4ad.4xlarge":["g7e.4xlarge",1.52,632.91,2918.66,0,""],"g4ad.8xlarge":["g7e.8xlarge",1.52,1265.82,3845.82,0,""],"g4ad.xlarge":["g7e.2xlarge",1.52,276.33,2455.08,0,""],"g4dn.12xlarge":["g7e.12xlarge",1.52,2855.76,6048.84,0,""],"g4dn.16xlarge":["g7e.24xlarge",1.52,3176.96,12097.68,0,""],"g4dn.2xlarge":["g7e.2xlarge",1.52,548.96,2455.08,0,""],"g4dn.4xlarge":["g7e.4xlarge",1.52,878.92,2918.66,0,""],"g4dn.8xlarge":["g7e.8xlarge",1.52,1588.48,3845.82,0,""],"g4dn.metal":["g7e.24xlarge",1.52,5711.52,12097.68,0,"bare metal"],"g4dn.xlarge":["g7e.2xlarge",1.52,383.98,2455.08,0,""],"g5.12xlarge":["g7e.12xlarge",1.52,4140.56,6048.84,1,""],"g5.16xlarge":["g7e.24xlarge",1.52,2990.08,12097.68,0,""],"g5.24xlarge":["g7e.24xlarge",1.52,5945.12,12097.68,0,""],"g5.2xlarge":["g7e.2xlarge",1.52,884.76,2455.08,0,""],"g5.48xlarge":["g7e.48xlarge",1.52,11890.24,24195.35,0,""],"g5.4xlarge":["g7e.4xlarge",1.52,1185.52,2918.66,0,""],"g5.8xlarge":["g7e.8xlarge",1.52,1787.04,3845.82,0,""],"g5.xlarge":["g7e.2xlarge",1.52,734.38,2455.08,0,""],"g6.12xlarge":["g7e.12xlarge",1.52,3359.17,6048.84,0,""],"g6.16xlarge":["g7e.24xlarge",1.52,2479.66,12097.68,0,""],"g6.24xlarge":["g7e.24xlarge",1.52,4872.9,12097.68,0,""],"g6.2xlarge":["g7e.2xlarge",1.52,713.65,2455.08,0,""],"g6.48xlarge":["g7e.48xlarge",1.52,9745.79,24195.35,0,""],"g6.4xlarge":["g7e.4xlarge",1.52,965.94,2918.66,0,""],"g6.8xlarge":["g7e.8xlarge",1.52,1470.51,3845.82,0,""],"g6.xlarge":["g7e.2xlarge",1.52,587.5,2455.08,0,""],"g6e.12xlarge":["g7e.12xlarge",1.52,7659.63,6048.84,1,""],"g6e.16xlarge":["g7e.24xlarge",1.52,5531.35,12097.68,0,""],"g6e.24xlarge":["g7e.24xlarge",1.52,10997.88,12097.68,1,""],"g6e.2xlarge":["g7e.2xlarge",1.52,1636.72,2455.08,1,""],"g6e.48xlarge":["g7e.48xlarge",1.52,21995.76,24195.35,1,""],"g6e.4xlarge":["g7e.4xlarge",1.52,2193.1,2918.66,1,""],"g6e.8xlarge":["g7e.8xlarge",1.52,3305.85,3845.82,1,""],"g6e.xlarge":["g7e.2xlarge",1.52,1358.53,2455.08,0,""],"g6f.2xlarge":["g7e.2xlarge",1.52,346.75,2455.08,0,""],"g6f.4xlarge":["g7e.4xlarge",1.52,693.5,2918.66,0,""],"g6f.large":["g7e.2xlarge",1.52,147.46,2455.08,0,""],"g6f.xlarge":["g7e.2xlarge",1.52,173.38,2455.08,0,""],"gr6.4xlarge":["g7e.4xlarge",1.52,1123.62,2918.66,0,""],"gr6.8xlarge":["g7e.8xlarge",1.52,1785.87,3845.82,0,""],"gr6f.4xlarge":["g7e.4xlarge",1.52,778.18,2918.66,0,""],"h1.16xlarge":["i7i.16xlarge",1.52,2733.12,4409.42,0,"local storage"],"h1.2xlarge":["i7i.2xlarge",1.52,341.64,551.15,0,"local storage"],"h1.4xlarge":["i7i.4xlarge",1.52,683.28,1102.37,0,"local storage"],"h1.8xlarge":["i7i.8xlarge",1.52,1366.56,2204.75,0,"local storage"],"i2.2xlarge":["i7i.2xlarge",1.52,1244.65,551.15,1,""],"i2.4xlarge":["i7i.4xlarge",1.52,2489.3,1102.37,1,""],"i2.8xlarge":["i7i.8xlarge",1.52,4978.6,2204.75,1,""],"i2.large":["i7i.large",1.52,311.35,137.82,1,""],"i2.xlarge":["i7i.xlarge",1.52,622.69,275.57,1,""],"i3.16xlarge":["i7i.16xlarge",1.52,3644.16,4409.42,1,"local storage"],"i3.2xlarge":["i7i.2xlarge",1.52,455.52,551.15,1,"local storage"],"i3.4xlarge":["i7i.4xlarge",1.52,911.04,1102.37,1,"local storage"],"i3.8xlarge":["i7i.8xlarge",1.52,1822.08,2204.75,1,"local storage"],"i3.large":["i7i.large",1.52,113.88,137.82,1,"local storage"],"i3.metal":["i7i.16xlarge",1.52,3644.16,4409.42,1,"bare metal"],"i3.xlarge":["i7i.xlarge",1.52,227.76,275.57,1,"local storage"],"i3en.12xlarge":["i7i.12xlarge",1.52,3959.52,3307.05,1,"local storage, network performance"],"i3en.24xlarge":["i7i.24xlarge",1.52,7919.04,6614.16,1,"local storage, network performance"],"i3en.2xlarge":["i7i.2xlarge",1.52,659.92,551.15,1,"local storage, network performance"],"i3en.3xlarge":["i7i.4xlarge",1.52,989.88,1102.37,1,"local storage"],"i3en.6xlarge":["i7i.8xlarge",1.52,1979.76,2204.75,1,"local storage"],"i3en.large":["i7i.large",1.52,164.98,137.82,1,"local storage, network performance"],"i3en.metal":["i7i.24xlarge",1.52,7919.04,6614.16,1,"bare metal, local storage, network performance"],"i3en.xlarge":["i7i.xlarge",1.52,329.96,275.57,1,"local storage, network performance"],"i3p.16xlarge":["i7i.16xlarge",1.52,4391.68,4409.42,1,""],"i4i.12xlarge":["i7i.12xlarge",1.52,3006.14,3307.05,1,"network performance"],"i4i.16xlarge":["i7i.16xlarge",1.52,4008.43,4409.42,1,""],"i4i.24xlarge":["i7i.24xlarge",1.52,6012.86,6614.16,1,""],"i4i.2xlarge":["i7i.2xlarge",1.52,500.78,551.15,1,""],"i4i.32xlarge":["i7i.48xlarge",1.52,8017.15,13228.33,0,""],"i4i.4xlarge":["i7i.4xlarge",1.52,1002.29,1102.37,1,""],"i4i.8xlarge":["i7i.8xlarge",1.52,2004.58,2204.75,1,""],"i4i.large":["i7i.large",1.52,125.56,137.82,1,""],"i4i.metal":["i7i.48xlarge",1.52,8016.86,13228.33,0,"bare metal"],"i4i.xlarge":["i7i.xlarge",1.52,250.39,275.57,1,""],"m1.large":["m8i.large",1.52,127.75,77.26,1,"local storage"],"m1.medium":["m8i.large",1.52,63.51,77.26,1,"local storage"],"m1.small":["m8i.large",1.52,32.12,77.26,0,"local storage"],"m1.xlarge":["m8i.xlarge",1.52,255.5,154.53,1,"local storage"],"m2.2xlarge":["m8i.xlarge",1.52,357.7,154.53,1,"memory, local storage"],"m2.4xlarge":["m8i.2xlarge",1.52,715.4,309.05,1,"memory, local storage"],"m2.xlarge":["m8i.large",1.52,178.85,77.26,1,"memory, local storage"],"m3.2xlarge":["m8i.2xlarge",1.52,388.36,309.05,1,"local storage"],"m3.large":["m8i.large",1.52,97.09,77.26,1,"local storage"],"m3.medium":["m8i.large",1.52,48.91,77.26,0,"local storage"],"m3.xlarge":["m8i.xlarge",1.52,194.18,154.53,1,"local storage"],"m4.10xlarge":["m8i.12xlarge",1.52,1460,1854.32,1,""],"m4.16xlarge":["m8i.16xlarge",1.52,2336,2472.42,1,""],"m4.2xlarge":["m8i.2xlarge",1.52,292,309.05,1,""],"m4.4xlarge":["m8i.4xlarge",1.52,584,618.11,1,""],"m4.large":["m8i.large",1.52,73,77.26,1,""],"m4.xlarge":["m8i.xlarge",1.52,146,154.53,1,""],"m5.12xlarge":["m8i.12xlarge",1.52,1681.92,1854.32,1,""],"m5.16xlarge":["m8i.16xlarge",1.52,2242.56,2472.42,1,""],"m5.24xlarge":["m8i.24xlarge",1.52,3363.84,3708.63,1,""],"m5.2xlarge":["m8i.2xlarge",1.52,280.32,309.05,1,""],"m5.4xlarge":["m8i.4xlarge",1.52,560.64,618.11,1,""],"m5.8xlarge":["m8i.8xlarge",1.52,1121.28,1236.21,1,""],"m5.large":["m8i.large",1.52,70.08,77.26,1,""],"m5.metal":["m8i.24xlarge",1.52,3363.84,3708.63,1,"bare metal"],"m5.xlarge":["m8i.xlarge",1.52,140.16,154.53,1,""],"m5a.12xlarge":["m8i.12xlarge",1.52,1506.72,1854.32,1,""],"m5a.16xlarge":["m8i.16xlarge",1.52,2008.96,2472.42,1,""],"m5a.24xlarge":["m8i.24xlarge",1.52,3013.44,3708.63,1,""],"m5a.2xlarge":["m8i.2xlarge",1.52,251.12,309.05,1,""],"m5a.4xlarge":["m8i.4xlarge",1.52,502.24,618.11,1,""],"m5a.8xlarge":["m8i.8xlarge",1.52,1004.48,1236.21,1,""],"m5a.large":["m8i.large",1.52,62.78,77.26,1,""],"m5a.xlarge":["m8i.xlarge",1.52,125.56,154.53,1,""],"m5ad.12xlarge":["m8id.12xlarge",1.52,1804.56,2286.71,1,""],"m5ad.16xlarge":["m8id.16xlarge",1.52,2406.08,3048.95,1,""],"m5ad.24xlarge":["m8id.24xlarge",1.52,3609.12,4573.42,1,""],"m5ad.2xlarge":["m8id.2xlarge",1.52,300.76,381.12,1,""],"m5ad.4xlarge":["m8id.4xlarge",1.52,601.52,762.24,1,""],"m5ad.8xlarge":["m8id.8xlarge",1.52,1203.04,1524.47,1,""],"m5ad.large":["m8id.large",1.52,75.19,95.28,1,""],"m5ad.xlarge":["m8id.xlarge",1.52,150.38,190.56,1,""],"m5d.12xlarge":["m8id.12xlarge",1.52,1979.76,2286.71,1,""],"m5d.16xlarge":["m8id.16xlarge",1.52,2639.68,3048.95,1,""],"m5d.24xlarge":["m8id.24xlarge",1.52,3959.52,4573.42,1,""],"m5d.2xlarge":["m8id.2xlarge",1.52,329.96,381.12,1,""],"m5d.4xlarge":["m8id.4xlarge",1.52,659.92,762.24,1,""],"m5d.8xlarge":["m8id.8xlarge",1.52,1319.84,1524.47,1,""],"m5d.large":["m8id.large",1.52,82.49,95.28,1,""],"m5d.metal":["m8id.24xlarge",1.52,3959.52,4573.42,1,"bare metal"],"m5d.xlarge":["m8id.xlarge",1.52,164.98,190.56,1,""],"m5dn.12xlarge":["m8id.12xlarge",1.52,2382.72,2286.71,1,"network performance"],"m5dn.16xlarge":["m8id.16xlarge",1.52,3176.96,3048.95,1,"network performance"],"m5dn.24xlarge":["m8id.24xlarge",1.52,4765.44,4573.42,1,"network performance"],"m5dn.2xlarge":["m8id.2xlarge",1.52,397.12,381.12,1,"network performance"],"m5dn.4xlarge":["m8id.4xlarge",1.52,794.24,762.24,1,"network performance"],"m5dn.8xlarge":["m8id.8xlarge",1.52,1588.48,1524.47,1,"network performance"],"m5dn.large":["m8id.large",1.52,99.28,95.28,1,"network performance"],"m5dn.metal":["m8id.24xlarge",1.52,4765.44,4573.42,1,"bare metal, network performance"],"m5dn.xlarge":["m8id.xlarge",1.52,198.56,190.56,1,"network performance"],"m5n.12xlarge":["m8i.12xlarge",1.52,2084.88,1854.32,1,"network performance"],"m5n.16xlarge":["m8i.16xlarge",1.52,2779.84,2472.42,1,"network performance"],"m5n.24xlarge":["m8i.24xlarge",1.52,4169.76,3708.63,1,"network performance"],"m5n.2xlarge":["m8i.2xlarge",1.52,347.48,309.05,1,"network performance"],"m5n.4xlarge":["m8i.4xlarge",1.52,694.96,618.11,1,"network performance"],"m5n.8xlarge":["m8i.8xlarge",1.52,1389.92,1236.21,1,"network performance"],"m5n.large":["m8i.large",1.52,86.87,77.26,1,"network performance"],"m5n.metal":["m8i.24xlarge",1.52,4169.76,3708.63,1,"bare metal, network performance"],"m5n.xlarge":["m8i.xlarge",1.52,173.74,154.53,1,"network performance"],"m5zn.12xlarge":["m8i.12xlarge",1.52,2893.79,1854.32,1,"network performance"],"m5zn.2xlarge":["m8i.2xlarge",1.52,482.31,309.05,1,"network performance"],"m5zn.3xlarge":["m8i.4xlarge",1.52,723.43,618.11,1,"network performance"],"m5zn.6xlarge":["m8i.8xlarge",1.52,1446.86,1236.21,1,"network performance"],"m5zn.large":["m8i.large",1.52,120.6,77.26,1,"network performance"],"m5zn.metal":["m8i.12xlarge",1.52,2893.79,1854.32,1,"bare metal, network performance"],"m5zn.xlarge":["m8i.xlarge",1.52,241.12,154.53,1,"network performance"],"m6a.12xlarge":["m8i.12xlarge",1.52,1513.73,1854.32,1,""],"m6a.16xlarge":["m8i.16xlarge",1.52,2018.3,2472.42,1,""],"m6a.24xlarge":["m8i.24xlarge",1.52,3027.46,3708.63,1,""],"m6a.2xlarge":["m8i.2xlarge",1.52,252.29,309.05,1,""],"m6a.32xlarge":["m8i.32xlarge",1.52,4036.61,4944.84,1,""],"m6a.48xlarge":["m8i.48xlarge",1.52,6054.91,7417.27,1,""],"m6a.4xlarge":["m8i.4xlarge",1.52,504.58,618.11,1,""],"m6a.8xlarge":["m8i.8xlarge",1.52,1009.15,1236.21,1,""],"m6a.large":["m8i.large",1.52,63.07,77.26,1,""],"m6a.metal":["m8i.metal-48xl",1.52,6054.91,7417.27,1,""],"m6a.xlarge":["m8i.xlarge",1.52,126.14,154.53,1,""],"m6i.12xlarge":["m8i.12xlarge",1.52,1681.92,1854.32,1,""],"m6i.16xlarge":["m8i.16xlarge",1.52,2242.56,2472.42,1,""],"m6i.24xlarge":["m8i.24xlarge",1.52,3363.84,3708.63,1,""],"m6i.2xlarge":["m8i.2xlarge",1.52,280.32,309.05,1,""],"m6i.32xlarge":["m8i.32xlarge",1.52,4485.12,4944.84,1,""],"m6i.4xlarge":["m8i.4xlarge",1.52,560.64,618.11,1,""],"m6i.8xlarge":["m8i.8xlarge",1.52,1121.28,1236.21,1,""],"m6i.large":["m8i.large",1.52,70.08,77.26,1,""],"m6i.metal":["m8i.32xlarge",1.52,4485.12,4944.84,1,"bare metal"],"m6i.xlarge":["m8i.xlarge",1.52,140.16,154.53,1,""],"m6id.12xlarge":["m8id.12xlarge",1.52,2078.75,2286.71,1,""],"m6id.16xlarge":["m8id.16xlarge",1.52,2771.66,3048.95,1,""],"m6id.24xlarge":["m8id.24xlarge",1.52,4157.5,4573.42,1,""],"m6id.2xlarge":["m8id.2xlarge",1.52,346.46,381.12,1,""],"m6id.32xlarge":["m8id.32xlarge",1.52,5543.33,6097.89,1,""],"m6id.4xlarge":["m8id.4xlarge",1.52,692.92,762.24,1,""],"m6id.8xlarge":["m8id.8xlarge",1.52,1385.83,1524.47,1,""],"m6id.large":["m8id.large",1.52,86.61,95.28,1,""],"m6id.metal":["m8id.32xlarge",1.52,5543.33,6097.89,1,"bare metal"],"m6id.xlarge":["m8id.xlarge",1.52,173.23,190.56,1,""],"m6idn.12xlarge":["m8id.12xlarge",1.52,2787.78,2286.71,1,"network performance"],"m6idn.16xlarge":["m8id.16xlarge",1.52,3717.04,3048.95,1,"network performance"],"m6idn.24xlarge":["m8id.24xlarge",1.52,5575.56,4573.42,1,"network performance"],"m6idn.2xlarge":["m8id.2xlarge",1.52,464.63,381.12,1,"network performance"],"m6idn.32xlarge":["m8id.32xlarge",1.52,7434.09,6097.89,1,"network performance"],"m6idn.4xlarge":["m8id.4xlarge",1.52,929.26,762.24,1,"network performance"],"m6idn.8xlarge":["m8id.8xlarge",1.52,1858.52,1524.47,1,"network performance"],"m6idn.large":["m8id.large",1.52,116.16,95.28,1,"network performance"],"m6idn.metal":["m8id.32xlarge",1.52,7434.09,6097.89,1,"bare metal, network performance"],"m6idn.xlarge":["m8id.xlarge",1.52,232.32,190.56,1,"network performance"],"m6in.12xlarge":["m8i.12xlarge",1.52,2439.31,1854.32,1,"network performance"],"m6in.16xlarge":["m8i.16xlarge",1.52,3252.41,2472.42,1,"network performance"],"m6in.24xlarge":["m8i.24xlarge",1.52,4878.62,3708.63,1,"network performance"],"m6in.2xlarge":["m8i.2xlarge",1.52,406.55,309.05,1,"network performance"],"m6in.32xlarge":["m8i.32xlarge",1.52,6504.83,4944.84,1,"network performance"],"m6in.4xlarge":["m8i.4xlarge",1.52,813.1,618.11,1,"network performance"],"m6in.8xlarge":["m8i.8xlarge",1.52,1626.21,1236.21,1,"network performance"],"m6in.large":["m8i.large",1.52,101.64,77.26,1,"network performance"],"m6in.metal":["m8i.32xlarge",1.52,6504.83,4944.84,1,"bare metal, network performance"],"m6in.xlarge":["m8i.xlarge",1.52,203.28,154.53,1,"network performance"],"m7a.12xlarge":["m8i.12xlarge",1.15,2030.92,1854.32,1,""],"m7a.16xlarge":["m8i.16xlarge",1.15,2707.89,2472.42,1,""],"m7a.24xlarge":["m8i.24xlarge",1.15,4061.84,3708.63,1,""],"m7a.2xlarge":["m8i.2xlarge",1.15,338.49,309.05,1,""],"m7a.32xlarge":["m8i.32xlarge",1.15,5415.78,4944.84,1,""],"m7a.48xlarge":["m8i.48xlarge",1.15,8123.67,7417.27,1,""],"m7a.4xlarge":["m8i.4xlarge",1.15,676.97,618.11,1,""],"m7a.8xlarge":["m8i.8xlarge",1.15,1353.95,1236.21,1,""],"m7a.large":["m8i.large",1.15,84.62,77.26,1,""],"m7a.medium":["m8i.large",1.15,42.31,77.26,0,""],"m7a.metal-48xl":["m8i.metal-48xl",1.15,8123.67,7417.27,1,""],"m7a.xlarge":["m8i.xlarge",1.15,169.24,154.53,1,""],"m7i.12xlarge":["m8i.12xlarge",1.52,1766.02,1854.32,1,""],"m7i.16xlarge":["m8i.16xlarge",1.52,2354.69,2472.42,1,""],"m7i.24xlarge":["m8i.24xlarge",1.52,3532.03,3708.63,1,""],"m7i.2xlarge":["m8i.2xlarge",1.52,294.34,309.05,1,""],"m7i.48xlarge":["m8i.48xlarge",1.52,7064.06,7417.27,1,""],"m7i.4xlarge":["m8i.4xlarge",1.52,588.67,618.11,1,""],"m7i.8xlarge":["m8i.8xlarge",1.52,1177.34,1236.21,1,""],"m7i.large":["m8i.large",1.52,73.58,77.26,1,""],"m7i.metal-24xl":["m8i.24xlarge",1.52,3532.03,3708.63,1,"bare metal"],"m7i.metal-48xl":["m8i.metal-48xl",1.52,7064.06,7417.27,1,""],"m7i.xlarge":["m8i.xlarge",1.52,147.17,154.53,1,""],"m7i-flex.12xlarge":["m8i-flex.12xlarge",1.52,1677.72,1761.64,1,""],"m7i-flex.16xlarge":["m8i-flex.16xlarge",1.52,2236.95,2348.85,1,""],"m7i-flex.2xlarge":["m8i-flex.2xlarge",1.52,279.62,293.61,1,""],"m7i-flex.4xlarge":["m8i-flex.4xlarge",1.52,559.24,587.21,1,""],"m7i-flex.8xlarge":["m8i-flex.8xlarge",1.52,1118.48,1174.42,1,""],"m7i-flex.large":["m8i-flex.large",1.52,69.9,73.4,1,""],"m7i-flex.xlarge":["m8i-flex.xlarge",1.52,139.81,146.8,1,""],"p2.16xlarge":["p6-b200.48xlarge",1.52,10512,83170.94,0,""],"p2.8xlarge":["p6-b200.48xlarge",1.52,5256,83170.94,0,""],"p2.xlarge":["p6-b200.48xlarge",1.52,657,83170.94,0,""],"p3.16xlarge":["p6-b200.48xlarge",1.52,17870.4,83170.94,0,""],"p3.2xlarge":["p6-b200.48xlarge",1.52,2233.8,83170.94,0,""],"p3.8xlarge":["p6-b200.48xlarge",1.52,8935.2,83170.94,0,""],"p3dn.24xlarge":["p6-b200.48xlarge",1.52,22784.76,83170.94,0,""],"p4d.24xlarge":["p6-b200.48xlarge",1.52,16029.08,83170.94,0,""],"p4de.24xlarge":["p6-b200.48xlarge",1.52,20036.35,83170.94,0,""],"p5.48xlarge":["p6-b200.48xlarge",1.52,40179.2,83170.94,0,""],"p5.4xlarge":["p6-b200.48xlarge",1.52,5022.4,83170.94,0,""],"p5e.48xlarge":["p6-b200.48xlarge",1.52,46206.08,83170.94,0,""],"p5en.48xlarge":["p6-b200.48xlarge",1.15,46206.08,83170.94,0,""],"r3.2xlarge":["r8i.2xlarge",1.52,485.45,405.65,1,"local storage"],"r3.4xlarge":["r8i.4xlarge",1.52,970.9,811.29,1,"local storage"],"r3.8xlarge":["r8i.8xlarge",1.52,1941.8,1622.59,1,"local storage"],"r3.large":["r8i.large",1.52,121.18,101.41,1,"local storage"],"r3.xlarge":["r8i.xlarge",1.52,243.09,202.82,1,"local storage"],"r4.16xlarge":["r8i.16xlarge",1.52,3106.88,3245.17,1,""],"r4.2xlarge":["r8i.2xlarge",1.52,388.36,405.65,1,""],"r4.4xlarge":["r8i.4xlarge",1.52,776.72,811.29,1,""],"r4.8xlarge":["r8i.8xlarge",1.52,1553.44,1622.59,1,""],"r4.large":["r8i.large",1.52,97.09,101.41,1,""],"r4.xlarge":["r8i.xlarge",1.52,194.18,202.82,1,""],"r5.12xlarge":["r8i.12xlarge",1.52,2207.52,2433.88,1,""],"r5.16xlarge":["r8i.16xlarge",1.52,2943.36,3245.17,1,""],"r5.24xlarge":["r8i.24xlarge",1.52,4415.04,4867.76,1,""],"r5.2xlarge":["r8i.2xlarge",1.52,367.92,405.65,1,""],"r5.4xlarge":["r8i.4xlarge",1.52,735.84,811.29,1,""],"r5.8xlarge":["r8i.8xlarge",1.52,1471.68,1622.59,1,""],"r5.large":["r8i.large",1.52,91.98,101.41,1,""],"r5.metal":["r8i.24xlarge",1.52,4415.04,4867.76,1,"bare metal"],"r5.xlarge":["r8i.xlarge",1.52,183.96,202.82,1,""],"r5a.12xlarge":["r8i.12xlarge",1.52,1979.76,2433.88,1,""],"r5a.16xlarge":["r8i.16xlarge",1.52,2639.68,3245.17,1,""],"r5a.24xlarge":["r8i.24xlarge",1.52,3959.52,4867.76,1,""],"r5a.2xlarge":["r8i.2xlarge",1.52,329.96,405.65,1,""],"r5a.4xlarge":["r8i.4xlarge",1.52,659.92,811.29,1,""],"r5a.8xlarge":["r8i.8xlarge",1.52,1319.84,1622.59,1,""],"r5a.large":["r8i.large",1.52,82.49,101.41,1,""],"r5a.xlarge":["r8i.xlarge",1.52,164.98,202.82,1,""],"r5ad.12xlarge":["r8id.12xlarge",1.52,2295.12,2913.93,1,""],"r5ad.16xlarge":["r8id.16xlarge",1.52,3060.16,3885.24,1,""],"r5ad.24xlarge":["r8id.24xlarge",1.52,4590.24,5827.85,1,""],"r5ad.2xlarge":["r8id.2xlarge",1.52,382.52,485.65,1,""],"r5ad.4xlarge":["r8id.4xlarge",1.52,765.04,971.31,1,""],"r5ad.8xlarge":["r8id.8xlarge",1.52,1530.08,1942.62,1,""],"r5ad.large":["r8id.large",1.52,95.63,121.41,1,""],"r5ad.xlarge":["r8id.xlarge",1.52,191.26,242.83,1,""],"r5b.12xlarge":["r8i.12xlarge",1.52,2610.48,2433.88,1,""],"r5b.16xlarge":["r8i.16xlarge",1.52,3480.64,3245.17,1,""],"r5b.24xlarge":["r8i.24xlarge",1.52,5220.96,4867.76,1,""],"r5b.2xlarge":["r8i.2xlarge",1.52,435.08,405.65,1,""],"r5b.4xlarge":["r8i.4xlarge",1.52,870.16,811.29,1,""],"r5b.8xlarge":["r8i.8xlarge",1.52,1740.32,1622.59,1,""],"r5b.large":["r8i.large",1.52,108.77,101.41,1,""],"r5b.metal":["r8i.24xlarge",1.52,5220.96,4867.76,1,"bare metal"],"r5b.xlarge":["r8i.xlarge",1.52,217.54,202.82,1,""],"r5d.12xlarge":["r8id.12xlarge",1.52,2522.88,2913.93,1,""],"r5d.16xlarge":["r8id.16xlarge",1.52,3363.84,3885.24,1,""],"r5d.24xlarge":["r8id.24xlarge",1.52,5045.76,5827.85,1,""],"r5d.2xlarge":["r8id.2xlarge",1.52,420.48,485.65,1,""],"r5d.4xlarge":["r8id.4xlarge",1.52,840.96,971.31,1,""],"r5d.8xlarge":["r8id.8xlarge",1.52,1681.92,1942.62,1,""],"r5d.large":["r8id.large",1.52,105.12,121.41,1,""],"r5d.metal":["r8id.24xlarge",1.52,5045.76,5827.85,1,"bare metal"],"r5d.xlarge":["r8id.xlarge",1.52,210.24,242.83,1,""],"r5dn.12xlarge":["r8id.12xlarge",1.52,2925.84,2913.93,1,"network performance"],"r5dn.16xlarge":["r8id.16xlarge",1.52,3901.12,3885.24,1,"network performance"],"r5dn.24xlarge":["r8id.24xlarge",1.52,5851.68,5827.85,1,"network performance"],"r5dn.2xlarge":["r8id.2xlarge",1.52,487.64,485.65,1,"network performance"],"r5dn.4xlarge":["r8id.4xlarge",1.52,975.28,971.31,1,"network performance"],"r5dn.8xlarge":["r8id.8xlarge",1.52,1950.56,1942.62,1,"network performance"],"r5dn.large":["r8id.large",1.52,121.91,121.41,1,"network performance"],"r5dn.metal":["r8id.24xlarge",1.52,5851.68,5827.85,1,"bare metal, network performance"],"r5dn.xlarge":["r8id.xlarge",1.52,243.82,242.83,1,"network performance"],"r5n.12xlarge":["r8i.12xlarge",1.52,2610.48,2433.88,1,"network performance"],"r5n.16xlarge":["r8i.16xlarge",1.52,3480.64,3245.17,1,"network performance"],"r5n.24xlarge":["r8i.24xlarge",1.52,5220.96,4867.76,1,"network performance"],"r5n.2xlarge":["r8i.2xlarge",1.52,435.08,405.65,1,"network performance"],"r5n.4xlarge":["r8i.4xlarge",1.52,870.16,811.29,1,"network performance"],"r5n.8xlarge":["r8i.8xlarge",1.52,1740.32,1622.59,1,"network performance"],"r5n.large":["r8i.large",1.52,108.77,101.41,1,"network performance"],"r5n.metal":["r8i.24xlarge",1.52,5220.96,4867.76,1,"bare metal, network performance"],"r5n.xlarge":["r8i.xlarge",1.52,217.54,202.82,1,"network performance"],"r6a.12xlarge":["r8i.12xlarge",1.52,1986.77,2433.88,1,""],"r6a.16xlarge":["r8i.16xlarge",1.52,2649.02,3245.17,1,""],"r6a.24xlarge":["r8i.24xlarge",1.52,3973.54,4867.76,1,""],"r6a.2xlarge":["r8i.2xlarge",1.52,331.13,405.65,1,""],"r6a.32xlarge":["r8i.32xlarge",1.52,5298.05,6490.34,1,""],"r6a.48xlarge":["r8i.48xlarge",1.52,7947.07,9735.51,1,""],"r6a.4xlarge":["r8i.4xlarge",1.52,662.26,811.29,1,""],"r6a.8xlarge":["r8i.8xlarge",1.52,1324.51,1622.59,1,""],"r6a.large":["r8i.large",1.52,82.78,101.41,1,""],"r6a.metal":["r8i.metal-48xl",1.52,7947.07,9735.51,1,""],"r6a.xlarge":["r8i.xlarge",1.52,165.56,202.82,1,""],"r6i.12xlarge":["r8i.12xlarge",1.52,2207.52,2433.88,1,""],"r6i.16xlarge":["r8i.16xlarge",1.52,2943.36,3245.17,1,""],"r6i.24xlarge":["r8i.24xlarge",1.52,4415.04,4867.76,1,""],"r6i.2xlarge":["r8i.2xlarge",1.52,367.92,405.65,1,""],"r6i.32xlarge":["r8i.32xlarge",1.52,5886.72,6490.34,1,""],"r6i.4xlarge":["r8i.4xlarge",1.52,735.84,811.29,1,""],"r6i.8xlarge":["r8i.8xlarge",1.52,1471.68,1622.59,1,""],"r6i.large":["r8i.large",1.52,91.98,101.41,1,""],"r6i.metal":["r8i.32xlarge",1.52,5886.72,6490.34,1,"bare metal"],"r6i.xlarge":["r8i.xlarge",1.52,183.96,202.82,1,""],"r6id.12xlarge":["r8id.12xlarge",1.52,2649.02,2913.93,1,""],"r6id.16xlarge":["r8id.16xlarge",1.52,3532.03,3885.24,1,""],"r6id.24xlarge":["r8id.24xlarge",1.52,5298.05,5827.85,1,""],"r6id.2xlarge":["r8id.2xlarge",1.52,441.5,485.65,1,""],"r6id.32xlarge":["r8id.32xlarge",1.52,7064.06,7770.47,1,""],"r6id.4xlarge":["r8id.4xlarge",1.52,883.01,971.31,1,""],"r6id.8xlarge":["r8id.8xlarge",1.52,1766.02,1942.62,1,""],"r6id.large":["r8id.large",1.52,110.38,121.41,1,""],"r6id.metal":["r8id.32xlarge",1.52,7064.06,7770.47,1,"bare metal"],"r6id.xlarge":["r8id.xlarge",1.52,220.75,242.83,1,""],"r6idn.12xlarge":["r8id.12xlarge",1.52,3423.23,2913.93,1,"network performance"],"r6idn.16xlarge":["r8id.16xlarge",1.52,4564.31,3885.24,1,"network performance"],"r6idn.24xlarge":["r8id.24xlarge",1.52,6846.47,5827.85,1,"network performance"],"r6idn.2xlarge":["r8id.2xlarge",1.52,570.54,485.65,1,"network performance"],"r6idn.32xlarge":["r8id.32xlarge",1.52,9128.62,7770.47,1,"network performance"],"r6idn.4xlarge":["r8id.4xlarge",1.52,1141.08,971.31,1,"network performance"],"r6idn.8xlarge":["r8id.8xlarge",1.52,2282.16,1942.62,1,"network performance"],"r6idn.large":["r8id.large",1.52,142.63,121.41,1,"network performance"],"r6idn.metal":["r8id.32xlarge",1.52,9128.62,7770.47,1,"bare metal, network performance"],"r6idn.xlarge":["r8id.xlarge",1.52,285.27,242.83,1,"network performance"],"r6in.12xlarge":["r8i.12xlarge",1.52,3054.26,2433.88,1,"network performance"],"r6in.16xlarge":["r8i.16xlarge",1.52,4072.35,3245.17,1,"network performance"],"r6in.24xlarge":["r8i.24xlarge",1.52,6108.52,4867.76,1,"network performance"],"r6in.2xlarge":["r8i.2xlarge",1.52,509.04,405.65,1,"network performance"],"r6in.32xlarge":["r8i.32xlarge",1.52,8144.7,6490.34,1,"network performance"],"r6in.4xlarge":["r8i.4xlarge",1.52,1018.09,811.29,1,"network performance"],"r6in.8xlarge":["r8i.8xlarge",1.52,2036.17,1622.59,1,"network performance"],"r6in.large":["r8i.large",1.52,127.26,101.41,1,"network performance"],"r6in.metal":["r8i.32xlarge",1.52,8144.7,6490.34,1,"bare metal, network performance"],"r6in.xlarge":["r8i.xlarge",1.52,254.52,202.82,1,"network performance"],"r7a.12xlarge":["r8i.12xlarge",1.15,2665.67,2433.88,1,""],"r7a.16xlarge":["r8i.16xlarge",1.15,3554.22,3245.17,1,""],"r7a.24xlarge":["r8i.24xlarge",1.15,5331.34,4867.76,1,""],"r7a.2xlarge":["r8i.2xlarge",1.15,444.28,405.65,1,""],"r7a.32xlarge":["r8i.32xlarge",1.15,7108.45,6490.34,1,""],"r7a.48xlarge":["r8i.48xlarge",1.15,10662.67,9735.51,1,""],"r7a.4xlarge":["r8i.4xlarge",1.15,888.56,811.29,1,""],"r7a.8xlarge":["r8i.8xlarge",1.15,1777.11,1622.59,1,""],"r7a.large":["r8i.large",1.15,111.07,101.41,1,""],"r7a.medium":["r8i.large",1.15,55.54,101.41,0,""],"r7a.metal-48xl":["r8i.metal-48xl",1.15,10662.67,9735.51,1,""],"r7a.xlarge":["r8i.xlarge",1.15,222.14,202.82,1,""],"r7i.12xlarge":["r8i.12xlarge",1.52,2317.9,2433.88,1,""],"r7i.16xlarge":["r8i.16xlarge",1.52,3090.53,3245.17,1,""],"r7i.24xlarge":["r8i.24xlarge",1.52,4635.79,4867.76,1,""],"r7i.2xlarge":["r8i.2xlarge",1.52,386.32,405.65,1,""],"r7i.48xlarge":["r8i.48xlarge",1.52,9271.58,9735.51,1,""],"r7i.4xlarge":["r8i.4xlarge",1.52,772.63,811.29,1,""],"r7i.8xlarge":["r8i.8xlarge",1.52,1545.26,1622.59,1,""],"r7i.large":["r8i.large",1.52,96.58,101.41,1,""],"r7i.metal-24xl":["r8i.24xlarge",1.52,4635.79,4867.76,1,"bare metal"],"r7i.metal-48xl":["r8i.metal-48xl",1.52,9271.58,9735.51,1,""],"r7i.xlarge":["r8i.xlarge",1.52,193.16,202.82,1,""],"r7iz.12xlarge":["r8i.12xlarge",1.52,3258.72,2433.88,1,"network performance"],"r7iz.16xlarge":["r8i.16xlarge",1.52,4344.96,3245.17,1,""],"r7iz.2xlarge":["r8i.2xlarge",1.52,543.12,405.65,1,""],"r7iz.32xlarge":["r8i.32xlarge",1.52,8689.92,6490.34,1,""],"r7iz.4xlarge":["r8i.4xlarge",1.52,1086.24,811.29,1,""],"r7iz.8xlarge":["r8i.8xlarge",1.52,2172.48,1622.59,1,""],"r7iz.large":["r8i.large",1.52,135.78,101.41,1,""],"r7iz.metal-16xl":["r8i.16xlarge",1.52,4344.96,3245.17,1,"bare metal"],"r7iz.metal-32xl":["r8i.32xlarge",1.52,8689.92,6490.34,1,"bare metal"],"r7iz.xlarge":["r8i.xlarge",1.52,271.56,202.82,1,""],"t1.micro":["m8i-flex.large",1.52,14.6,73.4,0,""],"t2.2xlarge":["m8i-flex.2xlarge",1.52,270.98,293.61,1,""],"t2.large":["m8i-flex.large",1.52,67.74,73.4,1,""],"t2.medium":["m8i-flex.large",1.52,33.87,73.4,0,""],"t2.micro":["m8i-flex.large",1.52,8.47,73.4,0,""],"t2.nano":["m8i-flex.large",1.52,4.23,73.4,0,""],"t2.small":["m8i-flex.large",1.52,16.79,73.4,0,""],"t2.xlarge":["m8i-flex.xlarge",1.52,135.49,146.8,1,""],"t3.2xlarge":["m8i-flex.2xlarge",1.52,242.94,293.61,1,""],"t3.large":["m8i-flex.large",1.52,60.74,73.4,1,""],"t3.medium":["m8i-flex.large",1.52,30.37,73.4,0,""],"t3.micro":["m8i-flex.large",1.52,7.59,73.4,0,""],"t3.nano":["m8i-flex.large",1.52,3.8,73.4,0,""],"t3.small":["m8i-flex.large",1.52,15.18,73.4,0,""],"t3.xlarge":["m8i-flex.xlarge",1.52,121.47,146.8,1,""],"t3a.2xlarge":["m8i-flex.2xlarge",1.52,219.58,293.61,1,""],"t3a.large":["m8i-flex.large",1.52,54.9,73.4,1,""],"t3a.medium":["m8i-flex.large",1.52,27.45,73.4,0,""],"t3a.micro":["m8i-flex.large",1.52,6.86,73.4,0,""],"t3a.nano":["m8i-flex.large",1.52,3.43,73.4,0,""],"t3a.small":["m8i-flex.large",1.52,13.72,73.4,0,""],"t3a.xlarge":["m8i-flex.xlarge",1.52,109.79,146.8,1,""],"u-3tb1.56xlarge":["u7i-6tb.112xlarge",1.52,19929,45836.7,0,""],"u-6tb1.112xlarge":["u7i-6tb.112xlarge",1.52,39858,45836.7,1,""],"u-6tb1.56xlarge":["u7i-6tb.112xlarge",1.52,33874.85,45836.7,1,""],"u-6tb1.metal":["u7i-6tb.112xlarge",1.52,39858,45836.7,1,"bare metal"],"x1.16xlarge":["x8i.16xlarge",1.52,4868.37,5111.87,1,"local storage"],"x1.32xlarge":["x8i.32xlarge",1.52,9736.74,10223.74,1,"local storage"],"x1e.16xlarge":["x8i.16xlarge",1.52,9741.12,5111.87,1,"memory, local storage"],"x1e.2xlarge":["x8i.2xlarge",1.52,1217.64,638.98,1,"memory, local storage"],"x1e.32xlarge":["x8i.32xlarge",1.52,19482.24,10223.74,1,"memory, local storage"],"x1e.4xlarge":["x8i.4xlarge",1.52,2435.28,1277.97,1,"memory, local storage"],"x1e.8xlarge":["x8i.8xlarge",1.52,4870.56,2555.93,1,"memory, local storage"],"x1e.xlarge":["x8i.xlarge",1.52,608.82,319.49,1,"memory, local storage"],"z1d.12xlarge":["m8id.12xlarge",1.52,3258.72,2286.71,1,"memory, network performance"],"z1d.2xlarge":["m8id.2xlarge",1.52,543.12,381.12,1,"memory"],"z1d.3xlarge":["m8id.4xlarge",1.52,814.68,762.24,1,"memory"],"z1d.6xlarge":["m8id.8xlarge",1.52,1629.36,1524.47,1,"memory"],"z1d.large":["m8id.large",1.52,135.78,95.28,1,"memory"],"z1d.metal":["m8id.12xlarge",1.52,3258.72,2286.71,1,"bare metal, memory, network performance"],"z1d.xlarge":["m8id.xlarge",1.52,271.56,190.56,1,"memory"]};
+
+function ensureModDatalist(){
+  if(document.getElementById('mod-current-instances')) return;
+  const dl = document.createElement('datalist');
+  dl.id = 'mod-current-instances';
+  dl.innerHTML = Object.keys(MOD_MAPPINGS).sort().map(k=>`<option value="${k}">`).join('');
+  document.body.appendChild(dl);
+}
+
+function modAdvise(id){
+  const fromEl = document.getElementById('f'+id+'-from');
+  const adviceEl = document.getElementById('f'+id+'-mod-advice');
+  if(!fromEl || !adviceEl) return;
+  const key = (fromEl.value||'').trim().toLowerCase();
+  const m = MOD_MAPPINGS[key];
+  if(!m){
+    adviceEl.style.display = key ? 'block' : 'none';
+    if(key) adviceEl.innerHTML = `<div style="border:1px dashed #c9d4e4;border-radius:10px;padding:10px 14px;font-size:.78rem;color:var(--ink3)">No pre-vetted mapping for "${key.replace(/</g,'&lt;')}" — type the full current instance (e.g. m5.2xlarge), or use the ⚡ Intel button for a live quote on the target.</div>`;
+    return;
+  }
+  const [target, perf, oldMo, newMo, roi, note] = m;
+  const dMo = newMo - oldMo;
+  const dYr = dMo * 12;
+  const count = parseFloat((document.getElementById('f'+id+'-count')||{}).value) || 0;
+  const saving = dMo < 0;
+
+  // Fill the target field and, where they match dropdown options, the
+  // fleet's family + size selects; price comes from the vetted table.
+  const toEl = document.getElementById('f'+id+'-to');
+  if(toEl) toEl.value = target;
+  const fam = target.split('.')[0], size = target.split('.')[1]||'';
+  const famSel = document.getElementById('f'+id+'-inst');
+  if(famSel && [...famSel.options].some(o=>o.value===fam)) famSel.value = fam;
+  const sizeSel = document.getElementById('f'+id+'-size');
+  if(sizeSel && [...sizeSel.options].some(o=>o.value===size)) sizeSel.value = size;
+  const perInstEl = document.getElementById('f'+id+'-perinst');
+  if(perInstEl){ perInstEl.value = Math.round(newMo); delete perInstEl.dataset.livePriced; }
+  autoARR(id);
+
+  const chip = t => `<span style="display:inline-block;background:#0A1628;color:#fff;border-radius:6px;padding:3px 10px;font-weight:700;font-size:.8rem">${t}</span>`;
+  const tile = (label, value, color) => `<div style="flex:1;min-width:110px;background:#fff;border:1px solid #e3e9f2;border-radius:8px;padding:8px 10px"><div style="font-size:.64rem;text-transform:uppercase;letter-spacing:.04em;color:var(--ink3)">${label}</div><div style="font-size:.95rem;font-weight:800;color:${color||'#0A1628'}">${value}</div></div>`;
+  const verdict = roi
+    ? `<div style="background:#ecfdf5;border-left:3px solid #059669;padding:6px 12px;border-radius:0 6px 6px 0;font-size:.76rem;color:#065f46;font-weight:600">Positive ROI — performance gain outweighs the cost change. Pre-vetted recommendation.</div>`
+    : `<div style="background:#fffbeb;border-left:3px solid #d97706;padding:6px 12px;border-radius:0 6px 6px 0;font-size:.76rem;color:#92400e;font-weight:600">Cost rises faster than performance on this pair — the upgrade may still be right for capability reasons, but it is not a cost-led recommendation.</div>`;
+  const verify = note ? `<div style="margin-top:6px;font-size:.72rem;color:#92400e">Verify before recommending: <strong>${note}</strong> — the target is smaller than the current instance on this dimension.</div>` : '';
+
+  adviceEl.style.display = 'block';
+  adviceEl.innerHTML =
+    `<div style="border:1px solid #d7e3f4;border-radius:12px;padding:12px 14px;background:linear-gradient(180deg,#f7faff, #fff)">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+        ${chip(key)} <span style="color:var(--intel);font-weight:800">→</span> ${chip(target)}
+        <span style="font-size:.7rem;color:var(--ink3)">recommended Gen 8 upgrade</span>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+        ${tile('Performance', '×'+perf.toFixed(2), 'var(--intel)')}
+        ${tile('Monthly / instance', (saving?'−':'+')+'$'+Math.abs(dMo).toLocaleString('en-US',{maximumFractionDigits:0}), saving?'#059669':'#b45309')}
+        ${tile('Annual / instance', (saving?'−':'+')+'$'+Math.abs(dYr).toLocaleString('en-US',{maximumFractionDigits:0}), saving?'#059669':'#b45309')}
+        ${count>0 ? tile('Fleet ('+count+'×) / yr', (saving?'−':'+')+'$'+Math.abs(dYr*count).toLocaleString('en-US',{maximumFractionDigits:0}), saving?'#059669':'#b45309') : ''}
+      </div>
+      ${verdict}
+      ${verify}
+      <div style="margin-top:8px;font-size:.66rem;color:var(--ink3)">Prices: us-east-1 monthly list (Intel optimization workbook, May 2026). For another region or a live quote, press ⚡ Intel Price after selecting — it overrides these figures.</div>
+    </div>`;
+}
+
 const INSTANCE_FAMILIES = [
   // Gen 8 — Intel Xeon 6 (latest)
   {val:'m8i',    label:'m8i — General Purpose (Intel Xeon 6, Gen 8)'},
@@ -3076,6 +3190,33 @@ const DISCOUNT_MODELS = [
 let fleetCount = 0;
 let fleets = []; // array of fleet data
 
+function parseIntelPricingReply(data){
+  // The Intel pricing service returns a conversational reply (data.reply,
+  // markdown text), not the structured {on_demand_hourly, annual_list, nte}
+  // fields this app originally expected. Every prior call was silently
+  // extracting nothing. This reads the actual text.
+  const reply = data.reply || '';
+  if(!reply) return {ok:false, raw:data};
+
+  // Deliberately reads the LIST price line, not Intel's own "benefit"/net
+  // line — Intel's reply applies its own discount (labelled "Intel benefit"),
+  // which is a separate thing from this program's Migrate/Modernize rate.
+  // Using their already-discounted number here would double-discount once
+  // this app's own rate is applied on top. List price is the correct input.
+  const listMatch = reply.match(/list\)?:?\s*\$([\d,]+\.?\d*)\s*\/mo/i) ||
+                     reply.match(/\$([\d,]+\.?\d*)\s*\/mo/i);
+  const hourlyMatch = reply.match(/\$([\d.]+)\s*\/hr/i);
+  const monthlyList = listMatch ? parseFloat(listMatch[1].replace(/,/g,'')) : 0;
+  const hourly = hourlyMatch ? parseFloat(hourlyMatch[1]) : 0;
+  const annualList = monthlyList ? monthlyList * 12 : (hourly ? hourly * 8760 : 0);
+
+  // Pull a one-line spec summary if present (vCPU / memory / generation) —
+  // this is exactly the detail that was being thrown away before.
+  const specMatch = reply.match(/\*\*Instance:\*\*\s*([^\n]+)/i);
+
+  return {ok: annualList > 0, annualList, monthlyList, hourly, spec: specMatch ? specMatch[1] : '', reply};
+}
+
 async function getIntelPricing(id){
   const instEl = document.getElementById('f'+id+'-inst');
   const inst = instEl ? instEl.value : '';
@@ -3101,11 +3242,21 @@ async function getIntelPricing(id){
 
     if(!resp.ok) throw new Error('API returned ' + resp.status);
     const data = await resp.json();
+    const parsed = parseIntelPricingReply(data);
 
-    // API returns: { instance, region, on_demand_hourly, annual_list, intel_program_rate, nte }
-    const annualList = data.annual_list || (data.on_demand_hourly * 8760) || 0;
-    const nte = data.nte || 0;
-    const rate = data.intel_program_rate || 0;
+    if(!parsed.ok){
+      // Never silently write a 0 or blank into the ARR field — show Intel's
+      // actual reply (still useful, often explains why: unavailable in this
+      // region, needs a size, etc.) and stop, so nothing bad gets recorded.
+      const resultHint = document.getElementById('f'+id+'-intel-result');
+      if(resultHint){
+        resultHint.innerHTML = `<div style="border:1px solid #e2b93b;border-radius:8px;padding:10px 12px;margin-top:6px;background:#fffbea;font-size:.8rem">Couldn't read a price from Intel's response. Their reply: <em>${(parsed.reply||'no response text').replace(/</g,'&lt;').slice(0,300)}</em></div>`;
+        resultHint.style.display = 'block';
+      }
+      if(btn){ btn.textContent = '⚡ Intel Price'; btn.disabled = false; }
+      return;
+    }
+    const annualList = parsed.annualList;
 
     // This figure is already region-specific and already annual — it must
     // never pass through autoARR()'s monthly x12 x region-multiplier path,
@@ -3124,9 +3275,9 @@ async function getIntelPricing(id){
     const pricedAt = new Date();
     if(fleetObj){
       fleetObj.livePriced = true;
-      fleetObj.priceSource = 'Intel pricing service (live quote)';
+      fleetObj.priceSource = 'Intel pricing service (live quote, list price)';
       fleetObj.priceAt = pricedAt.toISOString();
-      fleetObj.priceQuote = {instance: fullInstance, region: region, hourly: data.on_demand_hourly||0, annualList: annualList};
+      fleetObj.priceQuote = {instance: fullInstance, region: region, hourly: parsed.hourly||0, annualList: annualList};
     }
     const listEl = document.getElementById('f'+id+'-list');
     if(listEl && annualList && count > 0){
@@ -3134,19 +3285,19 @@ async function getIntelPricing(id){
       calcFleet(id);
     }
 
-    // Result card: the full chain plus where the number came from and when —
-    // the answer to "how did you get this figure" is printed under the figure.
+    // Result card: the full chain, Intel's own spec detail, and where the
+    // number came from — the answer to "how did you get this figure" is
+    // printed under the figure, not buried in a separate chat message.
     const resultHint = document.getElementById('f'+id+'-intel-result');
     if(resultHint){
-      const hourlyLine = data.on_demand_hourly ? `$${Number(data.on_demand_hourly).toFixed(4)}/hr on-demand × 8,760 hrs = ` : '';
       resultHint.innerHTML =
         `<div style="border:1px solid var(--intel);border-radius:8px;padding:10px 12px;margin-top:6px;background:rgba(0,104,181,.06)">`+
         `<div style="font-weight:700;color:var(--intel)">✓ ${fullInstance} · ${region}</div>`+
-        `<div style="font-size:.78rem;margin-top:4px">${hourlyLine}<strong>$${Math.round(annualList).toLocaleString()}/yr list</strong> per instance`+
+        (parsed.spec?`<div style="font-size:.72rem;color:var(--ink3);margin-top:2px">${parsed.spec.replace(/</g,'&lt;')}</div>`:'')+
+        `<div style="font-size:.78rem;margin-top:4px"><strong>$${Math.round(annualList).toLocaleString()}/yr list</strong> per instance`+
         (count>0?` × ${count} instances = <strong>$${Math.round(annualList*count).toLocaleString()}/yr</strong>`:'')+
-        (rate?` · program rate ${(rate*100).toFixed(1)}%`:'')+
-        (nte?` · Intel NTE $${Math.round(nte).toLocaleString()}`:'')+`</div>`+
-        `<div style="font-size:.68rem;color:var(--ink3);margin-top:5px">Source: Intel pricing service, live quote retrieved ${pricedAt.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})} at ${pricedAt.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}. Region-specific; no further regional adjustment is applied.</div>`+
+        ` (list price — this app's own Migrate/Modernize rate is applied separately; Intel's own quoted discount is not carried through, to avoid discounting twice)</div>`+
+        `<div style="font-size:.68rem;color:var(--ink3);margin-top:5px">Source: Intel pricing service, live quote retrieved ${pricedAt.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})} at ${pricedAt.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}.</div>`+
         `</div>`;
       resultHint.style.display = 'block';
     }
@@ -3323,14 +3474,15 @@ function addFleet(){
     <div id="f${id}-migration-wrap" style="display:none;margin-top:8px">
       <div class="form-grid" style="grid-template-columns:1fr 1fr">
         <div class="f-group">
-          <label>Migrating From (instance/platform)</label>
-          <input type="text" id="f${id}-from" placeholder="e.g. m5.4xlarge, on-prem, VMware">
+          <label>Current instance (start typing — 593 pre-vetted upgrades)</label>
+          <input type="text" id="f${id}-from" list="mod-current-instances" placeholder="e.g. m5.2xlarge" oninput="modAdvise(${id})" onchange="modAdvise(${id})">
         </div>
         <div class="f-group">
-          <label>Migrating To</label>
-          <input type="text" id="f${id}-to" placeholder="e.g. m8i.4xlarge">
+          <label>Recommended Gen 8 target</label>
+          <input type="text" id="f${id}-to" placeholder="auto-filled from the mapping">
         </div>
       </div>
+      <div id="f${id}-mod-advice" style="display:none;margin-top:10px"></div>
     </div>
     <div class="fleet-result" id="f${id}-result" style="display:none;grid-template-columns:repeat(5,1fr)">
       <div class="fleet-result-item">
@@ -3372,6 +3524,7 @@ function setFleetType(id, type){
   // From → To fields visible on Optimize (existing workloads)
   const migWrap=document.getElementById('f'+id+'-migration-wrap');
   if(migWrap) migWrap.style.display=(type==='up'||type==='mod')?'block':'none';
+  if(type==='mod') ensureModDatalist();
   calcFleet(id);
 }
 
@@ -3762,6 +3915,28 @@ function selectIntelProgram(type){
   calcIntelFunding();
 }
 
+function useEstimatedArr(){
+  // Closes the gap the estimator used to leave open: the number it computes
+  // was display-only, so the person had to remember it and retype it into
+  // Intel-Eligible ARR further down the same page. This carries it directly,
+  // marks it as an intentional entry (same as typing it by hand — fleet
+  // totals will no longer silently overwrite it), and scrolls to where it
+  // landed so the person can see it happened, not just trust that it did.
+  const src = document.getElementById('est-arr-intel');
+  const dest = document.getElementById('intel-eligible-arr');
+  const arr = parseFloat(src ? src.value : 0) || 0;
+  if(!dest || arr <= 0) return;
+  dest.value = arr;
+  dest.dataset.userEdited = 1;
+  const confirm = document.getElementById('use-arr-confirm');
+  if(confirm){ confirm.style.display = 'block'; setTimeout(()=>{ confirm.style.display='none'; }, 4000); }
+  dest.scrollIntoView({behavior:'smooth', block:'center'});
+  const originalBg = dest.style.backgroundColor;
+  dest.style.backgroundColor = '#d1fae5';
+  dest.focus();
+  setTimeout(()=>{ dest.style.backgroundColor = originalBg; }, 1200);
+}
+
 function calcIntelFunding(){
   const arr = parseFloat(document.getElementById('est-arr-intel')?.value||0);
   const prog = window._intelProgram;
@@ -3916,7 +4091,7 @@ function generateSummary(){
         row('Customer Legal Name', d.custName),
         row('AWS Account ID', d.custAcct),
         row('Customer Industry', d.industry),
-        row('Workload Selection', (d.workloadSelection||[]).join(', ')),
+        row('Workload Selection', workloadSelectionDisplay(d.workloadSelection)),
         row('Workload Description', d.workload),
         row('Benefit Recipient', d.recipient),
         row('Win Wire', d.winWire ? 'Yes' : 'No'),
@@ -4028,6 +4203,22 @@ function generateSummary(){
 
 
 /* ── INTEL PRICING CHAT ────────────────────────────────────── */
+function renderIntelReply(text){
+  // Intel's pricing service returns markdown-flavored text (##, **bold**,
+  // ``` code blocks ```). Escape everything first so nothing in the reply
+  // can inject HTML, then re-add only the few safe patterns actually used.
+  const esc = String(text)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  let html = esc
+    .replace(/```([\s\S]*?)```/g, (m,code)=>`<pre style="background:#f4f4f4;border-radius:6px;padding:8px 10px;font-size:.76rem;overflow-x:auto;white-space:pre">${code.trim()}</pre>`)
+    .replace(/^### (.*)$/gm, '<div style="font-weight:700;margin-top:6px">$1</div>')
+    .replace(/^## (.*)$/gm, '<div style="font-weight:800;font-size:.92rem;color:var(--intel);margin-bottom:2px">$1</div>')
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\n\n/g, '<br><br>')
+    .replace(/\n/g, '<br>');
+  return `<div style="line-height:1.6">${html}</div>`;
+}
+
 function askIntelPrompt(text){
   const input = document.getElementById('intel-chat-input');
   if(!input) return;
@@ -4043,7 +4234,23 @@ async function answerIntelQuestion(msg){
   // No LLM anywhere in this path — instance + region is a structured lookup,
   // not free-text reasoning, so it doesn't need one.
   const instanceMatch = msg.match(/\b([mcrx]8i|u7i)(\.\w+)?\b/i);
-  const regionMatch = msg.match(/\b(us|eu|ap|ca|sa|mx)-(east|west|central|north|south|southeast|northeast)-\d\b/i);
+  let regionMatch = msg.match(/\b(us|eu|ap|ca|sa|mx)-(east|west|central|north|south|southeast|northeast)-\d\b/i);
+  // Plain-English region names — someone typing "Virginia" or "Frankfurt"
+  // shouldn't hit a dead end just because they didn't know the AWS code.
+  // Matches the exact same region list used everywhere else in the app.
+  const REGION_NAMES = {
+    'n. virginia':'us-east-1','virginia':'us-east-1','ohio':'us-east-2',
+    'n. california':'us-west-1','northern california':'us-west-1','oregon':'us-west-2',
+    'canada central':'ca-central-1','calgary':'ca-west-1','mexico':'mx-central-1',
+    'sao paulo':'sa-east-1','são paulo':'sa-east-1','ireland':'eu-west-1','london':'eu-west-2',
+    'paris':'eu-west-3','frankfurt':'eu-central-1','zurich':'eu-central-2','stockholm':'eu-north-1',
+    'singapore':'ap-southeast-1','sydney':'ap-southeast-2','tokyo':'ap-northeast-1','mumbai':'ap-south-1'
+  };
+  if(!regionMatch){
+    for(const name in REGION_NAMES){
+      if(q.includes(name)){ regionMatch = [REGION_NAMES[name]]; break; }
+    }
+  }
   const asksPrice = /\bprice|pricing|cost|how much\b/i.test(msg);
 
   if(instanceMatch && asksPrice){
@@ -4059,20 +4266,22 @@ async function answerIntelQuestion(msg){
       });
       if(!resp.ok) throw new Error('API returned ' + resp.status);
       const data = await resp.json();
-      const annualList = data.annual_list || (data.on_demand_hourly * 8760) || 0;
-      const nte = data.nte || 0;
-      const rate = data.intel_program_rate || 0;
-      if(!annualList){
-        return `The pricing API didn't return a figure for ${fullInstance} in ${region}. Try the <a href='https://calculator.aws' target='_blank' rel='noopener'>AWS Pricing Calculator ↗</a> directly.`;
+      if(!data.reply){
+        return `The pricing service didn't return a response for ${fullInstance} in ${region}. Try the <a href='https://calculator.aws' target='_blank' rel='noopener'>AWS Pricing Calculator ↗</a> directly.`;
       }
       const askedAt = new Date();
-      return `<strong>${fullInstance} in ${region}</strong>: $${Math.round(annualList).toLocaleString()}/yr list` +
-        (rate ? ` · Intel program rate ${(rate*100).toFixed(1)}%` : '') +
-        (nte ? ` · Est. NTE $${Math.round(nte).toLocaleString()}` : '') +
-        `<div style="font-size:.72rem;color:var(--ink3);margin-top:4px">Source: Intel pricing service, live quote retrieved ${askedAt.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})} at ${askedAt.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})} — same source as the ⚡ Intel button on a fleet row. Figure is region-specific and annual.</div>`;
+      return renderIntelReply(data.reply) +
+        `<div style="font-size:.72rem;color:var(--ink3);margin-top:6px">Source: Intel pricing service, live quote retrieved ${askedAt.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})} at ${askedAt.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}. This is Intel's own reply, shown as returned — the $ figures reflect Intel's stated discount, which is separate from this app's own Migrate/Modernize rate applied on submission.</div>`;
     } catch(e){
       return `Live pricing didn\'t respond (${friendlyError(e)}) Use the <a href='https://calculator.aws' target='_blank' rel='noopener'>AWS Pricing Calculator ↗</a> as a fallback, or try the ⚡ Intel button on a fleet row.`;
     }
+  }
+
+  // A region alone, with no instance mentioned — this is exactly what
+  // tripped up "Virginia" typed by itself. Point at the missing half instead
+  // of falling through to the generic fallback.
+  if(regionMatch && !instanceMatch){
+    return `Got the region — now the instance. Try "Price m8i.2xlarge in ${regionMatch[0]}" (swap in c8i, r8i, x8i, or u7i and any size).`;
   }
 
   // Program rules — these are exact, no AI needed for any of this.
@@ -5782,7 +5991,7 @@ function getSmartsheetRows(d){
     ['Region/Country of Execution', d.awsRegion],
     ['Cost of Infrastructure (ARR)', infraArr ? fmt(infraArr) : ''],
     ['Cost of Migration (Engineering Work)', d.migrationCost ? fmt(d.migrationCost) : ''],
-    ['Workload Selection', (d.workloadSelection||[]).join(', ')],
+    ['Workload Selection', workloadSelectionDisplay(d.workloadSelection)],
     ['Requested funding amount', d.dne ? fmt(d.dne) : ''],
     ['Is this for a Migration activity?', isMigrationYN],
     ['Expected ROI', (d.dne && d.migrationCost>0) ? Math.round((d.dne-d.migrationCost)/d.migrationCost*100)+'%' : ''],
@@ -5965,6 +6174,15 @@ function fmt(n){
   if(!n&&n!==0) return '$0';
   return '$'+Math.round(n).toLocaleString('en-US');
 }
+function workloadSelectionDisplay(val){
+  // workloadSelection is saved as a newline-joined STRING (getWorkloadSelection),
+  // never an array — but some display code called .join() on it as if it were
+  // one, which threw a real error the moment a deal actually had a workload
+  // selected. This reads it correctly regardless of which shape it's in.
+  if(Array.isArray(val)) return val.join(', ');
+  return String(val||'').split('\n').filter(Boolean).join(', ');
+}
+
 function getWorkloadSelection(){
   const checks = document.querySelectorAll('#workload-checks input[type="checkbox"]:checked');
   return Array.from(checks).map(ch=>ch.value).join('\n') || '';

@@ -494,12 +494,22 @@ def lambda_handler(event, context):
         'Content-Type': 'application/json',
         'Vary': 'Origin'
     }
-    method = event.get('requestContext', {}).get('http', {}).get('method', 'GET')
+    # API Gateway can hand the Lambda either of two event shapes depending on
+    # its integration payload-format setting: the newer one (rawPath +
+    # requestContext.http.method) or the older one (path + httpMethod). Read
+    # both so routing works regardless of which the API is actually sending —
+    # a mismatch here made every route fall through to the 404 fallback.
+    method = (event.get('requestContext', {}).get('http', {}) or {}).get('method') \
+        or event.get('httpMethod') or 'GET'
     if method == 'OPTIONS':
         return {'statusCode': 200, 'headers': headers, 'body': '{}'}
 
     try:
-        path = event.get('rawPath', '/')
+        path = event.get('rawPath') or event.get('path') or '/'
+        # Strip a trailing slash (but not the root path itself) so
+        # '/auth/domain-login/' still matches '/auth/domain-login'.
+        if len(path) > 1 and path.endswith('/'):
+            path = path[:-1]
         body = {}
         if event.get('body'):
             raw = event['body']
