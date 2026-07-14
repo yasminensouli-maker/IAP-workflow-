@@ -1436,7 +1436,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
       <span class="tier-badge tier-admin">Admin</span> Full access — approval, pipeline &amp; budget
     </div>
 
-    <div style="text-align:center;margin-top:18px;font-size:.68rem;color:var(--ink3)">Produced by Groupe CloudZero Inc.</div>
+    <div style="text-align:center;margin-top:18px;font-size:.68rem;color:var(--ink3)">Produced by Groupe CloudZero Inc. · Build 84</div>
   </div>
 </div>
 
@@ -1643,6 +1643,75 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
               <div id="intel-funding-note" style="font-size:.68rem;color:var(--ink3);margin-top:4px"></div>
               <button type="button" class="btn btn-secondary btn-sm" style="margin-top:10px" onclick="useEstimatedArr()">Use this ARR in the deal ↓</button>
               <div id="use-arr-confirm" style="display:none;font-size:.7rem;color:#166534;margin-top:6px;font-weight:600">✓ Carried into Intel-Eligible ARR below.</div>
+            </div>
+          </div>
+
+          <div class="section-card" id="solver-card">
+            <div class="section-card-title">What-Could-Be Explorer</div>
+            <div style="font-size:.72rem;color:var(--ink3);margin-bottom:12px">A quick two-way sketch — enter <strong>either</strong> the EC2 instance spend <strong>or</strong> a number of instances, and this fills in the rest, the vCPUs, and the Intel ROI both ways. This is an estimate for the conversation, separate from the binding deal ARR below.</div>
+
+            <div class="form-grid" style="grid-template-columns:1fr 1fr">
+              <div class="f-group">
+                <label>Intel family / generation</label>
+                <select id="solver-family" onchange="runSolver('family')"></select>
+              </div>
+              <div class="f-group">
+                <label>Instance size</label>
+                <select id="solver-size" onchange="runSolver('family')">
+                  <option value="large">large (2 vCPU)</option>
+                  <option value="xlarge">xlarge (4 vCPU)</option>
+                  <option value="2xlarge" selected>2xlarge (8 vCPU)</option>
+                  <option value="4xlarge">4xlarge (16 vCPU)</option>
+                  <option value="8xlarge">8xlarge (32 vCPU)</option>
+                  <option value="12xlarge">12xlarge (48 vCPU)</option>
+                  <option value="16xlarge">16xlarge (64 vCPU)</option>
+                  <option value="24xlarge">24xlarge (96 vCPU)</option>
+                  <option value="32xlarge">32xlarge (128 vCPU)</option>
+                  <option value="48xlarge">48xlarge (192 vCPU)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-grid" style="grid-template-columns:1fr 1fr;align-items:end">
+              <div class="f-group">
+                <label>EC2 instance spend — annual ($)</label>
+                <input type="number" id="solver-spend" min="0" step="10000" placeholder="e.g. 1000000" oninput="runSolver('spend')">
+                <span class="hint" style="font-size:.62rem">EC2 compute only — NOT total AWS spend. From the Simple Monthly Calculator.</span>
+              </div>
+              <div class="f-group">
+                <label># of instances</label>
+                <input type="number" id="solver-count" min="0" step="1" placeholder="e.g. 504" oninput="runSolver('count')">
+                <span class="hint" style="font-size:.62rem">Enter this if you know the fleet size instead of the spend.</span>
+              </div>
+            </div>
+
+            <details style="margin:4px 0 12px">
+              <summary style="cursor:pointer;font-size:.68rem;color:var(--intel);font-weight:600">Assumptions (editable)</summary>
+              <div class="form-grid" style="grid-template-columns:1fr 1fr;margin-top:8px">
+                <div class="f-group">
+                  <label style="font-size:.68rem">EC2 spend per vCPU ($/yr)</label>
+                  <input type="number" id="solver-per-vcpu" value="20000" min="0" step="500" oninput="runSolver('assump')">
+                  <span class="hint" style="font-size:.6rem">High-level anchor. Update when the team has a sharper figure.</span>
+                </div>
+                <div class="f-group">
+                  <label style="font-size:.68rem">Funding rate (% of EC2 spend)</label>
+                  <input type="number" id="solver-rate" value="1.5" min="0" max="5" step="0.1" oninput="runSolver('assump')">
+                  <span class="hint" style="font-size:.6rem">IAP Modernize logic: ~1–2% of EC2 spend.</span>
+                </div>
+              </div>
+            </details>
+
+            <div id="solver-output" style="display:none">
+              <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+                <div style="flex:2;min-width:200px;background:linear-gradient(135deg,#0A1628,#12233f);border-radius:10px;padding:14px 16px;color:#fff">
+                  <div style="font-size:.64rem;text-transform:uppercase;letter-spacing:.05em;opacity:.7">Intel ROI — value unlocked</div>
+                  <div id="solver-roi-headline" style="font-size:1.35rem;font-weight:800;margin-top:2px">—</div>
+                  <div id="solver-roi-sub" style="font-size:.68rem;opacity:.75;margin-top:3px"></div>
+                </div>
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap" id="solver-tiles"></div>
+              <button type="button" class="btn btn-secondary btn-sm" style="margin-top:12px" onclick="solverToDeal()">Use this EC2 spend as the deal ARR ↓</button>
+              <div id="solver-confirm" style="display:none;font-size:.7rem;color:#166534;margin-top:6px;font-weight:600">✓ Carried into Intel-Eligible ARR below.</div>
             </div>
           </div>
 
@@ -2084,6 +2153,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
                 <label>Intel-Eligible ARR ($) <span class="req">*</span></label>
                 <input type="number" id="intel-eligible-arr" placeholder="0" min="0" oninput="this.dataset.userEdited=1">
                 <span class="hint">This is the number that drives DNE and the funding math — not total ARR, and not necessarily the same as ACE ARR.</span>
+                <div style="font-size:.7rem;color:var(--ink2);background:#f6f9ff;border:1px solid #dbe6f7;border-radius:6px;padding:7px 10px;margin-top:6px;line-height:1.5">Keep the full ACE amount above. The Intel-eligible figure here is usually a portion of it — often smaller — and that's expected. Enter the part of this opportunity that runs on eligible Intel instances.</div>
               </div>
             </div>
             <div id="arr-eligible-line" style="font-size:.78rem;color:var(--intel);font-weight:700;margin-top:2px"></div>
@@ -2596,6 +2666,13 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
           <div class="step-desc">Review and generate the SOW exactly per Intel/TCC requirements. Download or print from this page.</div>
         </div>
 
+        <div class="section-card" style="margin-bottom:16px;border:1px solid #d7e3f4">
+          <div class="section-card-title">TCC SOW Checklist — what's needed to complete this SOW</div>
+          <div style="font-size:.72rem;color:var(--ink3);margin-bottom:10px">These are the Smartsheet fields TCC tracks. Green means the deal already carries the value; amber means TCC needs to collect or confirm it. Use this to know what to chase.</div>
+          <div id="sow-checklist"></div>
+          <button type="button" class="btn btn-secondary btn-sm" style="margin-top:10px" onclick="renderSOWChecklist()">↺ Refresh checklist</button>
+        </div>
+
         <!-- SOW extra fields needed for Jeanine's template -->
         <div class="section-card" style="margin-bottom:16px">
           <div class="section-card-title">SOW Details</div>
@@ -3005,6 +3082,7 @@ function goStep(n){
     try { history.pushState({step: n}, '', ''); } catch(e){ /* non-fatal */ }
   }
   if(n===6){ setTimeout(refreshCRMHeader, 50); }
+  if(n===3){ setTimeout(initSolver, 50); }
   // Handle step 7 SOW which has id step7-sow
   document.querySelectorAll('.step-panel').forEach(p=>p.classList.remove('active'));
   // Special case: step 7 is the SOW step with id step7-sow
@@ -3144,33 +3222,53 @@ function modAdvise(id){
 }
 
 const INSTANCE_FAMILIES = [
-  // Gen 8 — Intel Xeon 6 (latest)
-  {val:'m8i',    label:'m8i — General Purpose (Intel Xeon 6, Gen 8)'},
-  {val:'c8i',    label:'c8i — Compute Optimized (Intel Xeon 6, Gen 8)'},
-  {val:'r8i',    label:'r8i — Memory Optimized (Intel Xeon 6, Gen 8)'},
-  {val:'x8i',    label:'x8i — Extra Large Memory (Intel Xeon 6, Gen 8, SAP RISE)'},
-  {val:'u7i',    label:'u7i — Ultra Large Memory, not always Gen 8, SAP RISE and similar'},
+  // Gen 8 — Intel Xeon 6 (latest, standard)
+  {val:'m8i',      label:'m8i — General Purpose (Intel Xeon 6, Gen 8)'},
+  {val:'c8i',      label:'c8i — Compute Optimized (Intel Xeon 6, Gen 8)'},
+  {val:'r8i',      label:'r8i — Memory Optimized (Intel Xeon 6, Gen 8)'},
+  {val:'x8i',      label:'x8i — Extra Large Memory (Intel Xeon 6, Gen 8, SAP RISE)'},
+  // Gen 8 — Intel Xeon 6 variants (flex / local-NVMe "d" / network "n")
+  {val:'m8i-flex', label:'m8i-flex — General Purpose Flex (Gen 8)'},
+  {val:'c8i-flex', label:'c8i-flex — Compute Optimized Flex (Gen 8)'},
+  {val:'m8id',     label:'m8id — General Purpose + local NVMe (Gen 8)'},
+  {val:'c8id',     label:'c8id — Compute Optimized + local NVMe (Gen 8)'},
+  {val:'r8id',     label:'r8id — Memory Optimized + local NVMe (Gen 8)'},
+  {val:'c8in',     label:'c8in — Compute Optimized + Network (Gen 8)'},
+  // Storage-optimized Intel Xeon 6
+  {val:'i7i',      label:'i7i — Storage Optimized (Intel Xeon 6)'},
+  {val:'i7ie',     label:'i7ie — Storage Optimized, dense NVMe (Intel Xeon 6)'},
+  {val:'u7i',      label:'u7i — Ultra Large Memory (SAP RISE and similar)'},
   // Gen 7 — Intel Xeon Scalable 4th Gen
-  {val:'m7i',    label:'m7i — General Purpose (Intel Xeon Scalable, Gen 7)'},
-  {val:'c7i',    label:'c7i — Compute Optimized (Intel Xeon Scalable, Gen 7)'},
-  {val:'r7i',    label:'r7i — Memory Optimized (Intel Xeon Scalable, Gen 7)'},
-  {val:'m7i-flex',label:'m7i-flex — General Purpose Flex (Gen 7)'},
+  {val:'m7i',      label:'m7i — General Purpose (Intel Xeon Scalable, Gen 7)'},
+  {val:'c7i',      label:'c7i — Compute Optimized (Intel Xeon Scalable, Gen 7)'},
+  {val:'r7i',      label:'r7i — Memory Optimized (Intel Xeon Scalable, Gen 7)'},
+  {val:'m7i-flex', label:'m7i-flex — General Purpose Flex (Gen 7)'},
   // Gen 6 — Intel Xeon Scalable 3rd Gen
-  {val:'m6i',    label:'m6i — General Purpose (Intel Xeon Scalable, Gen 6)'},
-  {val:'c6i',    label:'c6i — Compute Optimized (Intel Xeon Scalable, Gen 6)'},
-  {val:'r6i',    label:'r6i — Memory Optimized (Intel Xeon Scalable, Gen 6)'},
-  {val:'c6in',   label:'c6in — Compute Optimized + Network (Gen 6)'},
-  {val:'m6in',   label:'m6in — General Purpose + Network (Gen 6)'},
-  {val:'r6in',   label:'r6in — Memory Optimized + Network (Gen 6)'},
+  {val:'m6i',      label:'m6i — General Purpose (Intel Xeon Scalable, Gen 6)'},
+  {val:'c6i',      label:'c6i — Compute Optimized (Intel Xeon Scalable, Gen 6)'},
+  {val:'r6i',      label:'r6i — Memory Optimized (Intel Xeon Scalable, Gen 6)'},
+  {val:'c6in',     label:'c6in — Compute Optimized + Network (Gen 6)'},
+  {val:'m6in',     label:'m6in — General Purpose + Network (Gen 6)'},
+  {val:'r6in',     label:'r6in — Memory Optimized + Network (Gen 6)'},
   // Memory Intensive
-  {val:'x2idn',  label:'x2idn — Memory Intensive (Intel Xeon)'},
-  {val:'x2iedn', label:'x2iedn — Memory Intensive NVMe (Intel Xeon)'},
+  {val:'x2idn',    label:'x2idn — Memory Intensive (Intel Xeon)'},
+  {val:'x2iedn',   label:'x2iedn — Memory Intensive NVMe (Intel Xeon)'},
   // Gen 5
-  {val:'m5',     label:'m5 — General Purpose (Intel Xeon Platinum, Gen 5)'},
-  {val:'c5',     label:'c5 — Compute Optimized (Intel Xeon Platinum, Gen 5)'},
-  {val:'r5',     label:'r5 — Memory Optimized (Intel Xeon Platinum, Gen 5)'},
+  {val:'m5',       label:'m5 — General Purpose (Intel Xeon Platinum, Gen 5)'},
+  {val:'c5',       label:'c5 — Compute Optimized (Intel Xeon Platinum, Gen 5)'},
+  {val:'r5',       label:'r5 — Memory Optimized (Intel Xeon Platinum, Gen 5)'},
   {val:'other-intel', label:'Other Intel-Eligible (specify in notes)'},
 ];
+
+// vCPUs per instance SIZE — the AWS naming convention is fixed and identical
+// across all current Intel families, so one table covers every family. Used
+// by the two-way solver to convert between instance count and total vCPUs.
+const VCPU_BY_SIZE = {
+  'large':2, 'xlarge':4, '2xlarge':8, '4xlarge':16, '8xlarge':32,
+  '12xlarge':48, '16xlarge':64, '24xlarge':96, '32xlarge':128, '48xlarge':192,
+  'metal-48xl':192, 'metal':96, 'medium':1, 'small':1
+};
+function vcpusForSize(size){ return VCPU_BY_SIZE[size] || 0; }
 
 // Discount models with their typical discount rate for post-discount calculation
 const DISCOUNT_MODELS = [
@@ -3913,6 +4011,97 @@ function selectIntelProgram(type){
   if(mainProg) mainProg.value = type==='migrate' ? 'migrate' : 'modernize';
   window._intelProgram = type;
   calcIntelFunding();
+}
+
+/* ── TWO-WAY "WHAT COULD BE" SOLVER ────────────────────────────
+   The hinge is the vCPU. Given a family+size we know vCPUs-per-instance.
+   From there:
+     spend  = vCPUs_total x $/vCPU        (and the reverse)
+     vCPUs_total = instances x vCPUs_each
+     funding = spend x rate
+   Enter spend OR instance count; the other is derived. Every assumption
+   (the $/vCPU anchor, the rate) is an editable field, never hidden. This is
+   explicitly a sketch, separate from the binding deal ARR. */
+let _solverLastEdited = 'spend';
+function initSolver(){
+  const fam = document.getElementById('solver-family');
+  if(fam && !fam.options.length){
+    fam.innerHTML = INSTANCE_FAMILIES
+      .filter(f=>f.val!=='other-intel')
+      .map(f=>`<option value="${f.val}">${f.label}</option>`).join('');
+  }
+}
+function runSolver(source){
+  if(source==='spend') _solverLastEdited='spend';
+  if(source==='count') _solverLastEdited='count';
+
+  const size = (document.getElementById('solver-size')||{}).value || '2xlarge';
+  const vEach = vcpusForSize(size);
+  const perVcpu = parseFloat((document.getElementById('solver-per-vcpu')||{}).value) || 0;
+  const rate = (parseFloat((document.getElementById('solver-rate')||{}).value) || 0) / 100;
+  const spendEl = document.getElementById('solver-spend');
+  const countEl = document.getElementById('solver-count');
+  let spend = parseFloat(spendEl.value) || 0;
+  let count = parseFloat(countEl.value) || 0;
+
+  if(vEach <= 0 || perVcpu <= 0){ document.getElementById('solver-output').style.display='none'; return; }
+
+  // Solve in whichever direction the person last gave us a number.
+  if(_solverLastEdited === 'spend' && spend > 0){
+    const totalVcpus = spend / perVcpu;
+    count = Math.round(totalVcpus / vEach);
+    if(source !== 'count') countEl.value = count;
+  } else if(_solverLastEdited === 'count' && count > 0){
+    const totalVcpus = count * vEach;
+    spend = Math.round(totalVcpus * perVcpu);
+    if(source !== 'spend') spendEl.value = spend;
+  } else {
+    document.getElementById('solver-output').style.display='none';
+    return;
+  }
+
+  const totalVcpus = count * vEach;
+  const funding = spend * rate;
+  if(!(spend > 0) || !(totalVcpus > 0)){ document.getElementById('solver-output').style.display='none'; return; }
+
+  // Both ROI framings.
+  const arrPerVcpu = spend / totalVcpus;             // value: EC2 ARR each vCPU carries
+  const fundingPerVcpu = funding / totalVcpus;       // cost: Intel $ per vCPU to win it
+  const roiMultiple = funding > 0 ? (spend / funding) : 0;  // $ unlocked per $1 funded
+
+  const out = document.getElementById('solver-output');
+  out.style.display = 'block';
+  document.getElementById('solver-roi-headline').textContent =
+    '$1 → $' + roiMultiple.toLocaleString('en-US',{maximumFractionDigits:0}) + ' of Intel EC2 ARR';
+  document.getElementById('solver-roi-sub').textContent =
+    'Every dollar of IAP funding unlocks about $' + roiMultiple.toLocaleString('en-US',{maximumFractionDigits:0}) + ' of eligible Intel EC2 spend.';
+
+  const money = n => '$' + Math.round(n).toLocaleString('en-US');
+  const tile = (label, value, accent) =>
+    `<div style="flex:1;min-width:140px;background:#fff;border:1px solid #e3e9f2;border-radius:8px;padding:9px 12px">
+       <div style="font-size:.62rem;text-transform:uppercase;letter-spacing:.04em;color:var(--ink3)">${label}</div>
+       <div style="font-size:1rem;font-weight:800;color:${accent||'#0A1628'}">${value}</div>
+     </div>`;
+  document.getElementById('solver-tiles').innerHTML =
+    tile('EC2 spend (annual)', money(spend), 'var(--intel)') +
+    tile('Instances', count.toLocaleString('en-US') + ' × ' + size, '#0A1628') +
+    tile('Total vCPUs', totalVcpus.toLocaleString('en-US'), '#0A1628') +
+    tile('IAP funding', money(funding), '#059669') +
+    tile('ROI — ARR per vCPU', money(arrPerVcpu), 'var(--intel)') +
+    tile('ROI — funding per vCPU', money(fundingPerVcpu), '#059669');
+}
+function solverToDeal(){
+  const spend = parseFloat((document.getElementById('solver-spend')||{}).value) || 0;
+  const dest = document.getElementById('intel-eligible-arr');
+  if(dest && spend > 0){
+    dest.value = Math.round(spend);
+    dest.dataset.userEdited = 1;
+    const c = document.getElementById('solver-confirm');
+    if(c){ c.style.display='block'; setTimeout(()=>{c.style.display='none';},4000); }
+    dest.scrollIntoView({behavior:'smooth', block:'center'});
+    const bg = dest.style.backgroundColor; dest.style.backgroundColor='#d1fae5';
+    setTimeout(()=>{ dest.style.backgroundColor=bg; }, 1200);
+  }
 }
 
 function useEstimatedArr(){
@@ -5929,8 +6118,49 @@ async function finalizeSubmit(){
 
 async function submitDeal(){ showSubmitSummary(); }
 function gotoSOW(){
-  if(currentUser && (currentUser.tier==='tcc'||currentUser.tier==='admin')){ goStep(7); return; }
+  if(currentUser && (currentUser.tier==='tcc'||currentUser.tier==='admin')){ goStep(7); setTimeout(renderSOWChecklist, 60); return; }
   alert('The SOW is issued by The Channel Company after Intel leadership approval. It will appear for TCC when the deal reaches their queue.');
+}
+
+function renderSOWChecklist(){
+  const box = document.getElementById('sow-checklist');
+  if(!box) return;
+  const d = getCurrentDealData();
+  // The Smartsheet fields TCC tracks, split into what the deal already
+  // carries vs. what TCC collects post-SOW. "have" is a function of the deal.
+  const fields = [
+    ['Activity Name', d.dealName, 'submitter'],
+    ['Customer / Partner Name', d.custName || d.partnerName, 'submitter'],
+    ['Activity Type', d.actType, 'submitter'],
+    ['ACE Opportunity ID', d.aceID, 'submitter'],
+    ['Intel-Eligible ARR', d.intelEligibleArr, 'submitter'],
+    ['Funding amount (DNE)', d.dne, 'set at AWS approval'],
+    ['Start Date', d.migStart, 'submitter'],
+    ['End Date', d.closeDate || d.migTargetDate, 'submitter'],
+    ['AWS Region / Alignment', d.awsRegion, 'submitter'],
+    ['IPIC Activity #', d.ipicNum, 'TCC assigns'],
+    ['POP Received Date', d.popReceivedDate, 'TCC collects post-SOW'],
+    ['Claim Quarter', d.claimQuarter, 'TCC assigns'],
+    ['Claim Submitted Date', d.claimSubmittedDate, 'TCC collects'],
+    ['Amount Claimed', d.amountClaimed, 'TCC tracks'],
+    ['Amount Paid', d.amountPaid, 'TCC tracks'],
+    ['SharePoint / SOW link', d.sharepointLink, 'TCC/admin adds'],
+  ];
+  const has = v => v !== undefined && v !== null && String(v).trim() !== '' && String(v) !== '0';
+  box.innerHTML = fields.map(([label, val, who])=>{
+    const ok = has(val);
+    const color = ok ? '#059669' : '#b45309';
+    const bg = ok ? '#ecfdf5' : '#fffbeb';
+    const mark = ok ? '✓' : '•';
+    const shown = ok ? (String(val).length>34?String(val).slice(0,34)+'…':String(val)) : ('needs: '+who);
+    return `<div style="display:flex;align-items:center;gap:10px;padding:6px 10px;background:${bg};border-radius:6px;margin-bottom:4px">
+      <span style="color:${color};font-weight:800;width:14px;text-align:center">${mark}</span>
+      <span style="flex:1;font-size:.76rem;color:#0A1628;font-weight:600">${label}</span>
+      <span style="font-size:.72rem;color:${color}">${shown.replace(/</g,'&lt;')}</span>
+    </div>`;
+  }).join('');
+  const need = fields.filter(([l,v])=>!has(v)).length;
+  box.innerHTML += `<div style="margin-top:8px;font-size:.74rem;color:var(--ink2)"><strong>${fields.length-need} of ${fields.length}</strong> ready · <strong style="color:#b45309">${need}</strong> to chase.</div>`;
 }
 
 function refreshCRMHeader(){

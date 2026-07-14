@@ -59,7 +59,7 @@ def _admin_pass(env_key):
 
 ADMIN_USERS = {
     'yasmine@cloudzero.ca':        {'pass': _admin_pass('ADMIN_PASS_YASMINE'),  'tier':'admin', 'name':'Yasmine',        'label':'CloudZero Admin', 'approver':'core'},
-    'reidelj@amazon.com':          {'pass': _admin_pass('ADMIN_PASS_JEANINE'),  'tier':'core',  'name':'Jeanine Reidel', 'label':'AWS Approval',    'approver':'core'},
+    'reidelj@amazon.com':          {'pass': _admin_pass('ADMIN_PASS_JEANINE'),  'tier':'admin', 'name':'Jeanine Reidel', 'label':'AWS Approval (Admin)', 'approver':'core'},
     'clchrisz@amazon.com':         {'pass': _admin_pass('ADMIN_PASS_CHRIS'),    'tier':'core',  'name':'Chris Chlee',    'label':'AWS Approval (SA)', 'approver':'core'},
     'akanksha.r.bilani@intel.com': {'pass': _admin_pass('ADMIN_PASS_AKANKSHA'),'tier':'intel_approver','name':'Akanksha Bilani','label':'Intel Leadership','approver':'intel'},
     'brendon.roosken@intel.com':   {'pass': _admin_pass('ADMIN_PASS_BRENDON'), 'tier':'intel_approver','name':'Brendon Roosken','label':'Intel Leadership','approver':'intel'},
