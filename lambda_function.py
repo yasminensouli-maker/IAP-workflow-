@@ -9,6 +9,14 @@ from datetime import datetime, timezone
 
 dynamodb = boto3.resource('dynamodb')
 ses = boto3.client('ses', region_name='ca-central-1')
+s3 = boto3.client('s3', region_name='ca-central-1')
+# SMC attachments live in S3 (files don't belong in DynamoDB — 400KB item
+# limit). The deal record stores only a reference (key + presigned URL). The
+# bucket already exists in the account; the Lambda role needs s3:PutObject and
+# s3:GetObject on it. Rebuilt securely (auth-gated, size-limited, sanitized
+# filename) after the half-wired original was removed in the security build.
+ATTACH_BUCKET = os.environ.get('ATTACH_BUCKET', 'iap-cost-explorer-937991583695')
+MAX_UPLOAD_BYTES = int(os.environ.get('MAX_UPLOAD_BYTES', str(15 * 1024 * 1024)))  # 15 MB
 # Bedrock/Nova removed entirely — scoring and Q&A are deterministic logic in
 # index.html (scoreFunding, answerIntelQuestion). S3 upload removed together
 # with the attach-calculator requirement (July 2026 security/QA build).
@@ -780,6 +788,34 @@ def lambda_handler(event, context):
 
         # (The /upload route and its S3 dependency were removed with the
         # attach-calculator requirement — it was never called by the frontend.)
+
+        # ── UPLOAD SMC ATTACHMENT — signed-in users only. File goes to S3;
+        # the deal keeps only a reference. Size-limited and filename-sanitized.
+        if path == '/upload' and method == 'POST':
+            if not session:
+                return deny_unauthenticated()
+            filename = (body.get('filename') or 'attachment').strip()
+            filedata_b64 = body.get('data', '')
+            deal_ref = body.get('dealRef', 'unassigned')
+            if not filedata_b64:
+                return ok(headers, {'error': 'No file data received.'})
+            # Sanitize filename: strip paths, keep a safe character set.
+            safe_name = re.sub(r'[^A-Za-z0-9._-]', '_', filename.split('/')[-1].split('\\\\')[-1])[:120] or 'attachment'
+            try:
+                raw = base64.b64decode(filedata_b64)
+            except Exception:
+                return ok(headers, {'error': 'File could not be decoded. Please re-select and try again.'})
+            if len(raw) > MAX_UPLOAD_BYTES:
+                return ok(headers, {'error': f'File is too large (max {MAX_UPLOAD_BYTES // (1024*1024)} MB).'})
+            key = f"smc/{re.sub(r'[^A-Za-z0-9_-]','_',str(deal_ref))}/{int(time.time())}-{safe_name}"
+            try:
+                s3.put_object(Bucket=ATTACH_BUCKET, Key=key, Body=raw, ServerSideEncryption='AES256')
+                url = s3.generate_presigned_url('get_object',
+                    Params={'Bucket': ATTACH_BUCKET, 'Key': key}, ExpiresIn=7*24*3600)
+                return ok(headers, {'uploaded': True, 'key': key, 'url': url, 'filename': safe_name})
+            except Exception as e:
+                print(f"[UPLOAD] S3 put failed: {e}")
+                return ok(headers, {'error': 'Upload failed — the storage bucket may need permission for the app. Contact yasmine@cloudzero.ca.'})
 
         # ── INTEL PRICING PROXY — signed-in users only, key from env var. ──
         if path == '/intel/price' and method == 'POST':

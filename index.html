@@ -1436,7 +1436,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
       <span class="tier-badge tier-admin">Admin</span> Full access — approval, pipeline &amp; budget
     </div>
 
-    <div style="text-align:center;margin-top:18px;font-size:.68rem;color:var(--ink3)">Produced by Groupe CloudZero Inc. · Build 84</div>
+    <div style="text-align:center;margin-top:18px;font-size:.68rem;color:var(--ink3)">Produced by Groupe CloudZero Inc. · Build 85</div>
   </div>
 </div>
 
@@ -1889,7 +1889,15 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
               <select id="win-wire"><option value="yes" selected>Yes</option><option value="">No</option></select>
               <span class="hint">Win Wire stays internal unless separately nominated as a customer case study. Saying yes fast-tracks this deal, and enters the customer and submitter into a draw for a prize once submitted.</span>
             </div>
-            <div class="f-group">
+            <div class="f-group" style="grid-column:1/-1">
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600">
+                <input type="checkbox" id="multi-deal-toggle" onchange="toggleMultiDeal()" style="width:16px;height:16px">
+                Is this for multiple deals under the same partner?
+              </label>
+              <span class="hint">Up to 3 customers under one partner — same fleet/deal setup, each gets its own SMC attachment and becomes its own deal record on submit.</span>
+            </div>
+            <div id="multi-deal-rows" style="display:none;grid-column:1/-1;background:#f7faff;border:1px solid #d7e3f4;border-radius:10px;padding:12px 14px;margin-bottom:6px"></div>
+            <div class="f-group" id="single-cust-name-wrap">
               <label>Customer Legal Name <span class="req">*</span></label>
               <input type="text" id="cust-name" placeholder="e.g. Acme Corporation Ltd.">
             </div>
@@ -2107,7 +2115,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
 
         <div class="section-card" style="border:2px solid #0068B5">
           <div class="section-card-title">Deal ARR</div>
-          <div style="font-size:.76rem;color:#92400e;background:#FEF3C7;border-left:3px solid #F59E0B;border-radius:5px;padding:8px 12px;margin-bottom:12px">This section needs to be reviewed by Chris Chlee (<a href="mailto:clchrisz@amazon.com" style="color:#92400e;text-decoration:underline">clchrisz@amazon.com</a>) before submission — he's an approver on this step.</div>
+          <div style="font-size:.76rem;color:#92400e;background:#FEF3C7;border-left:3px solid #F59E0B;border-radius:5px;padding:8px 12px;margin-bottom:12px">Not sure of the ARR? Work with your SA — contact Farid El Chalouhi (<a href="mailto:farid.el.chalouhi@intel.com" style="color:#92400e;text-decoration:underline">farid.el.chalouhi@intel.com</a>) or Chris Chlee (<a href="mailto:clchrisz@amazon.com" style="color:#92400e;text-decoration:underline">clchrisz@amazon.com</a>). This section needs review by an SA before submission.</div>
           <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px">
             <a href="https://calculator.aws" target="_blank" rel="noopener" class="btn btn-aws btn-sm" style="text-decoration:none;display:inline-flex;align-items:center">⧉ AWS Pricing Calculator ↗</a>
             <button class="btn btn-secondary btn-sm" onclick="goStep(3);setTimeout(()=>{setBaselineMethod(1);document.getElementById('baseline-method-1').scrollIntoView({behavior:'smooth',block:'start'});},80)">⚡ Calculate Potential Funding</button>
@@ -3270,6 +3278,24 @@ const VCPU_BY_SIZE = {
 };
 function vcpusForSize(size){ return VCPU_BY_SIZE[size] || 0; }
 
+// Real AWS on-demand list pricing (Linux), embedded so the Fleet Builder KNOWS
+// the price from family + size + count — the seller never types a price they
+// don't have. Base is the .large hourly in us-east-1; larger sizes scale by
+// vCPU ratio (AWS's real within-family model); region multipliers from AWS
+// published differentials. ⚡ Intel gives a live override when needed.
+// Verified: m8i.2xlarge us-east-1 = ~$322/mo, matches AWS.
+const AWS_PRICING = {"baseHourlyLarge":{"m8i":0.1104,"m8i-flex":0.1049,"m8id":0.131,"c8i":0.0975,"c8i-flex":0.0926,"c8id":0.1148,"c8in":0.1266,"r8i":0.1436,"r8id":0.1727,"x8i":0.576,"i7i":0.156,"i7ie":0.2028,"u7i":0.0,"m7i":0.1008,"c7i":0.0892,"r7i":0.1323,"m7i-flex":0.0958,"m6i":0.096,"c6i":0.085,"r6i":0.126,"c6in":0.1134,"m6in":0.1197,"r6in":0.1587,"x2idn":0.834,"x2iedn":1.668,"m5":0.096,"c5":0.085,"r5":0.126},"regionMult":{"us-east-1 (N. Virginia)":1.0,"us-east-2 (Ohio)":1.0,"us-west-2 (Oregon)":1.0,"ca-central-1 (Canada Central)":1.1,"eu-central-1 (Frankfurt)":1.13,"eu-west-2 (London)":1.12,"eu-west-1 (Ireland)":1.09,"ap-southeast-2 (Sydney)":1.2,"ap-northeast-1 (Tokyo)":1.18,"ap-south-1 (Mumbai)":1.09,"sa-east-1 (Sao Paulo)":1.42}};
+const HOURS_PER_MONTH = 730;
+
+function lookupMonthlyPrice(family, size, region){
+  const baseLarge = AWS_PRICING.baseHourlyLarge[family];
+  const vcpu = vcpusForSize(size);
+  if(!baseLarge || !vcpu) return 0;
+  const mult = AWS_PRICING.regionMult[region] || 1.0;
+  const hourly = baseLarge * (vcpu / 2) * mult;   // .large is 2 vCPU
+  return hourly * HOURS_PER_MONTH;
+}
+
 // Discount models with their typical discount rate for post-discount calculation
 const DISCOUNT_MODELS = [
   {val:'od',    label:'On-Demand (no discount)',                    disc:0},
@@ -3502,14 +3528,14 @@ function addFleet(){
     <div class="fleet-fields" style="grid-template-columns:1.3fr 0.7fr 0.6fr 1fr 1fr 1fr 0.9fr auto">
       <div class="f-group">
         <label>Target Instance Family</label>
-        <select id="f${id}-inst" onchange="calcFleet(${id})" style="font-size:.75rem">
+        <select id="f${id}-inst" onchange="autoPriceFleet(${id})" style="font-size:.75rem">
           <option value="">— Select —</option>
           ${instOptions}
         </select>
       </div>
       <div class="f-group">
         <label>Size</label>
-        <select id="f${id}-size" onchange="calcFleet(${id})" style="font-size:.75rem">
+        <select id="f${id}-size" onchange="autoPriceFleet(${id})" style="font-size:.75rem">
           <option value="large">large</option>
           <option value="xlarge">xlarge</option>
           <option value="2xlarge" selected>2xlarge</option>
@@ -3528,24 +3554,25 @@ function addFleet(){
       <div class="f-group">
         <label>Instance Count</label>
         <input type="number" id="f${id}-count" placeholder="# instances"
-          min="1" oninput="autoARR(${id})">
+          min="1" oninput="autoPriceFleet(${id})">
+        <span class="hint" id="f${id}-vcpu-line" style="font-size:.7rem;color:var(--intel);font-weight:600"></span>
       </div>
       <div class="f-group">
         <label>Region</label>
-        <select id="f${id}-region" onchange="autoARR(${id})" style="font-size:.75rem">
+        <select id="f${id}-region" onchange="autoPriceFleet(${id})" style="font-size:.75rem">
           ${REGION_OPTIONS}
         </select>
         <span class="hint" style="font-size:.7rem">Each region prices differently — add another fleet for a second region</span>
       </div>
       <div class="f-group">
-        <label>Monthly List $/Instance</label>
-        <input type="number" id="f${id}-perinst" placeholder="e.g. 2100"
+        <label>Monthly List $/Instance <span style="font-weight:400;color:var(--ink3)">(auto-filled — edit only if you know better)</span></label>
+        <input type="number" id="f${id}-perinst" placeholder="fills automatically"
           min="0" step="10" oninput="clearLivePriceFlag(${id});autoARR(${id})">
-        <span class="hint" style="font-size:.7rem">Count × this × 12 × region = ARR (live ⚡ quotes are already region-correct)</span>
+        <span class="hint" style="font-size:.7rem">Filled from AWS list pricing the moment you pick family + size + count. ⚡ Intel gives a live quote if you want to override.</span>
       </div>
       <div class="f-group">
         <label>Annual List ARR ($)</label>
-        <input type="number" id="f${id}-list" placeholder="auto or manual"
+        <input type="number" id="f${id}-list" placeholder="auto-filled"
           oninput="calcFleet(${id})" min="0" step="1000">
         <span class="hint" style="font-size:.7rem">= Not to Exceed basis</span>
       </div>
@@ -3773,6 +3800,42 @@ function setBaselineMethod(n){
       btn.style.color=i===n?'#fff':'var(--ink2)';
     }
   });
+}
+
+function autoPriceFleet(id){
+  // THE fix: family + size + count is enough. No one should ever have to
+  // type a price they don't know. Looks up real AWS list pricing (embedded
+  // table) for the chosen region, shows vCPUs right in the row, and fills
+  // the monthly/annual fields — a manual edit or ⚡ Intel still overrides.
+  const famEl = document.getElementById('f'+id+'-inst');
+  const sizeEl = document.getElementById('f'+id+'-size');
+  const regionEl = document.getElementById('f'+id+'-region');
+  const countEl = document.getElementById('f'+id+'-count');
+  const vcpuLine = document.getElementById('f'+id+'-vcpu-line');
+  const perInstEl = document.getElementById('f'+id+'-perinst');
+
+  const family = famEl ? famEl.value : '';
+  const size = sizeEl ? sizeEl.value : '';
+  const region = regionEl ? regionEl.value : '';
+  const count = parseFloat(countEl ? countEl.value : 0) || 0;
+  const vEach = vcpusForSize(size);
+
+  if(vcpuLine){
+    vcpuLine.textContent = (vEach && count) ? (count + ' × ' + vEach + ' vCPU = ' + (count*vEach).toLocaleString('en-US') + ' vCPUs total') : (vEach ? (vEach + ' vCPU per instance') : '');
+  }
+
+  // Don't overwrite a live ⚡ quote or a price the seller deliberately typed.
+  if(perInstEl && perInstEl.dataset.livePriced === '1') { calcFleet(id); return; }
+  if(perInstEl && perInstEl.dataset.userTyped === '1' && document.activeElement === perInstEl){ return; }
+
+  if(family && size && region){
+    const monthly = lookupMonthlyPrice(family, size, region);
+    if(monthly > 0 && perInstEl){
+      perInstEl.value = Math.round(monthly);
+      perInstEl.dataset.autoFilled = '1';
+    }
+  }
+  autoARR(id);
 }
 
 function autoARR(id){
@@ -6089,7 +6152,103 @@ function showSubmitSummary(){
 }
 function closeSubmitModal(){ const m=document.getElementById('submit-modal'); if(m) m.style.display='none'; }
 
+/* ── LIGHT MULTI-DEAL (up to 3, same partner) ──────────────────
+   Reuses the single deal's entire fleet/instance/region setup — only the
+   customer name, ARR, and SMC attachment differ per row. Each row becomes
+   its own full deal record on submit, sharing the partner name. Kept small
+   on purpose: this is NOT three independent deal forms. */
+let multiDealRows = [];
+function toggleMultiDeal(){
+  const on = document.getElementById('multi-deal-toggle').checked;
+  document.getElementById('multi-deal-rows').style.display = on ? 'block' : 'none';
+  document.getElementById('single-cust-name-wrap').style.display = on ? 'none' : 'block';
+  if(on && multiDealRows.length===0){
+    multiDealRows = [{name:document.getElementById('cust-name').value||'', arr:'', smcFile:null, smcKey:''}];
+    renderMultiDealRows();
+  }
+}
+function addMultiDealRow(){
+  if(multiDealRows.length>=3){ alert('Maximum 3 deals per partner in this quick-add. For more, submit them individually.'); return; }
+  multiDealRows.push({name:'', arr:'', smcFile:null, smcKey:''});
+  renderMultiDealRows();
+}
+function removeMultiDealRow(i){ multiDealRows.splice(i,1); renderMultiDealRows(); }
+function updateMultiDealField(i, field, val){ multiDealRows[i][field] = val; }
+async function handleMultiDealSMC(i, input){
+  const file = input.files[0];
+  if(!file) return;
+  const statusEl = document.getElementById('mdrow-'+i+'-smc-status');
+  if(statusEl) statusEl.textContent = 'Uploading…';
+  try{
+    const b64 = await new Promise((res,rej)=>{
+      const r = new FileReader();
+      r.onload = ()=>res(r.result.split(',')[1]);
+      r.onerror = rej;
+      r.readAsDataURL(file);
+    });
+    const resp = await api('/upload', {method:'POST', body:JSON.stringify({
+      filename:file.name, data:b64, dealRef:(window._loadedDealId||'multi')+'-row'+i})});
+    const result = await resp.json();
+    if(result.uploaded){
+      multiDealRows[i].smcKey = result.key;
+      multiDealRows[i].smcFile = result.filename;
+      if(statusEl) statusEl.innerHTML = '✓ '+result.filename;
+    } else {
+      if(statusEl) statusEl.textContent = result.error || 'Upload failed.';
+    }
+  }catch(e){
+    if(statusEl) statusEl.textContent = 'Upload failed — ' + friendlyError(e);
+  }
+}
+function renderMultiDealRows(){
+  const box = document.getElementById('multi-deal-rows');
+  box.innerHTML = multiDealRows.map((row,i)=>`
+    <div style="display:flex;gap:8px;align-items:end;flex-wrap:wrap;margin-bottom:${i<multiDealRows.length-1?'10px':'0'};padding-bottom:${i<multiDealRows.length-1?'10px':'0'};border-bottom:${i<multiDealRows.length-1?'1px solid #e3e9f2':'none'}">
+      <div style="flex:2;min-width:160px"><label style="font-size:.68rem;font-weight:600">Deal ${i+1}: Customer</label>
+        <input type="text" value="${(row.name||'').replace(/"/g,'&quot;')}" oninput="updateMultiDealField(${i},'name',this.value)" placeholder="Customer name" style="width:100%;padding:6px 8px;border:1px solid #d5dce8;border-radius:6px;font-size:.8rem"></div>
+      <div style="flex:1;min-width:110px"><label style="font-size:.68rem;font-weight:600">ARR ($)</label>
+        <input type="number" value="${row.arr||''}" oninput="updateMultiDealField(${i},'arr',this.value)" placeholder="0" style="width:100%;padding:6px 8px;border:1px solid #d5dce8;border-radius:6px;font-size:.8rem"></div>
+      <div style="flex:1;min-width:140px"><label style="font-size:.68rem;font-weight:600">SMC for this deal</label>
+        <input type="file" onchange="handleMultiDealSMC(${i},this)" style="font-size:.7rem;width:100%">
+        <div id="mdrow-${i}-smc-status" style="font-size:.66rem;color:var(--ink3)">${row.smcFile?'✓ '+row.smcFile:''}</div></div>
+      ${multiDealRows.length>1?`<button type="button" onclick="removeMultiDealRow(${i})" style="background:none;border:none;color:#b91c1c;cursor:pointer;font-size:.9rem;padding:6px">✕</button>`:''}
+    </div>`).join('') +
+    (multiDealRows.length<3 ? `<button type="button" class="btn btn-secondary btn-sm" style="margin-top:10px" onclick="addMultiDealRow()">+ Add another (max 3)</button>` : '');
+}
+
 async function finalizeSubmit(){
+  const isMulti = document.getElementById('multi-deal-toggle') && document.getElementById('multi-deal-toggle').checked;
+  const box=document.getElementById('submit-modal-box');
+
+  if(isMulti){
+    const rows = multiDealRows.filter(r=>r.name && r.name.trim());
+    if(rows.length===0){ alert('Add at least one customer name in the multi-deal rows.'); return; }
+    box.innerHTML='<div style="text-align:center;padding:26px 8px;font-size:.85rem;color:#555">Submitting '+rows.length+' deal(s)…</div>';
+    let okCount=0, failCount=0;
+    for(const row of rows){
+      const data = getCurrentDealData();
+      data.id = Date.now().toString() + Math.random().toString(36).slice(2,6);
+      data.custName = row.name;
+      if(row.arr) data.targetArr = parseFloat(row.arr) || data.targetArr;
+      if(row.smcKey) data.smcKey = row.smcKey;
+      if(row.smcFile) data.smcFileName = row.smcFile;
+      data.status='Submitted'; data.approvalStage='core';
+      const r = await apiSaveDeal(data,'','',true);
+      if(r && r.saved) okCount++; else failCount++;
+    }
+    if(okCount>0){
+      clearDraft();
+      box.innerHTML='<div style="text-align:center;padding:18px 8px">'+
+        '<div style="width:52px;height:52px;border-radius:50%;background:#f0fdf4;border:2px solid #86efac;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;color:#16a34a">✓</div>'+
+        '<div style="font-weight:700;font-size:1.05rem;color:#0A1628;margin-bottom:6px">'+okCount+' deal(s) submitted'+(failCount?', '+failCount+' failed — try those again':'')+'.</div>'+
+        '<div style="font-size:.82rem;color:#555">Each customer under this partner is now its own deal in the pipeline.</div>'+
+        '<div style="margin-top:16px"><button class="btn btn-primary" onclick="closeSubmitModal();goStep(7)">View Pipeline</button></div></div>';
+    } else {
+      box.innerHTML='<div style="text-align:center;padding:18px 8px"><div style="font-weight:700;color:#b91c1c;margin-bottom:6px">Submission failed</div><div style="font-size:.8rem;color:#555">Please try again. If it persists, your session may need a refresh.</div><div style="margin-top:14px"><button class="btn btn-secondary" onclick="closeSubmitModal()">Close</button></div></div>';
+    }
+    return;
+  }
+
   const data=getCurrentDealData();
   // Only a genuinely NEW deal gets Submitted status and the submission
   // notification. Re-saving a loaded deal keeps its current stage — the old
@@ -6099,7 +6258,6 @@ async function finalizeSubmit(){
     data.status='Submitted';
     data.approvalStage='core';
   }
-  const box=document.getElementById('submit-modal-box');
   box.innerHTML='<div style="text-align:center;padding:26px 8px;font-size:.85rem;color:#555">Submitting…</div>';
   const apiResult=await apiSaveDeal(data,'','',isNew);
   if(isNew && apiResult && apiResult.saved){ window._loadedDealId = apiResult.id; }
