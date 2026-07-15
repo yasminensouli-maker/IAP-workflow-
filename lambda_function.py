@@ -581,7 +581,12 @@ def lambda_handler(event, context):
             # On an explicit admin/core DNE-set: derived from the ARR basis
             # they entered (sent as dneBasisArr). On any other save: the
             # previously stored value is preserved, whatever the client sent.
-            if body.get('submitted') and not old_item:
+            # A deal saved as a Draft first and submitted later must still get
+            # its DNE computed. The old condition (not old_item) meant "never
+            # saved before", which silently skipped DNE for any draft-then-
+            # submit path — the deal would sit at $0 forever.
+            was_already_submitted = bool(old_item) and old_item.get('status') not in ('', 'Draft', None)
+            if body.get('submitted') and not was_already_submitted:
                 deal['dne'] = compute_deal_dne(deal)
             elif body.get('dneBasisArr') is not None:
                 if session.get('tier') not in ('admin', 'core'):
@@ -601,7 +606,11 @@ def lambda_handler(event, context):
                     return deny_tier(' / '.join(required))
 
             # Status-transition emails (PRD Section 8)
-            if body.get('submitted') and not old_item:
+            # Same fix for notifications: a draft that is later submitted is a
+            # real first submission and must notify approvers and reach
+            # Smartsheet. Re-saving an ALREADY-submitted deal still must not
+            # re-notify or reset its stage.
+            if body.get('submitted') and not was_already_submitted:
                 deal['status'] = curr_status = 'Submitted'
                 deal['submittedAt'] = now_utc()
                 deal['stageEnteredAt'] = deal['submittedAt']

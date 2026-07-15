@@ -1436,7 +1436,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
       <span class="tier-badge tier-admin">Admin</span> Full access — approval, pipeline &amp; budget
     </div>
 
-    <div style="text-align:center;margin-top:18px;font-size:.68rem;color:var(--ink3)">Produced by Groupe CloudZero Inc. · Build 85</div>
+    <div style="text-align:center;margin-top:18px;font-size:.68rem;color:var(--ink3)">Produced by Groupe CloudZero Inc. · Build 86</div>
   </div>
 </div>
 
@@ -1537,7 +1537,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
 
       <div class="sidebar-section">
         <div class="sidebar-label">Actions</div>
-        <button class="btn btn-secondary btn-sm" style="width:100%;margin-bottom:6px" onclick="saveDraft()">💾 Save Draft</button>
+        <button class="btn btn-secondary btn-sm" style="width:100%;margin-bottom:6px" onclick="saveDraftToServer()">💾 Save Draft</button>
         <button class="btn btn-secondary btn-sm" style="width:100%;margin-bottom:6px" onclick="loadDraft()">📂 Load Draft</button>
         <button class="btn btn-secondary btn-sm" style="width:100%" onclick="clearAll()">🗑 Clear</button>
       </div>
@@ -1856,7 +1856,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
 
           <div class="btn-row">
             
-            <button class="btn btn-secondary" onclick="saveDraft()">Save Draft</button>
+            <button class="btn btn-secondary" onclick="saveDraftToServer()">Save Draft</button>
           </div>
         </div>
 
@@ -2360,7 +2360,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
       
         <div class="btn-row">
           <button class="btn btn-primary" onclick="goStep(6)">Continue → Deal Summary</button>
-          <button class="btn btn-secondary" onclick="saveDraft()">Save Draft</button>
+          <button class="btn btn-secondary" onclick="saveDraftToServer()">Save Draft</button>
           <button class="btn btn-aws" onclick="exportIPIC()">Export IPIC / Smartsheet Row</button>
         </div>
         </div><!-- /aws-specialist-view -->
@@ -5846,9 +5846,46 @@ function getCurrentDealData(){
 }
 
 function saveDraft(){
+  // Kept for the legacy local-only path; saveDraftToServer is what the
+  // buttons now call. Local storage alone does not survive a different
+  // machine, a cleared browser, or another person needing to see the deal.
   const data=getCurrentDealData();
   localStorage.setItem('iap-draft',JSON.stringify(data));
   alert('Draft saved.');
+}
+
+async function saveDraftToServer(){
+  // A REAL draft: writes to the server so the deal survives a reboot, a
+  // different computer, or a cleared browser — but deliberately does NOT
+  // set submitted:true, so no approver is emailed, nothing goes to
+  // Smartsheet, and the deal does not enter the approval queue. The
+  // Lambda only notifies when submitted:true is sent on a new deal.
+  const data = getCurrentDealData();
+  if(!data.dealName && !data.custName){
+    alert('Add at least a deal name or customer name before saving a draft.');
+    return;
+  }
+  const isNew = !window._loadedDealId;
+  if(isNew && !data.status) data.status = 'Draft';
+
+  const btns = document.querySelectorAll('[onclick="saveDraftToServer()"]');
+  btns.forEach(b=>{ b.dataset.orig = b.textContent; b.textContent = 'Saving…'; b.disabled = true; });
+
+  try{
+    const result = await apiSaveDeal(data, '', '', false);
+    if(result && result.saved){
+      if(isNew && result.id) window._loadedDealId = result.id;
+      // Local copy too, so a reload before the next server call still has it.
+      try{ localStorage.setItem(DRAFT_KEY, JSON.stringify({deal:getCurrentDealData(), loadedDealId: window._loadedDealId||null, savedAt: Date.now()})); }catch(e){}
+      alert('Draft saved to the server.\n\nIt is safe to close this browser or restart your computer — find it in the Pipeline under status "Draft" and click View to keep editing.\n\nNo approver has been notified. Submit when the deal is ready for review.');
+    } else {
+      alert('Could not save the draft to the server. Your work is still saved in this browser — do not close it. Try again, or check your connection.');
+    }
+  }catch(e){
+    alert('Could not save the draft to the server ('+friendlyError(e)+')\n\nYour work is still saved in this browser — do not close it until this succeeds.');
+  }finally{
+    btns.forEach(b=>{ if(b.dataset.orig) b.textContent = b.dataset.orig; b.disabled = false; });
+  }
 }
 
 function loadDraft(){
