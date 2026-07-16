@@ -46,10 +46,13 @@ REMINDER_KEY = os.environ.get('REMINDER_KEY', '')  # shared secret for the Event
 INTEL_PRICING_ENDPOINT = os.environ.get('INTEL_PRICING_ENDPOINT', 'http://52.26.245.170:8502/api/chat')
 INTEL_PRICING_KEY = os.environ.get('INTEL_PRICING_KEY', '')
 
-# Approver emails — comma-separated env vars. CHRIS_EMAIL empty until provided.
+# Approver emails — comma-separated env vars. Every default below is a real
+# address so notifications reach the full team without depending on env-var
+# config being present; CHRIS_EMAIL was previously empty, which silently left
+# him off every reviewer notification.
 REVIEWER_EMAILS = [e.strip() for e in os.environ.get(
     'REVIEWER_EMAILS', 'yasmine@cloudzero.ca,reidelj@amazon.com').split(',') if e.strip()]
-CHRIS_EMAIL = os.environ.get('CHRIS_EMAIL', '').strip()
+CHRIS_EMAIL = os.environ.get('CHRIS_EMAIL', 'clchrisz@amazon.com').strip()
 if CHRIS_EMAIL and CHRIS_EMAIL not in REVIEWER_EMAILS:
     REVIEWER_EMAILS.append(CHRIS_EMAIL)
 INTEL_EMAILS = [e.strip() for e in os.environ.get(
@@ -279,9 +282,10 @@ def notify_submitted(deal):
 
 Next step: review the deal, run the DNE calculator, and approve to route to Intel leadership.
 {time.strftime('%B %d, %Y')}"""
-    ok_sent = send_email(REVIEWER_EMAILS, subject, body)
+    sub_recips = list(dict.fromkeys(REVIEWER_EMAILS + [TCC_EMAIL]))
+    ok_sent = send_email(sub_recips, subject, body)
     if ok_sent:
-        log_email(deal, REVIEWER_EMAILS, subject)
+        log_email(deal, sub_recips, subject)
     return ok_sent
 
 def notify_intel(deal):
@@ -292,9 +296,13 @@ def notify_intel(deal):
 
 Reply through the app: approve, or ask a question. Questions are logged against the deal record.
 {time.strftime('%B %d, %Y')}"""
-    ok_sent = send_email(INTEL_EMAILS, subject, body)
+    # Jacob (TCC) is copied on every funding approval: he owns SOW issuance and
+    # chases the collection items, so he needs the DNE when it is set, not only
+    # once Intel has approved. dict.fromkeys de-dupes if he is already listed.
+    recips = list(dict.fromkeys(INTEL_EMAILS + [TCC_EMAIL]))
+    ok_sent = send_email(recips, subject, body)
     if ok_sent:
-        log_email(deal, INTEL_EMAILS, subject)
+        log_email(deal, recips, subject)
     return ok_sent
 
 def notify_question(deal, question, asked_by):
@@ -565,7 +573,11 @@ def lambda_handler(event, context):
                 deal.setdefault('qaLog', old_item.get('qaLog', []))
                 deal.setdefault('sowVersions', old_item.get('sowVersions', []))
                 for f in AUDITED_FIELDS:
-                    if f in deal:
+                    # 'dne' is deliberately skipped here: at this point it still
+                    # holds whatever the browser sent, and the server has not yet
+                    # computed the real value. It is audited below, after
+                    # compute, so the trail records the number actually stored.
+                    if f in deal and f != 'dne':
                         audit(deal, editor, f, old_item.get(f), deal.get(f))
 
             # An edit-save with a blank status keeps the stored status — a
@@ -586,14 +598,34 @@ def lambda_handler(event, context):
             # saved before", which silently skipped DNE for any draft-then-
             # submit path — the deal would sit at $0 forever.
             was_already_submitted = bool(old_item) and old_item.get('status') not in ('', 'Draft', None)
-            if body.get('submitted') and not was_already_submitted:
-                deal['dne'] = compute_deal_dne(deal)
-            elif body.get('dneBasisArr') is not None:
+            # INVARIANT: the stored DNE must ALWAYS equal its stated basis x
+            # rate. Previously an edit-save preserved the old DNE verbatim, so
+            # correcting the Intel-Eligible ARR left the DNE frozen at the old
+            # value while the UI's own "how this was calculated" text showed
+            # the NEW arr x rate — the record contradicted itself and understated
+            # real deals. Recompute on every save; an explicit admin DNE-set
+            # also writes its basis back to intelEligibleArr so the two can
+            # never drift apart again. Every change is captured in auditLog.
+            if body.get('dneBasisArr') is not None:
                 if session.get('tier') not in ('admin', 'core'):
                     return deny_tier('AWS Approval')
-                deal['dne'] = round(compute_dne(body.get('dneBasisArr', 0), deal.get('actType', '')), 2)
-            elif old_item:
-                deal['dne'] = old_item.get('dne', deal.get('dne', 0))
+                try:
+                    basis = float(body.get('dneBasisArr') or 0)
+                except (TypeError, ValueError):
+                    basis = 0.0
+                # Store the basis as the eligible ARR so the displayed
+                # explanation is literally true of the stored number.
+                deal['intelEligibleArr'] = basis
+                deal['dne'] = round(compute_dne(basis, deal.get('actType', '')), 2)
+            else:
+                deal['dne'] = compute_deal_dne(deal)
+
+            # Audit the DNE against what was actually stored before — this runs
+            # after compute so the trail reflects the real number, not the
+            # browser's suggestion. Without this, a change to the funded amount
+            # left no record of who moved it or when.
+            if old_item:
+                audit(deal, editor, 'dne', old_item.get('dne'), deal.get('dne'))
 
             # ── Approval-stage transitions require the right approver tier. ──
             if prev_status != curr_status and curr_status:
