@@ -1327,7 +1327,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
     <div style="text-align:center;margin-bottom:30px">
       <div style="font-size:.72rem;color:#FF9900;text-transform:uppercase;letter-spacing:.18em;font-weight:700;margin-bottom:12px">20+ Years of Joint Engineering</div>
       <h1 style="font-size:2rem;font-weight:900;color:#fff;margin:0 0 14px 0;line-height:1.2">Intel and AWS are moving<br>the industry forward together.</h1>
-      <p style="font-size:.88rem;color:rgba(255,255,255,.65);line-height:1.8;margin:0 auto;max-width:580px">Intel Xeon 6 processors are custom-engineered exclusively for AWS — available on no other hyperscaler. The Intel Accelerate Program provides resources to support the most strategic customer migrations and modernizations, funded directly by Intel so AWS sellers accelerate deals without touching quota.</p>
+      <p style="font-size:.88rem;color:rgba(255,255,255,.65);line-height:1.8;margin:0 auto;max-width:580px">Intel Xeon 6 processors are custom-engineered exclusively for AWS — available on no other hyperscaler. The Intel Accelerate Program provides resources to support customer migrations and modernizations, funded directly by Intel so AWS sellers accelerate deals without touching quota.</p>
     </div>
 
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:24px">
@@ -1646,74 +1646,6 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
             </div>
           </div>
 
-          <div class="section-card" id="solver-card">
-            <div class="section-card-title">What-Could-Be Explorer</div>
-            <div style="font-size:.72rem;color:var(--ink3);margin-bottom:12px">A quick two-way sketch — enter <strong>either</strong> the EC2 instance spend <strong>or</strong> a number of instances, and this fills in the rest, the vCPUs, and the Intel ROI both ways. This is an estimate for the conversation, separate from the binding deal ARR below.</div>
-
-            <div class="form-grid" style="grid-template-columns:1fr 1fr">
-              <div class="f-group">
-                <label>Intel family / generation</label>
-                <select id="solver-family" onchange="runSolver('family')"></select>
-              </div>
-              <div class="f-group">
-                <label>Instance size</label>
-                <select id="solver-size" onchange="runSolver('family')">
-                  <option value="large">large (2 vCPU)</option>
-                  <option value="xlarge">xlarge (4 vCPU)</option>
-                  <option value="2xlarge" selected>2xlarge (8 vCPU)</option>
-                  <option value="4xlarge">4xlarge (16 vCPU)</option>
-                  <option value="8xlarge">8xlarge (32 vCPU)</option>
-                  <option value="12xlarge">12xlarge (48 vCPU)</option>
-                  <option value="16xlarge">16xlarge (64 vCPU)</option>
-                  <option value="24xlarge">24xlarge (96 vCPU)</option>
-                  <option value="32xlarge">32xlarge (128 vCPU)</option>
-                  <option value="48xlarge">48xlarge (192 vCPU)</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="form-grid" style="grid-template-columns:1fr 1fr;align-items:end">
-              <div class="f-group">
-                <label>EC2 instance spend — annual ($)</label>
-                <input type="number" id="solver-spend" min="0" step="10000" placeholder="e.g. 1000000" oninput="runSolver('spend')">
-                <span class="hint" style="font-size:.62rem">EC2 compute only — NOT total AWS spend. From the Simple Monthly Calculator.</span>
-              </div>
-              <div class="f-group">
-                <label># of instances</label>
-                <input type="number" id="solver-count" min="0" step="1" placeholder="e.g. 504" oninput="runSolver('count')">
-                <span class="hint" style="font-size:.62rem">Enter this if you know the fleet size instead of the spend.</span>
-              </div>
-            </div>
-
-            <details style="margin:4px 0 12px">
-              <summary style="cursor:pointer;font-size:.68rem;color:var(--intel);font-weight:600">Assumptions (editable)</summary>
-              <div class="form-grid" style="grid-template-columns:1fr 1fr;margin-top:8px">
-                <div class="f-group">
-                  <label style="font-size:.68rem">EC2 spend per vCPU ($/yr)</label>
-                  <input type="number" id="solver-per-vcpu" value="20000" min="0" step="500" oninput="runSolver('assump')">
-                  <span class="hint" style="font-size:.6rem">High-level anchor. Update when the team has a sharper figure.</span>
-                </div>
-                <div class="f-group">
-                  <label style="font-size:.68rem">Funding rate (% of EC2 spend)</label>
-                  <input type="number" id="solver-rate" value="1.5" min="0" max="5" step="0.1" oninput="runSolver('assump')">
-                  <span class="hint" style="font-size:.6rem">IAP Modernize logic: ~1–2% of EC2 spend.</span>
-                </div>
-              </div>
-            </details>
-
-            <div id="solver-output" style="display:none">
-              <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
-                <div style="flex:2;min-width:200px;background:linear-gradient(135deg,#0A1628,#12233f);border-radius:10px;padding:14px 16px;color:#fff">
-                  <div style="font-size:.64rem;text-transform:uppercase;letter-spacing:.05em;opacity:.7">Intel ROI — value unlocked</div>
-                  <div id="solver-roi-headline" style="font-size:1.35rem;font-weight:800;margin-top:2px">—</div>
-                  <div id="solver-roi-sub" style="font-size:.68rem;opacity:.75;margin-top:3px"></div>
-                </div>
-              </div>
-              <div style="display:flex;gap:8px;flex-wrap:wrap" id="solver-tiles"></div>
-              <button type="button" class="btn btn-secondary btn-sm" style="margin-top:12px" onclick="solverToDeal()">Use this EC2 spend as the deal ARR ↓</button>
-              <div id="solver-confirm" style="display:none;font-size:.7rem;color:#166534;margin-top:6px;font-weight:600">✓ Carried into Intel-Eligible ARR below.</div>
-            </div>
-          </div>
 
           <div class="section-card">
             <div class="section-card-title">Current & Target Infrastructure</div>
@@ -1855,7 +1787,8 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
           </div>
 
           <div class="btn-row">
-            
+            <button class="btn btn-primary" onclick="goStep(6)">Continue &rarr; Deal Summary</button>
+            <button class="btn btn-secondary" onclick="goStep(3)">&#9889; Open the Funding Calculator</button>
             <button class="btn btn-secondary" onclick="saveDraftToServer()">Save Draft</button>
           </div>
         </div>
@@ -2159,7 +2092,8 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
             <div style="display:flex;gap:12px;margin-top:10px;flex-wrap:wrap">
               <div class="f-group" style="min-width:220px">
                 <label>Intel-Eligible ARR ($) <span class="req">*</span></label>
-                <input type="number" id="intel-eligible-arr" placeholder="0" min="0" oninput="this.dataset.userEdited=1">
+                <input type="number" id="intel-eligible-arr" placeholder="0" min="0" oninput="this.dataset.userEdited=1;window._arrSource=null;var b=document.getElementById('arr-source-badge');if(b)b.style.display='none'">
+                <div id="arr-source-badge" style="display:none;font-size:.68rem;font-weight:700;color:#0068B5;background:#eef5ff;border:1px solid #d3e3fb;border-radius:5px;padding:4px 8px;margin-top:5px"></div>
                 <span class="hint">This is the number that drives DNE and the funding math — not total ARR, and not necessarily the same as ACE ARR.</span>
                 <div style="font-size:.7rem;color:var(--ink2);background:#f6f9ff;border:1px solid #dbe6f7;border-radius:6px;padding:7px 10px;margin-top:6px;line-height:1.5">Keep the full ACE amount above. The Intel-eligible figure here is usually a portion of it — often smaller — and that's expected. Enter the part of this opportunity that runs on eligible Intel instances.</div>
               </div>
@@ -2384,8 +2318,42 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
         <div class="section-card" style="margin-bottom:16px">
           <div class="section-card-title">Step 1 — BOM to Intel Instances</div>
           <div style="font-size:.74rem;color:var(--ink3);margin-bottom:12px">Start here: take what's in your BOM and translate it into the Intel-powered instances that back the funding ask. Add a fleet per region if pricing differs — each region prices differently.</div>
-          <!-- Three-tab method selector -->
-          <div style="display:flex;gap:0;margin-bottom:16px;border:1px solid var(--border);border-radius:6px;overflow:hidden">
+          <!-- ONE FRONT DOOR. The deal ARR used to be settable from five
+               places, which meant two sellers could produce two different
+               funding numbers on the same deal and neither could say why.
+               One question decides the path; the others stay closed. -->
+          <div id="calc-gate" style="margin-bottom:16px">
+            <div style="font-size:.86rem;font-weight:700;color:var(--ink);margin-bottom:4px">What do you have in front of you right now?</div>
+            <div style="font-size:.74rem;color:var(--ink3);margin-bottom:12px">Pick one. That answer decides how the funding number is worked out, and it gets recorded on the deal so anyone reviewing it can see where the figure came from.</div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px">
+              <button type="button" onclick="chooseInput('bom')" style="text-align:left;padding:14px;border:1px solid var(--border);border-radius:8px;background:#fff;cursor:pointer">
+                <div style="font-weight:700;font-size:.8rem;color:#0068B5;margin-bottom:4px">A BOM or instance list</div>
+                <div style="font-size:.72rem;color:var(--ink3);line-height:1.5">You know the instance families, sizes, counts and regions. Builds the fleet and prices it.</div>
+              </button>
+              <button type="button" onclick="chooseInput('sap')" style="text-align:left;padding:14px;border:1px solid var(--border);border-radius:8px;background:#fff;cursor:pointer">
+                <div style="font-weight:700;font-size:.8rem;color:#0068B5;margin-bottom:4px">A SAP RISE BOM</div>
+                <div style="font-size:.72rem;color:var(--ink3);line-height:1.5">An AWS Avg ARR figure from a RISE export. Strips storage and network passthrough before the rate applies.</div>
+              </button>
+              <button type="button" onclick="chooseInput('costexplorer')" style="text-align:left;padding:14px;border:1px solid var(--border);border-radius:8px;background:#fff;cursor:pointer">
+                <div style="font-weight:700;font-size:.8rem;color:#0068B5;margin-bottom:4px">A Cost Explorer export</div>
+                <div style="font-size:.72rem;color:var(--ink3);line-height:1.5">The customer's existing fleet. Maps every instance to its Intel 8th gen target and totals the modernized spend.</div>
+              </button>
+              <button type="button" onclick="chooseInput('estimate')" style="text-align:left;padding:14px;border:1px solid var(--border);border-radius:8px;background:#fff;cursor:pointer">
+                <div style="font-weight:700;font-size:.8rem;color:#0068B5;margin-bottom:4px">No numbers yet</div>
+                <div style="font-size:.72rem;color:var(--ink3);line-height:1.5">A spend figure or a rough instance count is enough to size the conversation. An estimate, not a binding ask.</div>
+              </button>
+            </div>
+          </div>
+
+          <!-- Chosen-input strip: replaces the tab row once a path is picked -->
+          <div id="calc-input-strip" style="display:none;margin-bottom:16px;padding:9px 13px;background:#f8fafc;border:1px solid var(--border);border-radius:6px;align-items:center;gap:12px;flex-wrap:wrap">
+            <span style="font-size:.74rem;color:var(--ink2)">Working from: <strong id="calc-input-label" style="color:#0068B5"></strong></span>
+            <button type="button" onclick="resetInputChoice()" style="background:none;border:none;color:#0068B5;font-size:.72rem;font-weight:700;cursor:pointer;text-decoration:underline;padding:0">Change</button>
+            <button type="button" onclick="setBaselineMethod(3)" style="background:none;border:none;color:var(--ink3);font-size:.72rem;font-weight:700;cursor:pointer;text-decoration:underline;padding:0">&#9889; Ask Intel Anything</button>
+          </div>
+
+          <!-- Method tabs stay in the DOM but are no longer the entry point -->
+          <div id="method-tabs" style="display:none;gap:0;margin-bottom:16px;border:1px solid var(--border);border-radius:6px;overflow:hidden">
             <button id="method-btn-1" onclick="setBaselineMethod(1)"
               style="flex:1;padding:10px;font-family:Arial,sans-serif;font-size:.75rem;font-weight:700;border:none;background:var(--intel);color:#fff;cursor:pointer;border-right:1px solid rgba(255,255,255,.2)">
               Fleet Builder
@@ -2401,7 +2369,92 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
           </div>
 
           <!-- Method 1: Fleet Builder — BOM to Intel instances, multi-fleet for multi-region -->
-          <div id="baseline-method-1">
+          <!-- Method 5: Cost Explorer export -> modernization mapping -->
+          <div id="baseline-method-5" style="display:none">
+            <div class="alert alert-info" style="margin-bottom:12px">
+              <strong>Cost Explorer export.</strong> New report, 6-month range, dimension Instance type, usage type group Running Hours, amortized costs, downloaded as CSV. Every instance is mapped to its Intel 8th gen target from the same vetted table the Fleet Builder uses, and the modernized annual spend is totalled.
+            </div>
+            <div style="background:#f8fafc;border:1px solid var(--border);border-radius:6px;padding:12px 14px;margin-bottom:12px">
+              <input type="file" id="ce-upload" accept=".csv" onchange="handleCostExplorerUpload(this)" style="max-width:320px;font-size:.78rem">
+              <div id="ce-status" style="font-size:.74rem;color:var(--ink3);margin-top:8px"></div>
+            </div>
+            <div id="ce-result" style="display:none"></div>
+          </div>
+
+          <!-- Method 4: What-Could-Be Explorer (moved out of the Intel-only view
+               so both AWS and Intel sellers reach the same estimator) -->
+          <div id="baseline-method-4" style="display:none">
+          <div class="section-card" id="solver-card">
+            <div class="section-card-title">What-Could-Be Explorer</div>
+            <div style="font-size:.72rem;color:var(--ink3);margin-bottom:12px">A quick two-way sketch — enter <strong>either</strong> the EC2 instance spend <strong>or</strong> a number of instances, and this fills in the rest, the vCPUs, and the Intel ROI both ways. This is an estimate for the conversation, separate from the binding deal ARR below.</div>
+
+            <div class="form-grid" style="grid-template-columns:1fr 1fr">
+              <div class="f-group">
+                <label>Intel family / generation</label>
+                <select id="solver-family" onchange="runSolver('family')"></select>
+              </div>
+              <div class="f-group">
+                <label>Instance size</label>
+                <select id="solver-size" onchange="runSolver('family')">
+                  <option value="large">large (2 vCPU)</option>
+                  <option value="xlarge">xlarge (4 vCPU)</option>
+                  <option value="2xlarge" selected>2xlarge (8 vCPU)</option>
+                  <option value="4xlarge">4xlarge (16 vCPU)</option>
+                  <option value="8xlarge">8xlarge (32 vCPU)</option>
+                  <option value="12xlarge">12xlarge (48 vCPU)</option>
+                  <option value="16xlarge">16xlarge (64 vCPU)</option>
+                  <option value="24xlarge">24xlarge (96 vCPU)</option>
+                  <option value="32xlarge">32xlarge (128 vCPU)</option>
+                  <option value="48xlarge">48xlarge (192 vCPU)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-grid" style="grid-template-columns:1fr 1fr;align-items:end">
+              <div class="f-group">
+                <label>EC2 instance spend — annual ($)</label>
+                <input type="number" id="solver-spend" min="0" step="10000" placeholder="e.g. 1000000" oninput="runSolver('spend')">
+                <span class="hint" style="font-size:.62rem">EC2 compute only — NOT total AWS spend. From the Simple Monthly Calculator.</span>
+              </div>
+              <div class="f-group">
+                <label># of instances</label>
+                <input type="number" id="solver-count" min="0" step="1" placeholder="e.g. 504" oninput="runSolver('count')">
+                <span class="hint" style="font-size:.62rem">Enter this if you know the fleet size instead of the spend.</span>
+              </div>
+            </div>
+
+            <details style="margin:4px 0 12px">
+              <summary style="cursor:pointer;font-size:.68rem;color:var(--intel);font-weight:600">Assumptions (editable)</summary>
+              <div class="form-grid" style="grid-template-columns:1fr 1fr;margin-top:8px">
+                <div class="f-group">
+                  <label style="font-size:.68rem">EC2 spend per vCPU ($/yr)</label>
+                  <input type="number" id="solver-per-vcpu" value="20000" min="0" step="500" oninput="runSolver('assump')">
+                  <span class="hint" style="font-size:.6rem">High-level anchor. Update when the team has a sharper figure.</span>
+                </div>
+                <div class="f-group">
+                  <label style="font-size:.68rem">Funding rate (% of EC2 spend)</label>
+                  <input type="number" id="solver-rate" value="1.5" min="0" max="5" step="0.1" oninput="runSolver('assump')">
+                  <span class="hint" style="font-size:.6rem">IAP Modernize logic: ~1–2% of EC2 spend.</span>
+                </div>
+              </div>
+            </details>
+
+            <div id="solver-output" style="display:none">
+              <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+                <div style="flex:2;min-width:200px;background:linear-gradient(135deg,#0A1628,#12233f);border-radius:10px;padding:14px 16px;color:#fff">
+                  <div style="font-size:.64rem;text-transform:uppercase;letter-spacing:.05em;opacity:.7">Intel ROI — value unlocked</div>
+                  <div id="solver-roi-headline" style="font-size:1.35rem;font-weight:800;margin-top:2px">—</div>
+                  <div id="solver-roi-sub" style="font-size:.68rem;opacity:.75;margin-top:3px"></div>
+                </div>
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap" id="solver-tiles"></div>
+              <button type="button" class="btn btn-secondary btn-sm" style="margin-top:12px" onclick="solverToDeal()">Use this EC2 spend as the deal ARR ↓</button>
+              <div id="solver-confirm" style="display:none;font-size:.7rem;color:#166534;margin-top:6px;font-weight:600">✓ Carried into Intel-Eligible ARR below.</div>
+            </div>
+          </div>
+          </div>
+
+          <div id="baseline-method-1" style="display:none">
             <div class="alert alert-info" style="margin-bottom:12px">
               <strong>One fleet per region.</strong> If the same deal spans regions with different pricing, add a fleet for each — the totals below combine automatically.
             </div>
@@ -2624,7 +2677,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:16px 0}
           </div>
           <div style="padding:12px 22px;display:flex;gap:10px;flex-wrap:wrap;border-top:1px solid var(--border)">
             <button class="btn btn-secondary btn-sm" onclick="refreshCRMHeader()">Refresh Record</button>
-            <button class="btn btn-secondary btn-sm" onclick="scoreFunding()">Score Funding Readiness</button>
+            <button class="btn btn-secondary btn-sm" onclick="scoreFunding()">Check it against the approval gates</button>
           </div>
           <div id="funding-score-panel" style="display:none;padding:14px 22px;border-top:1px solid var(--border)"></div>
         </div>
@@ -3791,7 +3844,7 @@ let baselineMethod = 1;
 
 function setBaselineMethod(n){
   baselineMethod=n;
-  [1,2,3].forEach(i=>{
+  [1,2,3,4,5].forEach(i=>{
     const panel=document.getElementById('baseline-method-'+i);
     const btn=document.getElementById('method-btn-'+i);
     if(panel) panel.style.display=i===n?'block':'none';
@@ -3800,6 +3853,41 @@ function setBaselineMethod(n){
       btn.style.color=i===n?'#fff':'var(--ink2)';
     }
   });
+  if(n===4) initSolver();
+  // Any path into the calculator closes the gate, including the deep links
+  // on the Deal Info page that call setBaselineMethod() directly.
+  const gate=document.getElementById('calc-gate');
+  if(gate) gate.style.display='none';
+  const strip=document.getElementById('calc-input-strip');
+  if(strip) strip.style.display='flex';
+}
+
+// The one front door. Records which input the number came from so the
+// derivation travels with the deal instead of living in someone's head.
+const CALC_INPUTS = {
+  bom:          {method:1, label:'a BOM / instance list'},
+  sap:          {method:2, label:'a SAP RISE BOM'},
+  estimate:     {method:4, label:'an estimate — no firm numbers yet'},
+  costexplorer: {method:5, label:'a Cost Explorer export'}
+};
+function chooseInput(kind){
+  const choice = CALC_INPUTS[kind];
+  if(!choice) return;
+  window._calcInputSource = kind;
+  setBaselineMethod(choice.method);
+  const lbl=document.getElementById('calc-input-label');
+  if(lbl) lbl.textContent=choice.label;
+}
+function resetInputChoice(){
+  window._calcInputSource = null;
+  [1,2,3,4,5].forEach(i=>{
+    const p=document.getElementById('baseline-method-'+i);
+    if(p) p.style.display='none';
+  });
+  const gate=document.getElementById('calc-gate');
+  if(gate) gate.style.display='block';
+  const strip=document.getElementById('calc-input-strip');
+  if(strip) strip.style.display='none';
 }
 
 function autoPriceFleet(id){
@@ -4153,40 +4241,184 @@ function runSolver(source){
     tile('ROI — ARR per vCPU', money(arrPerVcpu), 'var(--intel)') +
     tile('ROI — funding per vCPU', money(fundingPerVcpu), '#059669');
 }
+/* ── THE ONLY WRITER OF DEAL ARR ────────────────────────────────
+   Every path that produces a number goes through here, and every one
+   records where it came from. Before this, four functions wrote to
+   intel-eligible-arr independently, so a figure on a submitted deal had
+   no traceable derivation and nobody could answer "show me your math".
+   The source is carried onto the deal record and read by the funding
+   gates — an ARR with no recorded derivation is a flagged risk. */
+function setDealARR(amount, sourceLabel, confirmElId){
+  const dest = document.getElementById('intel-eligible-arr');
+  const val = Math.round(parseFloat(amount) || 0);
+  if(!dest || !(val > 0)) return false;
+  dest.value = val;
+  dest.dataset.userEdited = 1;
+  window._arrSource = sourceLabel || null;
+  window._arrSourceAt = new Date().toISOString();
+  const badge = document.getElementById('arr-source-badge');
+  if(badge){
+    badge.style.display = 'block';
+    badge.textContent = 'Derived from: ' + sourceLabel;
+  }
+  const c = confirmElId ? document.getElementById(confirmElId) : null;
+  if(c){ c.style.display='block'; setTimeout(()=>{ c.style.display='none'; }, 4000); }
+  dest.scrollIntoView({behavior:'smooth', block:'center'});
+  const bg = dest.style.backgroundColor;
+  dest.style.backgroundColor = '#d1fae5';
+  setTimeout(()=>{ dest.style.backgroundColor = bg; }, 1200);
+  return true;
+}
+
+/* ── COST EXPLORER EXPORT -> MODERNIZED ARR ─────────────────────
+   Ported from Chris Clee's modernization agent (cost_explorer_parser +
+   savings_calculator). Same shape of export: row 1 is the header with
+   "<type>($)" and "<type>(Hrs)" columns, row 2 is the period totals, and
+   the rows below it are the monthly breakdown, which is what tells us how
+   many months the export covers so it can be annualized.
+
+   Mapping and pricing come from MOD_MAPPINGS, the same vetted table the
+   Fleet Builder uses, so this path cannot disagree with that one.
+   Modernized cost follows Chris's formula: original x (target price /
+   original price) / performance multiplier. */
+// Global money formatter. fmtD elsewhere in this file is a local const
+// declared separately inside three functions, so it is not reachable here.
+function fmtUSD(v){ return '$' + Math.round(v||0).toLocaleString(); }
+
+const CE_VALID_TYPE = /^(?:db\.|cache\.)?[a-z]+\d[a-z0-9\-]*\.[a-z0-9\-]+(?:\.search)?$|^(?:u-\w+|mac\w*)(?:\.[a-z0-9\-]+)?$/;
+
+function ceSplitCsvLine(line){
+  const out=[]; let cur='', q=false;
+  for(let i=0;i<line.length;i++){
+    const ch=line[i];
+    if(ch === '"'){ if(q && line[i+1]==='"'){ cur+='"'; i++; } else q=!q; }
+    else if(ch === ',' && !q){ out.push(cur); cur=''; }
+    else cur+=ch;
+  }
+  out.push(cur);
+  return out;
+}
+function ceNum(cell){
+  const s = String(cell==null?'':cell).replace(/[$,]/g,'').trim();
+  const n = parseFloat(s);
+  return isNaN(n) ? null : n;
+}
+
+function parseCostExplorerCsv(content){
+  const rows = content.split(/\r?\n/).filter(l=>l.trim().length).map(ceSplitCsvLine);
+  if(rows.length < 2) return {error:'That file has no data rows in it.'};
+  const header = rows[0], totals = rows[1];
+  const nPeriods = Math.max(0, rows.length - 2);
+  const costCols = {}, hrsCols = {};
+  header.forEach((cell, idx) => {
+    const c = String(cell).trim();
+    let m = c.match(/^(.*?)\s*\(\$\)$/);
+    if(m){ const it=m[1].trim(); if(CE_VALID_TYPE.test(it)) costCols[it]=idx; return; }
+    m = c.match(/^(.*?)\s*\((?:Hrs|hrs|Hours)\)$/);
+    if(m){ const it=m[1].trim(); if(CE_VALID_TYPE.test(it)) hrsCols[it]=idx; }
+  });
+  const types = Object.keys(costCols);
+  if(!types.length) return {error:'No instance-type columns found. The export needs the Instance type dimension, with cost columns named like "m5.xlarge($)".'};
+  if(nPeriods === 0) return {error:'That export has a totals row but no monthly rows, so there is no way to tell what period it covers.'};
+
+  const factor = 12 / nPeriods;
+  const out = [];
+  types.forEach(it => {
+    const raw = ceNum(totals[costCols[it]]);
+    if(raw === null) return;
+    out.push({ type: it, annualCost: raw * factor });
+  });
+  return {rows: out, months: nPeriods};
+}
+
+function mapModernization(rows){
+  const mapped = [];
+  let origTotal = 0, modTotal = 0, unmappedCost = 0;
+  rows.forEach(r => {
+    origTotal += r.annualCost;
+    const m = MOD_MAPPINGS[r.type.toLowerCase()];
+    if(!m){
+      unmappedCost += r.annualCost;
+      mapped.push({...r, target:null, modAnnual:r.annualCost, note:'No vetted mapping — carried at current cost, no saving claimed.'});
+      return;
+    }
+    const [target, perf, oldMo, newMo] = m;
+    if(!(oldMo > 0) || !(newMo > 0)){
+      mapped.push({...r, target, modAnnual:r.annualCost, note:'No price on file for this pair — carried at current cost.'});
+      modTotal += r.annualCost;
+      return;
+    }
+    const costMult = newMo / oldMo;
+    const modAnnual = r.annualCost * costMult / (perf || 1);
+    modTotal += modAnnual;
+    mapped.push({...r, target, modAnnual, perf, costMult});
+  });
+  modTotal += unmappedCost;
+  mapped.sort((a,b)=>b.annualCost-a.annualCost);
+  return {mapped, origTotal, modTotal, unmappedCost};
+}
+
+function handleCostExplorerUpload(input){
+  const status = document.getElementById('ce-status');
+  const resultEl = document.getElementById('ce-result');
+  const file = input.files && input.files[0];
+  if(!file) return;
+  status.textContent = 'Reading ' + file.name + '...';
+  const reader = new FileReader();
+  reader.onload = e => {
+    const parsed = parseCostExplorerCsv(String(e.target.result));
+    if(parsed.error){
+      status.innerHTML = '<span style="color:#b91c1c;font-weight:600">' + parsed.error + '</span>';
+      resultEl.style.display='none';
+      return;
+    }
+    const {mapped, origTotal, modTotal, unmappedCost} = mapModernization(parsed.rows);
+    window._ceResult = {mapped, origTotal, modTotal, months:parsed.months};
+    const covered = parsed.months === 12 ? '12 months' : parsed.months + ' months, annualized';
+    status.innerHTML = mapped.length + ' instance types read from ' + covered + '.' +
+      (unmappedCost > 0 ? ' <span style="color:#92400e">' + fmtUSD(unmappedCost) + ' of it has no vetted mapping and is carried at current cost.</span>' : '');
+
+    const rowsHtml = mapped.slice(0,40).map(r =>
+      '<tr>' +
+      '<td style="padding:5px 9px;border-bottom:1px solid #eef2f7">' + r.type + '</td>' +
+      '<td style="padding:5px 9px;border-bottom:1px solid #eef2f7;color:' + (r.target?'#0068B5':'#92400e') + ';font-weight:600">' + (r.target || 'no mapping') + '</td>' +
+      '<td style="padding:5px 9px;border-bottom:1px solid #eef2f7;text-align:right">' + fmtUSD(Math.round(r.annualCost)) + '</td>' +
+      '<td style="padding:5px 9px;border-bottom:1px solid #eef2f7;text-align:right">' + fmtUSD(Math.round(r.modAnnual)) + '</td>' +
+      '</tr>').join('');
+
+    resultEl.style.display = 'block';
+    resultEl.innerHTML =
+      '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px">' +
+        '<div style="flex:1;min-width:150px;background:#fff;border:1px solid #e3e9f2;border-radius:8px;padding:10px 12px"><div style="font-size:.64rem;text-transform:uppercase;letter-spacing:.04em;color:var(--ink3)">Current annual spend</div><div style="font-size:1rem;font-weight:800">' + fmtUSD(Math.round(origTotal)) + '</div></div>' +
+        '<div style="flex:1;min-width:150px;background:#fff;border:1px solid #e3e9f2;border-radius:8px;padding:10px 12px"><div style="font-size:.64rem;text-transform:uppercase;letter-spacing:.04em;color:var(--ink3)">Modernized annual spend</div><div style="font-size:1rem;font-weight:800;color:#0068B5">' + fmtUSD(Math.round(modTotal)) + '</div></div>' +
+        '<div style="flex:1;min-width:150px;background:#fff;border:1px solid #e3e9f2;border-radius:8px;padding:10px 12px"><div style="font-size:.64rem;text-transform:uppercase;letter-spacing:.04em;color:var(--ink3)">Change</div><div style="font-size:1rem;font-weight:800;color:' + (modTotal<=origTotal?'#166534':'#92400e') + '">' + (modTotal<=origTotal?'-':'+') + fmtUSD(Math.abs(Math.round(modTotal-origTotal))) + '</div></div>' +
+      '</div>' +
+      '<div style="font-size:.72rem;color:var(--ink3);margin-bottom:8px">The modernized figure is what the rate applies to — the funding is a share of future Intel spend, not of what the customer spends today.</div>' +
+      '<div style="overflow:auto;max-height:320px;border:1px solid var(--border);border-radius:6px;margin-bottom:12px">' +
+      '<table style="border-collapse:collapse;font-size:.72rem;width:100%">' +
+      '<thead><tr style="background:#f8fafc"><th style="padding:6px 9px;text-align:left">Current</th><th style="padding:6px 9px;text-align:left">Intel target</th><th style="padding:6px 9px;text-align:right">Annual now</th><th style="padding:6px 9px;text-align:right">Annual after</th></tr></thead>' +
+      '<tbody>' + rowsHtml + '</tbody></table></div>' +
+      (mapped.length>40 ? '<div style="font-size:.7rem;color:var(--ink3);margin-bottom:8px">Showing the 40 largest by spend. All ' + mapped.length + ' are included in the totals.</div>' : '') +
+      '<button type="button" class="btn btn-secondary btn-sm" onclick="ceToDeal()">Use the modernized spend as the deal ARR &darr;</button>' +
+      '<div id="ce-confirm" style="display:none;font-size:.7rem;color:#166534;margin-top:6px;font-weight:600">&#10003; Carried into Intel-Eligible ARR below.</div>';
+  };
+  reader.readAsText(file);
+}
+
+function ceToDeal(){
+  const r = window._ceResult;
+  if(!r) return;
+  setDealARR(r.modTotal, 'a Cost Explorer export (' + r.mapped.length + ' instance types, ' + r.months + ' months)', 'ce-confirm');
+}
+
 function solverToDeal(){
   const spend = parseFloat((document.getElementById('solver-spend')||{}).value) || 0;
-  const dest = document.getElementById('intel-eligible-arr');
-  if(dest && spend > 0){
-    dest.value = Math.round(spend);
-    dest.dataset.userEdited = 1;
-    const c = document.getElementById('solver-confirm');
-    if(c){ c.style.display='block'; setTimeout(()=>{c.style.display='none';},4000); }
-    dest.scrollIntoView({behavior:'smooth', block:'center'});
-    const bg = dest.style.backgroundColor; dest.style.backgroundColor='#d1fae5';
-    setTimeout(()=>{ dest.style.backgroundColor=bg; }, 1200);
-  }
+  setDealARR(spend, 'the estimator (no firm numbers)', 'solver-confirm');
 }
 
 function useEstimatedArr(){
-  // Closes the gap the estimator used to leave open: the number it computes
-  // was display-only, so the person had to remember it and retype it into
-  // Intel-Eligible ARR further down the same page. This carries it directly,
-  // marks it as an intentional entry (same as typing it by hand — fleet
-  // totals will no longer silently overwrite it), and scrolls to where it
-  // landed so the person can see it happened, not just trust that it did.
   const src = document.getElementById('est-arr-intel');
-  const dest = document.getElementById('intel-eligible-arr');
-  const arr = parseFloat(src ? src.value : 0) || 0;
-  if(!dest || arr <= 0) return;
-  dest.value = arr;
-  dest.dataset.userEdited = 1;
-  const confirm = document.getElementById('use-arr-confirm');
-  if(confirm){ confirm.style.display = 'block'; setTimeout(()=>{ confirm.style.display='none'; }, 4000); }
-  dest.scrollIntoView({behavior:'smooth', block:'center'});
-  const originalBg = dest.style.backgroundColor;
-  dest.style.backgroundColor = '#d1fae5';
-  dest.focus();
-  setTimeout(()=>{ dest.style.backgroundColor = originalBg; }, 1200);
+  setDealARR(src ? src.value : 0, 'the quick estimate on this page', 'use-arr-confirm');
 }
 
 function calcIntelFunding(){
@@ -6398,18 +6630,21 @@ function dealChecklist(data){
 
 function showSubmitSummary(){
   const data=getCurrentDealData();
-  const {critical, missing}=dealChecklist(data);
+  // Same gates the readiness score uses. One bar, not two.
+  const {blockers, risks}=fundingGates(data);
   let html='<div style="font-weight:700;font-size:1rem;margin-bottom:10px;color:#0A1628">Review before you submit</div>';
   html+='<div style="font-size:.8rem;color:#333;line-height:1.7;margin-bottom:12px">'+
     '<strong>'+(data.dealName||'[Deal name pending]')+'</strong> · '+(data.custName||'[Customer pending]')+
     '<br>Type: '+(data.actType||'—')+' · Payment: '+(data.paymentOption||'—')+' · Target ARR: '+fmt(data.targetArr||0)+' · DNE est.: '+fmt(data.dne||0)+
-    '<br>Win Wire: '+(data.winWire?'Yes':'No')+' · ACE: '+(data.aceID||'—')+'</div>';
-  if(critical.length) html+='<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:10px 12px;margin-bottom:8px"><div style="font-size:.72rem;font-weight:700;color:#b91c1c;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Critical — expected before internal review</div><div style="font-size:.78rem;color:#7f1d1d;line-height:1.6">'+critical.join('<br>')+'</div></div>';
-  if(missing.length) html+='<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 12px;margin-bottom:8px"><div style="font-size:.72rem;font-weight:700;color:#92400e;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Missing — can be amended later</div><div style="font-size:.78rem;color:#78350f;line-height:1.6">'+missing.join('<br>')+'</div></div>';
-  if(!critical.length&&!missing.length) html+='<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:10px 12px;margin-bottom:8px;font-size:.8rem;color:#166534">Everything required is in place.</div>';
+    '<br>Win Wire: '+(data.winWire?'Yes':'No')+' · ACE: '+(data.aceID||'—')+
+    (window._arrSource?'<br>ARR derived from: '+window._arrSource:'<br><span style="color:#92400e">ARR has no recorded derivation</span>')+'</div>';
+  const line=(x,c)=>'<div style="font-size:.78rem;line-height:1.6;color:'+c+'"><strong>'+x.title+'</strong> — stops at '+x.gate+'<br><span style="font-size:.73rem;color:#555">'+x.why+'</span></div>';
+  if(blockers.length) html+='<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:10px 12px;margin-bottom:8px"><div style="font-size:.72rem;font-weight:700;color:#b91c1c;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Will be refused at the gate</div>'+blockers.map(x=>line(x,'#7f1d1d')).join('<div style="height:7px"></div>')+'</div>';
+  if(risks.length) html+='<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 12px;margin-bottom:8px"><div style="font-size:.72rem;font-weight:700;color:#92400e;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Likely to be cut or delayed</div>'+risks.map(x=>line(x,'#78350f')).join('<div style="height:7px"></div>')+'</div>';
+  if(!blockers.length&&!risks.length) html+='<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:10px 12px;margin-bottom:8px;font-size:.8rem;color:#166534">This clears every gate. Nothing in the record invites a reduction.</div>';
   html+='<div style="display:flex;gap:10px;margin-top:14px;justify-content:flex-end">'+
     '<button class="btn btn-secondary" onclick="closeSubmitModal()">Go back and edit</button>'+
-    '<button class="btn btn-primary" onclick="finalizeSubmit()">'+(critical.length?'Submit anyway':'Submit deal')+'</button></div>';
+    '<button class="btn btn-primary" onclick="finalizeSubmit()">'+(blockers.length?'Submit anyway':'Submit deal')+'</button></div>';
   let m=document.getElementById('submit-modal');
   if(!m){
     m=document.createElement('div'); m.id='submit-modal';
@@ -6713,40 +6948,96 @@ async function copySmartsheetRow(){
   }
 }
 
+/* ── FUNDING GATES ──────────────────────────────────────────────
+   "Ready to submit" and "likely to get funded" are the same test. The old
+   score counted empty form fields, which meant a fully-filled deal sitting
+   above the Modernize cap scored 100 and then got cut at Intel Leadership.
+   This scores against what actually causes a rejection or a reduction at
+   each gate in the chain, and the Submit dialog reads the same list, so
+   the two can never drift apart. */
+function fundingGates(d){
+  const blockers=[], risks=[];
+  const prog = String(d.program || d.actType || '').toLowerCase();
+  const isMod = /modern/.test(prog);
+  const arr = parseFloat(d.targetArr || d.aceAmount || 0) || 0;
+  const B=(gate,title,why)=>blockers.push({gate,title,why});
+  const R=(gate,title,why)=>risks.push({gate,title,why});
+
+  if(!d.dealName)  B('AWS Approval','No deal name','The record cannot be identified in the review queue.');
+  if(!d.custName)  B('AWS Approval','No customer name','There is no customer to fund.');
+  if(!d.aceID)     B('AWS Approval','Not registered on ACE','Deals without an ACE opportunity are returned rather than reviewed.');
+  if(!prog)        B('Intel Leadership','No track selected','Migrate pays 4.5% and Modernize pays 1%. Without a track there is no rate to apply.');
+  if(!(arr>0))     B('Intel Leadership','No eligible ARR','There is no figure for the rate to apply to.');
+  if(!d.migTo)     B('Intel Leadership','No Intel 8th gen target recorded','Eligibility rests on moving to an eligible Intel family. Unproven eligibility is refused, not queried.');
+
+  if(d.migStart && d.closeDate){
+    const days=(new Date(d.closeDate)-new Date(d.migStart))/86400000;
+    if(days>366) B('Intel Leadership','Migration window is longer than 12 months','12 months is the program maximum, so the deal falls outside the program as entered.');
+    else if(days>300) R('Intel Leadership','Migration window is close to the 12-month maximum','Any slip past 12 months puts the deal outside the program.');
+  }
+  if(!d.migStart) R('TCC','No migration start date','Proof of Performance timing cannot be established, which holds up disbursement.');
+
+  if(arr>0 && !window._arrSource)
+    R('Intel Leadership','The ARR has no recorded derivation','It was typed in rather than produced by one of the calculator paths. Expect to be asked to show the working.');
+
+  if(isMod && arr>0){
+    const raw = arr*0.01;
+    if(raw>250000)
+      R('Intel Leadership','Modernize ask is above the $250K cap','1% of '+fmtUSD(Math.round(arr))+' is '+fmtUSD(Math.round(raw))+'. Funding is capped at $250,000, so '+fmtUSD(Math.round(raw-250000))+' of the ask will not be paid.');
+  }
+
+  if(d.discountVerified==='assumed')
+    R('AWS Approval','Customer pricing benefit is assumed, not verified','Eligible ARR moves when it is confirmed, and the funding moves with it.');
+  if(!d.paymentOption) R('TCC','No payment option','TCC cannot schedule the disbursement without one.');
+  if(!d.winWire)       R('AWS Approval','Not flagged as a Win Wire','It will not be fast-tracked through review.');
+
+  return {blockers, risks};
+}
+
 function scoreFunding(){
   const panel=document.getElementById('funding-score-panel');
   panel.style.display='block';
   const d = getCurrentDealData();
-  const {critical, missing} = dealChecklist(d);
+  const {blockers, risks} = fundingGates(d);
 
-  // Deterministic scoring — no AI, no network call, can never time out or hit a quota.
-  // Start at 100, critical gaps cost more than soft ones, floor at 0.
-  let score = 100 - (critical.length * 25) - (missing.length * 8);
-  score = Math.max(0, Math.min(100, score));
-  const ready = critical.length === 0;
-
-  const warnings = [];
-  if(d.migStart && d.closeDate){
-    const days = (new Date(d.closeDate) - new Date(d.migStart)) / 86400000;
-    if(days > 300 && days <= 366) warnings.push('Migration window is close to the 12-month program maximum');
+  // A deal with a blocker can never score into the submittable band. That
+  // is the whole point: one bar, not two.
+  let score, headline, verdict;
+  if(blockers.length){
+    score = Math.max(5, 45 - (blockers.length-1)*8);
+    headline = 'Will not clear as submitted';
+    verdict = blockers.length===1
+      ? 'One thing below will stop this at its gate. Fix it and the deal is reviewable.'
+      : blockers.length + ' things below will stop this at their gates. Each one is a refusal, not a question.';
+  } else if(risks.length){
+    score = Math.max(50, 100 - risks.length*9);
+    headline = 'Reviewable, with ' + risks.length + (risks.length===1?' thing':' things') + ' likely to be questioned';
+    verdict = 'Nothing here blocks the deal. Each item below is somewhere the funding could be reduced or delayed.';
+  } else {
+    score = 100;
+    headline = 'Clears every gate';
+    verdict = 'Nothing in the record invites a reduction. Submit it.';
   }
-  if(d.discountVerified === 'assumed') warnings.push('Customer Pricing Benefit is assumed, not verified — confirm before final payment');
-  if(!d.winWire) warnings.push('Not flagged as Win Wire — will not be fast-tracked');
 
-  let recommendation;
-  if(ready && warnings.length===0) recommendation = 'All required fields are present. Ready to submit.';
-  else if(ready) recommendation = 'Required fields are present. A few things worth double-checking before submitting.';
-  else recommendation = 'Fix the items below before this clears internal review.';
+  const color = blockers.length ? '#dc2626' : (risks.length ? '#d97706' : '#16a34a');
+  const item = (x, tone) =>
+    '<div style="padding:8px 11px;border-left:3px solid '+tone+';background:'+(tone==='#dc2626'?'#fef2f2':'#fffbeb')+';border-radius:0 6px 6px 0;margin-bottom:6px">'+
+      '<div style="font-size:.75rem;font-weight:700;color:#0A1628">'+x.title+
+      ' <span style="font-weight:600;color:var(--ink3);font-size:.68rem">— stops at '+x.gate+'</span></div>'+
+      '<div style="font-size:.72rem;color:#555;margin-top:2px;line-height:1.5">'+x.why+'</div>'+
+    '</div>';
 
-  const color=score>=80?'#16a34a':score>=55?'#d97706':'#dc2626';
-  panel.innerHTML=
-    '<div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">'+
-    '<div style="width:64px;height:64px;border-radius:50%;border:4px solid '+color+';display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.15rem;color:'+color+'">'+score+'</div>'+
-    '<div style="flex:1;min-width:220px"><div style="font-weight:700;font-size:.85rem;color:#0A1628">Funding readiness'+(ready?' — ready to submit':' — gaps to close')+'</div>'+
-    '<div style="font-size:.76rem;color:#555;margin-top:2px">'+recommendation+'</div></div></div>'+
-    (critical.length?'<div style="margin-top:10px;font-size:.76rem;color:#7f1d1d"><strong>Issues:</strong> '+critical.join(' · ')+'</div>':'')+
-    (missing.length?'<div style="margin-top:6px;font-size:.76rem;color:#78350f"><strong>Missing (can amend later):</strong> '+missing.join(' · ')+'</div>':'')+
-    (warnings.length?'<div style="margin-top:6px;font-size:.76rem;color:#78350f"><strong>Watch:</strong> '+warnings.join(' · ')+'</div>':'');
+  panel.innerHTML =
+    '<div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:12px">'+
+      '<div style="width:64px;height:64px;border-radius:50%;border:4px solid '+color+';display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.15rem;color:'+color+'">'+score+'</div>'+
+      '<div style="flex:1;min-width:240px">'+
+        '<div style="font-weight:700;font-size:.86rem;color:#0A1628">'+headline+'</div>'+
+        '<div style="font-size:.76rem;color:#555;margin-top:2px;line-height:1.5">'+verdict+'</div>'+
+      '</div>'+
+    '</div>'+
+    (blockers.length ? '<div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#b91c1c;margin-bottom:5px">Refused at the gate</div>'+blockers.map(x=>item(x,'#dc2626')).join('') : '')+
+    (risks.length ? '<div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#92400e;margin:10px 0 5px">Cut or delayed at the gate</div>'+risks.map(x=>item(x,'#d97706')).join('') : '')+
+    (window._arrSource ? '<div style="margin-top:10px;font-size:.7rem;color:var(--ink3)">ARR derivation on record: '+window._arrSource+'</div>' : '');
 }
 
 async function loadDealById(id){
