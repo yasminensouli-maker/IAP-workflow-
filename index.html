@@ -1505,6 +1505,9 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
         <button class="nav-item" onclick="showFillGuide()">
           <span class="step-num">?</span>How to Fill This Out
         </button>
+        <button class="nav-item" onclick="showStartChecklist()">
+          <span class="step-num">&#10003;</span>Before you start — checklist
+        </button>
         <a href="https://app.smartsheet.com/sheets/P3J6GHmGxmJxQwgM6f7wqCmpjRFFrp8m2PFvxgx1" target="_blank" rel="noopener" class="nav-item" style="text-decoration:none;display:block">
           <span class="step-num">⧉</span>Open Smartsheet Tracker ↗
         </a>
@@ -3126,7 +3129,87 @@ function completeLogin(u){
   });
 
   initApp();
+  try{ maybeShowStartChecklist(); }catch(e){}
   goStep(1); // Deal Info ("Start Your Deal Journey") is the landing page — Deal ARR / Fleet Calculator is a section reached after metadata, not a separate landing step
+}
+
+/* ── BEFORE YOU START ────────────────────────────────────────────
+   Shown once per session. The items are taken straight from
+   fundingGates(), so what this asks for is exactly what gets checked
+   at Review & Submit -- the two cannot drift apart and tell a seller
+   two different stories. */
+const START_CHECKLIST = [
+  {group:'Needed before this can be approved', tone:'block', items:[
+    {t:'ACE Opportunity ID',        d:'The deal must be registered on ACE. Without it, AWS Approval returns the record rather than reviewing it. Get it from the account team before you start.'},
+    {t:'Customer name and AWS account ID', d:'The 12-digit account the workload runs in.'},
+    {t:'Track — Migrate or Modernize', d:'Migrate is 4.5% of eligible ARR, uncapped, for net-new workload to AWS. Modernize is 1%, capped at $250,000, for upgrading an existing fleet. The track sets the rate, so pick it deliberately.'},
+    {t:'One source for the numbers', d:'A BOM or instance list, a SAP RISE BOM export, a Cost Explorer export, or nothing yet if you only want an estimate. The calculator asks which one you have and opens only that path.'},
+    {t:'Target Intel instance family', d:'Which 8th gen family the workload moves to — m8i, c8i, r8i or x8i. Eligibility rests on this.'},
+    {t:'Start and end dates', d:'The activity window has to fit inside 12 months. The customer project can run longer; the funded activity cannot.'},
+  ]},
+  {group:'Have these ready or the deal slows down', tone:'risk', items:[
+    {t:'Customer pricing benefit', d:'The actual discount, confirmed rather than assumed. Eligible ARR moves when it is confirmed, and the funding moves with it.'},
+    {t:'Payment option', d:'TCC cannot schedule disbursement without one.'},
+    {t:'Workload type', d:'SAP, VMware, database, analytics, AI inference, HPC and so on.'},
+    {t:'AWS and Intel contacts', d:'Who owns this on each side.'},
+  ]},
+  {group:'Useful, not required', tone:'ok', items:[
+    {t:'Partner details',    d:'If a partner is delivering, their name and SPMS ID.'},
+    {t:'Win Wire',           d:'Flag it if this is one worth writing up. It also moves faster through review.'},
+    {t:'Migration cost',     d:'Engineering cost of the migration, for the return figure on the IPIC record.'},
+  ]},
+];
+
+function maybeShowStartChecklist(){
+  try{ if(sessionStorage.getItem('iap_checklist_seen')) return; }catch(e){}
+  showStartChecklist();
+}
+
+function showStartChecklist(){
+  const TONE = {block:{bar:'#dc2626',bg:'#fef2f2'}, risk:{bar:'#d97706',bg:'#fffbeb'}, ok:{bar:'#0068B5',bg:'#f6f9ff'}};
+  let m = document.getElementById('start-checklist');
+  if(!m){
+    m = document.createElement('div');
+    m.id = 'start-checklist';
+    m.setAttribute('role','dialog'); m.setAttribute('aria-modal','true');
+    m.setAttribute('aria-label','Before you start');
+    m.style.cssText='position:fixed;inset:0;background:rgba(10,22,40,.6);display:flex;align-items:center;justify-content:center;z-index:9500;padding:16px';
+    m.addEventListener('click', ev => { if(ev.target===m) closeStartChecklist(); });
+    document.addEventListener('keydown', ev => {
+      if(ev.key==='Escape' && m.style.display==='flex') closeStartChecklist();
+    });
+    document.body.appendChild(m);
+  }
+  const body = START_CHECKLIST.map(sec =>
+    '<div style="margin-bottom:16px">' +
+      '<div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:' + TONE[sec.tone].bar + ';margin-bottom:7px">' + sec.group + '</div>' +
+      sec.items.map((it,i) =>
+        '<label style="display:flex;gap:9px;align-items:flex-start;padding:8px 11px;border-left:3px solid ' + TONE[sec.tone].bar + ';background:' + TONE[sec.tone].bg + ';border-radius:0 6px 6px 0;margin-bottom:5px;cursor:pointer;text-transform:none;letter-spacing:0;font-weight:400">' +
+          '<input type="checkbox" style="margin-top:3px;width:16px;height:16px;flex:none">' +
+          '<span><span style="font-size:.79rem;font-weight:700;color:#0A1628">' + it.t + '</span>' +
+          '<span style="display:block;font-size:.73rem;color:#555;line-height:1.5;margin-top:2px">' + it.d + '</span></span>' +
+        '</label>').join('') +
+    '</div>').join('');
+
+  m.innerHTML =
+    '<div style="background:#fff;border-radius:14px;max-width:640px;width:100%;padding:22px 24px;box-shadow:0 24px 64px rgba(0,0,0,.35);max-height:88vh;overflow:auto">' +
+      '<div style="font-size:1.15rem;font-weight:800;color:#0A1628">Before you start</div>' +
+      '<div style="font-size:.79rem;color:#555;line-height:1.6;margin:5px 0 16px">Here is what a deal needs to clear approval. Tick what you have. You can start without all of it — the ones in red are what get a deal refused at the gate, so it is worth chasing them first rather than filling in a form and finding out at the end.</div>' +
+      body +
+      '<div style="display:flex;gap:10px;justify-content:flex-end;margin-top:6px;flex-wrap:wrap">' +
+        '<button class="btn btn-secondary" onclick="closeStartChecklist()">Start anyway</button>' +
+        '<button class="btn btn-primary" onclick="closeStartChecklist()">I have what I need</button>' +
+      '</div>' +
+      '<div style="font-size:.7rem;color:#616161;margin-top:10px">You can reopen this any time from the sidebar.</div>' +
+    '</div>';
+  m.style.display='flex';
+  const first = m.querySelector('button'); if(first) first.focus();
+}
+
+function closeStartChecklist(){
+  const m=document.getElementById('start-checklist');
+  if(m) m.style.display='none';
+  try{ sessionStorage.setItem('iap_checklist_seen','1'); }catch(e){}
 }
 
 function doLogout(){
