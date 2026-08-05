@@ -1477,6 +1477,7 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
       <button id="global-back-btn" onclick="goBack()" style="display:none;align-items:center;gap:4px;background:transparent;color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:5px;padding:6px 12px;font-size:.75rem;cursor:pointer;font-family:Arial,sans-serif;margin-right:12px">← Back</button>
       <div class="app-header-logo" onclick="goStep(1)" style="cursor:pointer" title="Back to Start Your Deal Journey">INTEL × AWS</div>
       <div class="app-header-title" onclick="goStep(1)" style="cursor:pointer" title="Back to Start Your Deal Journey">Deal Desk</div>
+      <span id="build-stamp" title="Which build you are looking at. If this does not match what you just deployed, you are on a cached page." style="font-size:.62rem;color:rgba(255,255,255,.55);margin-left:9px;letter-spacing:.03em;white-space:nowrap">BUILD 2026-08-05 14:49 UTC</span>
     </div>
     <div class="app-header-right">
       <span id="draft-indicator" style="font-size:.72rem;color:var(--ink3);margin-right:10px"></span><span class="user-pill" id="user-pill">—</span>
@@ -2353,7 +2354,8 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
                One question decides the path; the others stay closed. -->
           <div id="calc-gate" style="margin-bottom:16px">
             <div style="font-size:.86rem;font-weight:700;color:var(--ink);margin-bottom:4px">What do you have in front of you right now?</div>
-            <div style="font-size:.74rem;color:var(--ink3);margin-bottom:12px">Pick one. That answer decides how the funding number is worked out, and it gets recorded on the deal so anyone reviewing it can see where the figure came from.</div>
+            <div style="font-size:.74rem;color:var(--ink3);margin-bottom:9px">Pick one. That answer decides how the funding number is worked out, and it gets recorded on the deal so anyone reviewing it can see where the figure came from.</div>
+            <button type="button" onclick="showDataGuide()" style="background:none;border:none;color:#0068B5;font-size:.75rem;font-weight:700;cursor:pointer;text-decoration:underline;padding:0;margin-bottom:12px">Don't have the data yet? Here's exactly how to pull it &rarr;</button>
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px">
               <button type="button" onclick="chooseInput('bom')" style="text-align:left;padding:14px;border:1px solid var(--border);border-radius:8px;background:#fff;cursor:pointer">
                 <div style="font-weight:700;font-size:.8rem;color:#0068B5;margin-bottom:4px">A BOM or instance list</div>
@@ -2375,6 +2377,10 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
           </div>
 
           <!-- Chosen-input strip: replaces the tab row once a path is picked -->
+          <!-- Says out loud which track is being priced and at what rate. Without
+               it the totals bar shows a DNE with no indication of whether it came
+               from 4.5% uncapped or 1% capped at $250,000. -->
+          <div id="calc-track-banner" style="display:none;margin-bottom:12px;padding:10px 13px;border-radius:6px;border-left:4px solid #0068B5;background:#f6f9ff"></div>
           <div id="calc-input-strip" style="display:none;margin-bottom:16px;padding:9px 13px;background:#f8fafc;border:1px solid var(--border);border-radius:6px;align-items:center;gap:12px;flex-wrap:wrap">
             <span style="font-size:.74rem;color:var(--ink2)">Working from: <strong id="calc-input-label" style="color:#0068B5"></strong></span>
             <button type="button" onclick="resetInputChoice()" style="background:none;border:none;color:#0068B5;font-size:.72rem;font-weight:700;cursor:pointer;text-decoration:underline;padding:0">Change</button>
@@ -2607,7 +2613,7 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
 
         <div class="calc-totals mt16" id="calc-totals" style="grid-template-columns:repeat(5,1fr)">
           <div class="calc-total-item">
-            <label>Total List Price ARR</label>
+            <label>Total List Price ARR</label><span class="hint" style="font-size:.6rem">Before any discount</span>
             <div class="val" id="tot-list">$0</div>
           </div>
           <div class="calc-total-item">
@@ -2615,15 +2621,15 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
             <div class="val" id="tot-disc">0%</div>
           </div>
           <div class="calc-total-item">
-            <label>Actual Spend ARR</label>
+            <label>Actual Spend ARR</label><span class="hint" style="font-size:.6rem">What the rate applies to</span>
             <div class="val" id="tot-actual">$0</div>
           </div>
           <div class="calc-total-item">
-            <label>Total DNE (Do Not Exceed)</label>
+            <label>Total DNE (Do Not Exceed)</label><span class="hint" style="font-size:.6rem">The funding ceiling</span>
             <div class="val" id="tot-nte">$0</div>
           </div>
           <div class="calc-total-item">
-            <label>Est. Payout at POP</label>
+            <label>Est. Payout at POP</label><span class="hint" style="font-size:.6rem">Expected, not guaranteed</span>
             <div class="val highlight" id="tot-rebate">$0</div>
           </div>
         </div>
@@ -3138,25 +3144,151 @@ function completeLogin(u){
    fundingGates(), so what this asks for is exactly what gets checked
    at Review & Submit -- the two cannot drift apart and tell a seller
    two different stories. */
+/* Two motions, two data sources. Chris Clee's flow: Cost Explorer for
+   modernization (an existing fleet you can measure), AWS Pricing
+   Calculator for migration (net-new, nothing running yet). Either way
+   the three things the calculation needs are the same: instance names,
+   hours or count, and amortized cost. */
+const MOTION_DATA = {
+  migrate: {
+    title: 'Migration — net-new workload coming to AWS',
+    sub: 'Nothing is running yet, so there is no usage to measure. The numbers come from the AWS Pricing Calculator.',
+    rate: 'Track 1 · 4.5% of eligible ARR · uncapped',
+    steps: [
+      'Go to <a href="https://calculator.aws/#/" target="_blank" rel="noopener" style="color:#0068B5;font-weight:700">calculator.aws</a> and build the estimate on the target Intel instances — m8i, c8i, r8i or x8i.',
+      'For each workload set the instance type, size, instance count and region.',
+      'Save the estimate. Either the share URL or a CSV export works — both carry what is needed.',
+      'Bring the monthly total. Monthly times twelve is the Target ARR the rate applies to.'
+    ],
+    note: 'If the customer has an AAP bill of materials already, use that instead — it is a confirmed figure rather than an estimate.'
+  },
+  modernize: {
+    title: 'Modernization — existing AWS fleet being upgraded',
+    sub: 'The fleet is already running, so the numbers come from the customer’s own Cost Explorer export. The customer sends it directly; AWS does not forward it.',
+    rate: 'Track 2 · 1% of eligible ARR · capped at $250,000',
+    steps: [
+      '<strong>Quick version — EC2 only.</strong> Cost Explorer &rarr; "Cost Explorer Saved Reports" on the left &rarr; open "Monthly EC2 running hours costs and usage". Set the date range to 6 months. Dimension &rarr; Instance type. Add a service filter on EC2. Usage type group should already be "EC2: Running Hours" — check it. Advanced options &rarr; Aggregate costs by &rarr; Amortized costs. Scroll to the table and click Download as CSV.',
+      '<strong>Full version — EC2, RDS, ElastiCache and OpenSearch.</strong> Cost Explorer &rarr; New report. Date range 6 months. Dimension &rarr; Instance type.',
+      'Service filter &rarr; select all four: Amazon Elastic Compute Cloud - Compute · Amazon Relational Database Service · Amazon ElastiCache · Amazon OpenSearch Service',
+      'Usage type group filter &rarr; EC2: Running Hours · RDS: Running Hours · ElastiCache: Running Hours · OpenSearch: Running Hours',
+      'Advanced options &rarr; Aggregate costs by &rarr; Amortized costs.',
+      'Group by &rarr; add a second dimension, "Service", so instance type and service both appear in the export and can be told apart.',
+      'Scroll down and click Download as CSV.'
+    ],
+    note: 'The usage type group names occasionally differ slightly by account and region. If one is not in the list, type it into the filter box to search rather than scrolling for it. Use monthly granularity — a daily export will be rejected on upload, because dividing by 180 periods understates the annual figure.'
+  }
+};
+
+const MOTION_COMMON = [
+  'Instance names — m5.2xlarge, r6i.16xlarge and so on',
+  'Either hours used, or instance count plus utilization',
+  'Instance cost, amortized'
+];
+
+/* Lives on the calculator, not the login screen. Nobody needs Cost
+   Explorer instructions while they are signing in -- they need them at
+   the moment they are about to pull the data. */
+function showDataGuide(motion){
+  let m = document.getElementById('data-guide');
+  if(!m){
+    m = document.createElement('div');
+    m.id = 'data-guide';
+    m.setAttribute('role','dialog'); m.setAttribute('aria-modal','true');
+    m.setAttribute('aria-label','How to get your data');
+    m.style.cssText='position:fixed;inset:0;background:rgba(10,22,40,.6);display:flex;align-items:center;justify-content:center;z-index:9600;padding:16px';
+    m.addEventListener('click', ev => { if(ev.target===m) closeDataGuide(); });
+    document.addEventListener('keydown', ev => {
+      if(ev.key==='Escape' && m.style.display==='flex') closeDataGuide();
+    });
+    document.body.appendChild(m);
+  }
+  m.innerHTML =
+    '<div style="background:#fff;border-radius:14px;max-width:660px;width:100%;padding:22px 24px;box-shadow:0 24px 64px rgba(0,0,0,.35);max-height:88vh;overflow:auto">' +
+      '<div style="font-size:1.15rem;font-weight:800;color:#0A1628">How to get your data</div>' +
+      '<div style="font-size:.78rem;color:#555;line-height:1.6;margin:5px 0 14px">Two motions, two sources. Pick the one this deal is and follow the steps exactly — the export has to be shaped a particular way or the numbers come out wrong.</div>' +
+      '<div style="display:flex;gap:9px;margin-bottom:12px;flex-wrap:wrap">' +
+        '<button type="button" id="dg-motion-migrate" aria-pressed="false" onclick="setChecklistMotion(\'migrate\')" style="flex:1;min-width:190px;text-align:left;padding:11px 13px;border:1.5px solid #d8d8d8;border-radius:8px;background:#fff;color:#0A1628;cursor:pointer">' +
+          '<span style="display:block;font-size:.8rem;font-weight:800">Migration</span>' +
+          '<span style="display:block;font-size:.71rem;opacity:.75;margin-top:2px">Net-new workload coming to AWS</span></button>' +
+        '<button type="button" id="dg-motion-modernize" aria-pressed="false" onclick="setChecklistMotion(\'modernize\')" style="flex:1;min-width:190px;text-align:left;padding:11px 13px;border:1.5px solid #d8d8d8;border-radius:8px;background:#fff;color:#0A1628;cursor:pointer">' +
+          '<span style="display:block;font-size:.8rem;font-weight:800">Modernization</span>' +
+          '<span style="display:block;font-size:.71rem;opacity:.75;margin-top:2px">Existing AWS fleet being upgraded</span></button>' +
+      '</div>' +
+      '<div id="checklist-motion-body" style="display:none;margin-bottom:14px"></div>' +
+      '<div style="display:flex;justify-content:flex-end;margin-top:6px">' +
+        '<button class="btn btn-primary" onclick="closeDataGuide()">Got it</button>' +
+      '</div>' +
+    '</div>';
+  m.style.display='flex';
+  setChecklistMotion(motion || window._checklistMotion || 'modernize');
+}
+function closeDataGuide(){
+  const m=document.getElementById('data-guide');
+  if(m) m.style.display='none';
+}
+
+function setChecklistMotion(m){
+  window._checklistMotion = m;
+  const host = document.getElementById('checklist-motion-body');
+  if(!host) return;
+  ['migrate','modernize'].forEach(k=>{
+    const b = document.getElementById('dg-motion-'+k);
+    if(b){
+      const on = k===m;
+      b.style.background = on ? '#0068B5' : '#fff';
+      b.style.color      = on ? '#fff' : '#0A1628';
+      b.style.borderColor= on ? '#0068B5' : '#d8d8d8';
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    }
+  });
+  const d = MOTION_DATA[m];
+  host.style.display = 'block';
+  host.innerHTML =
+    '<div style="border:1px solid #d3e3fb;background:#f6f9ff;border-radius:8px;padding:13px 15px">' +
+      '<div style="font-size:.82rem;font-weight:800;color:#0A1628">' + d.title + '</div>' +
+      '<div style="font-size:.72rem;font-weight:700;color:#0068B5;margin:3px 0 6px">' + d.rate + '</div>' +
+      '<div style="font-size:.75rem;color:#555;line-height:1.55;margin-bottom:9px">' + d.sub + '</div>' +
+      '<ol style="margin:0 0 9px 17px;padding:0">' +
+        d.steps.map(s=>'<li style="font-size:.74rem;color:#0A1628;line-height:1.6;margin-bottom:5px">'+s+'</li>').join('') +
+      '</ol>' +
+      '<div style="font-size:.72rem;color:#92400e;background:#fffbeb;border-left:3px solid #d97706;border-radius:0 5px 5px 0;padding:7px 10px;margin-bottom:9px;line-height:1.55">' + d.note + '</div>' +
+      '<div style="font-size:.72rem;font-weight:700;color:#0A1628;margin-bottom:4px">Whatever the format, the export has to contain:</div>' +
+      '<ul style="margin:0 0 0 17px;padding:0">' +
+        MOTION_COMMON.map(s=>'<li style="font-size:.73rem;color:#555;line-height:1.55">'+s+'</li>').join('') +
+      '</ul>' +
+    '</div>';
+}
+
 const START_CHECKLIST = [
-  {group:'Needed before this can be approved', tone:'block', items:[
-    {t:'ACE Opportunity ID',        d:'The deal must be registered on ACE. Without it, AWS Approval returns the record rather than reviewing it. Get it from the account team before you start.'},
-    {t:'Customer name and AWS account ID', d:'The 12-digit account the workload runs in.'},
-    {t:'Track — Migrate or Modernize', d:'Migrate is 4.5% of eligible ARR, uncapped, for net-new workload to AWS. Modernize is 1%, capped at $250,000, for upgrading an existing fleet. The track sets the rate, so pick it deliberately.'},
-    {t:'One source for the numbers', d:'A BOM or instance list, a SAP RISE BOM export, a Cost Explorer export, or nothing yet if you only want an estimate. The calculator asks which one you have and opens only that path.'},
-    {t:'Target Intel instance family', d:'Which 8th gen family the workload moves to — m8i, c8i, r8i or x8i. Eligibility rests on this.'},
-    {t:'Start and end dates', d:'The activity window has to fit inside 12 months. The customer project can run longer; the funded activity cannot.'},
+  {group:'You must bring these — the Smartsheet will not accept the row without them', tone:'block', items:[
+    {t:'Activity Name',                 d:'The deal name. Customer plus workload is enough — "PACCAR Inc — SAP RISE on AWS".'},
+    {t:'Partner or End Customer Name',  d:'The end customer, or the partner if one is delivering.'},
+    {t:'Activity Type — Migration or Modernization', d:'Migration is net-new workload coming to AWS and pays 4.5% of eligible ARR, uncapped. Modernization is an existing fleet being upgraded and pays 1%, capped at $250,000. This one field sets the rate.'},
+    {t:'ACE Opportunity ID',            d:'The deal has to be registered on ACE. Without it AWS Approval returns the record rather than reviewing it. Get it from the account team before you start.'},
+    {t:'Start Date and End Date',       d:'The activity window has to fit inside 12 months. The customer project can run longer; the funded activity cannot.'},
+    {t:'AWS Instances Used',            d:'The Intel 8th gen family the workload runs on — m8i, c8i, r8i or x8i. Eligibility rests on this.'},
+    {t:'Region/Country of Execution', d:'Where the workload runs. If it spans regions, name the primary one and flag the rest.'},
+    {t:'Workload Selection',            d:'SAP RISE, VMware, Oracle, SQL Server, HPC, GenAI inference, analytics, mainframe, web and API, or other.'},
+    {t:'Migration Project Description', d:'A few sentences on what is moving and why. This is what TCC reads to understand the deal.'},
+    {t:'Cost of Infrastructure (ARR)',  d:'The annual compute figure the rate applies to. The calculator produces this from your BOM, Cost Explorer export or SAP RISE BOM — you do not type it in.'},
+    {t:'Cost of Migration (Engineering Work)', d:'The engineering cost of doing the migration. The Smartsheet uses it to calculate return on investment.'},
+    {t:'AWS Rep Name and Intel Rep Name', d:'Who owns this on each side. Both are separate Smartsheet columns.'},
+    {t:'AWS Alignment',                 d:'The AWS person or team this deal is aligned to.'},
   ]},
-  {group:'Have these ready or the deal slows down', tone:'risk', items:[
-    {t:'Customer pricing benefit', d:'The actual discount, confirmed rather than assumed. Eligible ARR moves when it is confirmed, and the funding moves with it.'},
-    {t:'Payment option', d:'TCC cannot schedule disbursement without one.'},
-    {t:'Workload type', d:'SAP, VMware, database, analytics, AI inference, HPC and so on.'},
-    {t:'AWS and Intel contacts', d:'Who owns this on each side.'},
+  {group:'The tool works these out — do not go looking for them', tone:'ok', items:[
+    {t:'Intel Contribution Amount, Funding amount not to exceed, Funding Percentage, Requested funding amount',
+     d:'All four come from the calculator once eligible ARR and the track are set. They are the same number expressed four ways, which is why they must never be typed by hand.'},
+    {t:'Expected ROI',                  d:'Calculated from the funding amount against the migration cost.'},
+    {t:'Is this for a Migration activity?', d:'Derived from the Activity Type you picked above.'},
+    {t:'IPIC Activity Description, Intake Entry Date, Submitter Name, Submitter Email, Status',
+     d:'Filled from the deal record and your login.'},
   ]},
-  {group:'Useful, not required', tone:'ok', items:[
-    {t:'Partner details',    d:'If a partner is delivering, their name and SPMS ID.'},
-    {t:'Win Wire',           d:'Flag it if this is one worth writing up. It also moves faster through review.'},
-    {t:'Migration cost',     d:'Engineering cost of the migration, for the return figure on the IPIC record.'},
+  {group:'TCC fills these after the SOW — not your job', tone:'risk', items:[
+    {t:'IPIC Activity #',   d:'Assigned by TCC once the activity is created.'},
+    {t:'POP Due Date',      d:'Confirmed by TCC at SOW.'},
+    {t:'Claim Quarter',     d:'Assigned by TCC.'},
+    {t:'POP Available?',    d:'Becomes true after the SOW is executed.'},
+    {t:'Intel Budget Year', d:'Set by the program, visible to admins and approvers only.'},
   ]},
 ];
 
@@ -3193,8 +3325,8 @@ function showStartChecklist(){
 
   m.innerHTML =
     '<div style="background:#fff;border-radius:14px;max-width:640px;width:100%;padding:22px 24px;box-shadow:0 24px 64px rgba(0,0,0,.35);max-height:88vh;overflow:auto">' +
-      '<div style="font-size:1.15rem;font-weight:800;color:#0A1628">Before you start</div>' +
-      '<div style="font-size:.79rem;color:#555;line-height:1.6;margin:5px 0 16px">Here is what a deal needs to clear approval. Tick what you have. You can start without all of it — the ones in red are what get a deal refused at the gate, so it is worth chasing them first rather than filling in a form and finding out at the end.</div>' +
+      '<div style="font-size:1.15rem;font-weight:800;color:#0A1628">Before you start — what the Smartsheet needs</div>' +
+      '<div style="font-size:.79rem;color:#555;line-height:1.6;margin:5px 0 14px">This is every field the Smartsheet asks for, sorted by who fills it. The red block is what only you can answer — gather those first and the rest of the deal takes minutes. The other two blocks are there so you know what NOT to go chasing.</div>' +
       body +
       '<div style="display:flex;gap:10px;justify-content:flex-end;margin-top:6px;flex-wrap:wrap">' +
         '<button class="btn btn-secondary" onclick="closeStartChecklist()">Start anyway</button>' +
@@ -3793,7 +3925,7 @@ function addFleet(){
         <div class="val zero" id="f${id}-r-disc">0%</div>
       </div>
       <div class="fleet-result-item">
-        <label>Actual Spend ARR</label>
+        <label>Actual Spend ARR</label><span class="hint" style="font-size:.6rem">What the rate applies to</span>
         <div class="val zero" id="f${id}-r-actual">$0</div>
       </div>
       <div class="fleet-result-item">
@@ -3801,7 +3933,7 @@ function addFleet(){
         <div class="val zero" id="f${id}-r-nte">$0</div>
       </div>
       <div class="fleet-result-item">
-        <label>Est. Payout at POP</label>
+        <label>Est. Payout at POP</label><span class="hint" style="font-size:.6rem">Expected, not guaranteed</span>
         <div class="val" id="f${id}-r-rebate">$0</div>
       </div>
     </div>`;
@@ -3976,6 +4108,38 @@ function recalcAceFromServices(){
 
 let baselineMethod = 1;
 
+/* Keeps the calculator honest about what it is pricing. Reads the same rate
+   table everything else does, so it can never show one track while the DNE is
+   computed from another. */
+function renderTrackBanner(){
+  const el = document.getElementById('calc-track-banner');
+  if(!el) return;
+  const info = getRateInfo();
+  const dt = String(resolveDealType()||'').toLowerCase();
+  const known = dt.startsWith('migrat') || dt.startsWith('mod');
+  const isMod = dt.startsWith('mod');
+  el.style.display = 'block';
+  if(!known){
+    el.style.borderLeftColor = '#d97706';
+    el.style.background = '#fffbeb';
+    el.innerHTML =
+      '<div style="font-size:.79rem;font-weight:700;color:#92400e">No track selected yet — pricing at the cautious rate</div>' +
+      '<div style="font-size:.73rem;color:#78350f;line-height:1.55;margin-top:3px">Until Migration or Modernization is chosen on the Deal Info page, every figure below is calculated at <strong>1% capped at $250,000</strong>, the lower of the two. A Migration deal is worth 4.5% uncapped, so set the track before trusting the number.</div>';
+    return;
+  }
+  el.style.borderLeftColor = isMod ? '#0068B5' : '#16a34a';
+  el.style.background = isMod ? '#f6f9ff' : '#f0fdf4';
+  el.innerHTML =
+    '<div style="font-size:.79rem;font-weight:700;color:#0A1628">' +
+      (isMod ? 'Track 2 — Modernization' : 'Track 1 — Migration') +
+      ' &middot; <span style="color:#0068B5">' + info.label + '</span></div>' +
+    '<div style="font-size:.73rem;color:#555;line-height:1.55;margin-top:3px">' +
+      (isMod
+        ? 'An existing AWS fleet being upgraded to Intel 8th gen. The rate applies to the annual spend <strong>after</strong> modernization, and the funding is capped at $250,000 however large the fleet is.'
+        : 'Net-new workload coming to AWS. The rate applies to the annual spend on eligible Intel instances once the workload is running. There is no cap.') +
+    '</div>';
+}
+
 function setBaselineMethod(n){
   baselineMethod=n;
   [1,2,3,4,5].forEach(i=>{
@@ -3994,6 +4158,7 @@ function setBaselineMethod(n){
   if(gate) gate.style.display='none';
   const strip=document.getElementById('calc-input-strip');
   if(strip) strip.style.display='flex';
+  try{ renderTrackBanner(); }catch(e){}
 }
 
 // The one front door. Records which input the number came from so the
@@ -4009,6 +4174,9 @@ function chooseInput(kind){
   if(!choice) return;
   window._calcInputSource = kind;
   setBaselineMethod(choice.method);
+  // The two paths that need an export show the instructions on the way in.
+  if(kind==='costexplorer' && !window._dataGuideShown){ window._dataGuideShown = 1; showDataGuide('modernize'); }
+  if(kind==='bom' && !window._dataGuideShownM){ window._dataGuideShownM = 1; }
   const lbl=document.getElementById('calc-input-label');
   if(lbl) lbl.textContent=choice.label;
 }
@@ -7608,27 +7776,40 @@ function refreshAccordionStatus(){
 
 <script>
 window.addEventListener('load', restoreSession);
-if('serviceWorker' in navigator){
-  let refreshing = false;
-  // When a new service worker takes control (i.e. a new build is live),
-  // reload once automatically instead of relying on someone remembering
-  // to hard-refresh. Guarded so it only ever fires once per page load.
-  navigator.serviceWorker.addEventListener('controllerchange', function(){
-    if(refreshing) return;
-    refreshing = true;
-    window.location.reload();
-  });
+/* ── THE SERVICE WORKER IS GONE, ON PURPOSE ──────────────────────
+   It cached the manifest, the logo and two icons. In exchange it made
+   every deploy a coin toss -- an old worker kept serving an old page
+   long after the server had the new one, and no amount of hard
+   refreshing fixed it because the worker sits underneath the cache.
+   That trade was never worth making for a single HTML file the server
+   already sends with no-cache headers.
 
-  window.addEventListener('load', function(){
-    navigator.serviceWorker.register('sw.js')
-      .then(function(reg){
-        console.log('SW registered');
-        // Check the server for a newer sw.js/app right now, don't wait for
-        // the browser's own periodic check (which can take up to 24 hours).
-        reg.update();
-      })
-      .catch(function(err){ console.log('SW failed:', err); });
-  });
+   This block actively removes any worker still installed from an
+   earlier build, on every machine that opens the app, once. */
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.getRegistrations()
+    .then(function(regs){
+      if(!regs.length) return null;
+      console.log('Removing ' + regs.length + ' stale service worker(s)');
+      return Promise.all(regs.map(function(r){ return r.unregister(); }));
+    })
+    .then(function(removed){
+      if(!removed) return;
+      if('caches' in window){
+        return caches.keys().then(function(keys){
+          return Promise.all(keys.map(function(k){ return caches.delete(k); }));
+        });
+      }
+    })
+    .then(function(){
+      // Only reload if a worker was actually controlling this page --
+      // otherwise the page you are looking at came straight from the server.
+      if(navigator.serviceWorker.controller && !sessionStorage.getItem('sw_purged')){
+        sessionStorage.setItem('sw_purged','1');
+        location.reload();
+      }
+    })
+    .catch(function(e){ console.log('SW cleanup:', e); });
 }
 </script>
 
