@@ -2380,7 +2380,7 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
           <!-- Says out loud which track is being priced and at what rate. Without
                it the totals bar shows a DNE with no indication of whether it came
                from 4.5% uncapped or 1% capped at $250,000. -->
-          <div id="calc-track-banner" style="display:none;margin-bottom:12px;padding:10px 13px;border-radius:6px;border-left:4px solid #0068B5;background:#f6f9ff"></div>
+          <div id="calc-track-banner" style="margin-bottom:12px;padding:10px 13px;border-radius:6px;border-left:4px solid #0068B5;background:#f6f9ff"></div>
           <div id="calc-input-strip" style="display:none;margin-bottom:16px;padding:9px 13px;background:#f8fafc;border:1px solid var(--border);border-radius:6px;align-items:center;gap:12px;flex-wrap:wrap">
             <span style="font-size:.74rem;color:var(--ink2)">Working from: <strong id="calc-input-label" style="color:#0068B5"></strong></span>
             <button type="button" onclick="resetInputChoice()" style="background:none;border:none;color:#0068B5;font-size:.72rem;font-weight:700;cursor:pointer;text-decoration:underline;padding:0">Change</button>
@@ -3384,7 +3384,8 @@ function goStep(n){
     try { history.pushState({step: n}, '', ''); } catch(e){ /* non-fatal */ }
   }
   if(n===6){ setTimeout(refreshCRMHeader, 50); }
-  if(n===3){ setTimeout(initSolver, 50); }
+  if(n===3){
+    try{ renderTrackBanner(); }catch(e){} setTimeout(initSolver, 50); }
   // Handle step 7 SOW which has id step7-sow
   document.querySelectorAll('.step-panel').forEach(p=>p.classList.remove('active'));
   // Special case: step 7 is the SOW step with id step7-sow
@@ -4114,30 +4115,56 @@ let baselineMethod = 1;
 function renderTrackBanner(){
   const el = document.getElementById('calc-track-banner');
   if(!el) return;
-  const info = getRateInfo();
   const dt = String(resolveDealType()||'').toLowerCase();
   const known = dt.startsWith('migrat') || dt.startsWith('mod');
   const isMod = dt.startsWith('mod');
+  const info = getRateInfo();
+
+  const card = (kind, title, sub, on) =>
+    '<button type="button" onclick="setTrack(\'' + kind + '\')" aria-pressed="' + (on?'true':'false') + '" ' +
+    'style="flex:1;min-width:200px;text-align:left;padding:11px 13px;border-radius:8px;cursor:pointer;' +
+    'border:2px solid ' + (on ? '#0068B5' : '#d8d8d8') + ';background:' + (on ? '#0068B5' : '#fff') + ';color:' + (on ? '#fff' : '#0A1628') + '">' +
+      '<span style="display:block;font-size:.81rem;font-weight:800">' + title + '</span>' +
+      '<span style="display:block;font-size:.71rem;opacity:' + (on?'.9':'.7') + ';margin-top:2px">' + sub + '</span>' +
+    '</button>';
+
   el.style.display = 'block';
-  if(!known){
-    el.style.borderLeftColor = '#d97706';
-    el.style.background = '#fffbeb';
-    el.innerHTML =
-      '<div style="font-size:.79rem;font-weight:700;color:#92400e">No track selected yet — pricing at the cautious rate</div>' +
-      '<div style="font-size:.73rem;color:#78350f;line-height:1.55;margin-top:3px">Until Migration or Modernization is chosen on the Deal Info page, every figure below is calculated at <strong>1% capped at $250,000</strong>, the lower of the two. A Migration deal is worth 4.5% uncapped, so set the track before trusting the number.</div>';
-    return;
-  }
-  el.style.borderLeftColor = isMod ? '#0068B5' : '#16a34a';
-  el.style.background = isMod ? '#f6f9ff' : '#f0fdf4';
+  el.style.borderLeftColor = known ? (isMod ? '#0068B5' : '#16a34a') : '#d97706';
+  el.style.background      = known ? (isMod ? '#f6f9ff' : '#f0fdf4') : '#fffbeb';
+
   el.innerHTML =
-    '<div style="font-size:.79rem;font-weight:700;color:#0A1628">' +
-      (isMod ? 'Track 2 — Modernization' : 'Track 1 — Migration') +
-      ' &middot; <span style="color:#0068B5">' + info.label + '</span></div>' +
-    '<div style="font-size:.73rem;color:#555;line-height:1.55;margin-top:3px">' +
-      (isMod
-        ? 'An existing AWS fleet being upgraded to Intel 8th gen. The rate applies to the annual spend <strong>after</strong> modernization, and the funding is capped at $250,000 however large the fleet is.'
-        : 'Net-new workload coming to AWS. The rate applies to the annual spend on eligible Intel instances once the workload is running. There is no cap.') +
-    '</div>';
+    '<div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:' + (known ? '#0068B5' : '#92400e') + ';margin-bottom:7px">' +
+      (known ? 'Track — this sets the rate' : 'Pick the track first — nothing below is right until you do') + '</div>' +
+    '<div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:9px">' +
+      card('migrate',  'Migration',     'Net-new workload to AWS · 4.5%, uncapped',        dt.startsWith('migrat')) +
+      card('modernize','Modernization', 'Existing fleet upgraded · 1%, capped $250,000',   isMod) +
+    '</div>' +
+    (known
+      ? '<div style="font-size:.73rem;color:#555;line-height:1.55">Pricing at <strong style="color:#0068B5">' + info.label + '</strong>. ' +
+        (isMod
+          ? 'The rate applies to the annual spend <strong>after</strong> modernization, and the funding is capped at $250,000 however large the fleet is.'
+          : 'The rate applies to the annual spend on eligible Intel instances once the workload is running. There is no cap.') + '</div>'
+      : '<div style="font-size:.73rem;color:#78350f;line-height:1.55">Until you choose, every figure below is calculated at <strong>1% capped at $250,000</strong> — the cautious rate. A Migration deal is worth 4.5% uncapped, so a wrong default here understates the ask by a long way.</div>');
+}
+
+/* One place to set the track, whichever view you logged in through.
+   The Intel view had two prominent cards; AWS and admin had a dropdown
+   buried in Deal Metadata that people never found, so deals silently
+   priced at the cautious 1%. This writes both fields and refreshes
+   everything that depends on them. */
+function setTrack(kind){
+  const awsField = document.getElementById('prd-deal-type');
+  if(awsField){
+    awsField.value = kind === 'migrate' ? 'Migrate' : 'Modernize';
+    try{ handleProgramChange(); }catch(e){}
+  }
+  const intelField = document.getElementById('deal-program');
+  if(intelField) intelField.value = kind;
+  // Keep the Intel view's cards in step if that view is the one on screen.
+  try{ if(document.getElementById('prog-card-migrate')) selectIntelProgram(kind); }catch(e){}
+  renderTrackBanner();
+  try{ updateTotals(); }catch(e){}
+  try{ fleets.forEach(f=>calcFleet(f.id)); }catch(e){}
 }
 
 function setBaselineMethod(n){
