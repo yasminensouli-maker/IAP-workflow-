@@ -1506,6 +1506,9 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
         <button class="nav-item" onclick="showFillGuide()">
           <span class="step-num">?</span>How to Fill This Out
         </button>
+        <button class="nav-item" onclick="startNewDeal()" style="color:#0068B5;font-weight:700">
+          <span class="step-num">+</span>Start a new deal
+        </button>
         <button class="nav-item" onclick="showStartChecklist()">
           <span class="step-num">&#10003;</span>Before you start — checklist
         </button>
@@ -2125,6 +2128,7 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
                 <input type="number" id="intel-eligible-arr" placeholder="0" min="0" oninput="this.dataset.userEdited=1;window._arrSource=null;var b=document.getElementById('arr-source-badge');if(b)b.style.display='none'">
                 <div id="arr-source-badge" style="display:none;font-size:.68rem;font-weight:700;color:#0068B5;background:#eef5ff;border:1px solid #d3e3fb;border-radius:5px;padding:4px 8px;margin-top:5px"></div>
                 <span class="hint">This is the number that drives DNE and the funding math — not total ARR, and not necessarily the same as ACE ARR.</span>
+                <button type="button" onclick="goStep(3)" style="background:none;border:none;color:#0068B5;font-size:.74rem;font-weight:700;cursor:pointer;text-decoration:underline;padding:0;margin-top:5px">Don't type this by hand — get it from the calculator &rarr;</button>
                 <div style="font-size:.7rem;color:var(--ink2);background:#f6f9ff;border:1px solid #dbe6f7;border-radius:6px;padding:7px 10px;margin-top:6px;line-height:1.5">Keep the full ACE amount above. The Intel-eligible figure here is usually a portion of it — often smaller — and that's expected. Enter the part of this opportunity that runs on eligible Intel instances.</div>
               </div>
             </div>
@@ -2240,7 +2244,7 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
                 <option value="Migrate">Migrate (net new workloads to AWS)</option>
                 <option value="Modernize">Modernization (upgrade to new Gen for incremental value)</option>
               </select>
-              <span class="hint" id="deal-type-rate-hint">Migrate: 4.5% of actual total spend, no cap. Modernization: 1% of actual total spend, capped $250,000.</span>
+              <span class="hint" id="deal-type-rate-hint">Migrate: 4.5% of actual total spend, capped $1,000,000. Modernization: 1% of actual total spend, capped $250,000.</span>
             </div>
             <div class="f-group">
               <label>Payment Option <span class="req">*</span></label>
@@ -2328,6 +2332,54 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
           <button class="btn btn-aws" onclick="exportIPIC()">Export IPIC / Smartsheet Row</button>
         </div>
         </div><!-- /aws-specialist-view -->
+
+        <!-- POP TRACKING. Deliberately holds no file. Proof of Performance is
+             the customer's own Cost Explorer export and flows directly between
+             the customer and TCC — AWS never handles or forwards it. What was
+             missing was not storage, it was visibility: nobody could tell
+             whether a POP had arrived. This tracks the state and a pointer to
+             wherever TCC holds it, which gives everyone the same answer
+             without AWS touching the data. -->
+        <div class="section-card" id="pop-card" style="margin-top:16px">
+          <div class="section-card-title">Proof of Performance</div>
+          <div style="font-size:.73rem;color:var(--ink3);margin-bottom:10px;line-height:1.55">The export itself goes straight from the customer to TCC and is never uploaded here — AWS cannot hold or forward that data. This records where it has got to, so nobody has to chase an email thread to find out.</div>
+          <div id="pop-readonly-note" style="display:none;font-size:.72rem;color:#92400e;background:#fffbeb;border-left:3px solid #d97706;border-radius:0 5px 5px 0;padding:7px 10px;margin-bottom:10px">TCC maintains these fields. You can see the status but not change it.</div>
+          <div class="form-grid">
+            <div class="f-group">
+              <label>POP Status</label>
+              <select id="pop-status" onchange="renderPopSummary()">
+                <option value="not_due">Not yet due</option>
+                <option value="requested">Requested from customer</option>
+                <option value="received">Received by TCC</option>
+                <option value="confirmed">Confirmed — clear to disburse</option>
+                <option value="query">Query raised with customer</option>
+              </select>
+              <span class="hint">Set by TCC as the quarter progresses.</span>
+            </div>
+            <div class="f-group">
+              <label>Quarter Covered</label>
+              <input type="text" id="pop-quarter" placeholder="e.g. Q3 2026">
+            </div>
+            <div class="f-group">
+              <label>Date Received by TCC</label>
+              <input type="date" id="pop-received">
+            </div>
+            <div class="f-group">
+              <label>Confirmed By</label>
+              <input type="text" id="pop-confirmed-by" placeholder="Name at TCC">
+            </div>
+            <div class="f-group span2">
+              <label>Where TCC Holds It</label>
+              <input type="url" id="pop-link" placeholder="https://... link to the file in TCC's or Intel's system">
+              <span class="hint">A pointer only. Do not upload the export to this app — it must not sit in an AWS account.</span>
+            </div>
+            <div class="f-group span2">
+              <label>Notes</label>
+              <textarea id="pop-note" placeholder="Anything the next person needs to know — what was queried, what is outstanding..." style="min-height:52px" oninput="renderPopSummary()"></textarea>
+            </div>
+          </div>
+          <div id="pop-summary" style="margin-top:10px"></div>
+        </div>
       </div><!-- /step1 -->
 
       <!-- ── STEP 3: IAP CALCULATOR ── -->
@@ -2345,7 +2397,38 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
           <button class="btn btn-secondary btn-sm" onclick="downloadWorkflowOnePager()">⇩ Workflow — how a deal moves</button>
         </div>
 
-        <div class="section-card" style="margin-bottom:16px">
+        <!-- THE SIMPLE ANSWER. Two questions and a number. Everything that was
+             here before still exists underneath, folded away, because most of the
+             time nobody needs a discount model or a region multiplier to find out
+             what a deal is worth. -->
+        <div class="section-card" id="quick-answer" style="margin-bottom:16px;border:2px solid #0068B5">
+          <div class="section-card-title" style="color:#0068B5">How much funding can this deal get?</div>
+
+          <div style="font-size:.8rem;font-weight:700;color:#0A1628;margin:10px 0 6px">1. Which one is this?</div>
+          <div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:14px">
+            <button type="button" id="qa-migrate" onclick="qaSetTrack('migrate')" style="flex:1;min-width:210px;text-align:left;padding:12px 14px;border:2px solid #d8d8d8;border-radius:8px;background:#fff;color:#0A1628;cursor:pointer">
+              <span style="display:block;font-size:.85rem;font-weight:800">Migration</span>
+              <span style="display:block;font-size:.73rem;opacity:.75;margin-top:2px">Not on AWS yet. Moving in.</span>
+            </button>
+            <button type="button" id="qa-modernize" onclick="qaSetTrack('modernize')" style="flex:1;min-width:210px;text-align:left;padding:12px 14px;border:2px solid #d8d8d8;border-radius:8px;background:#fff;color:#0A1628;cursor:pointer">
+              <span style="display:block;font-size:.85rem;font-weight:800">Modernization</span>
+              <span style="display:block;font-size:.73rem;opacity:.75;margin-top:2px">Already on AWS. Upgrading old instances.</span>
+            </button>
+          </div>
+
+          <div id="qa-step2" style="display:none">
+            <div style="font-size:.8rem;font-weight:700;color:#0A1628;margin-bottom:6px" id="qa-q2"></div>
+            <div id="qa-input-area"></div>
+          </div>
+
+          <div id="qa-answer" style="display:none;margin-top:14px"></div>
+        </div>
+
+        <div style="margin-bottom:14px">
+          <button type="button" onclick="toggleCalcDetail()" id="calc-detail-toggle" style="background:none;border:none;color:#0068B5;font-size:.76rem;font-weight:700;cursor:pointer;text-decoration:underline;padding:0">Show the detail — fleets, regions, discounts &rarr;</button>
+        </div>
+
+        <div class="section-card" id="calc-detail" style="margin-bottom:16px;display:none">
           <div class="section-card-title">Step 1 — BOM to Intel Instances</div>
           <div style="font-size:.74rem;color:var(--ink3);margin-bottom:12px">Start here: take what's in your BOM and translate it into the Intel-powered instances that back the funding ask. Add a fleet per region if pricing differs — each region prices differently.</div>
           <!-- ONE FRONT DOOR. The deal ARR used to be settable from five
@@ -2379,7 +2462,7 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
           <!-- Chosen-input strip: replaces the tab row once a path is picked -->
           <!-- Says out loud which track is being priced and at what rate. Without
                it the totals bar shows a DNE with no indication of whether it came
-               from 4.5% uncapped or 1% capped at $250,000. -->
+               from 4.5% capped at $1,000,000 or 1% capped at $250,000. -->
           <div id="calc-track-banner" style="margin-bottom:12px;padding:10px 13px;border-radius:6px;border-left:4px solid #0068B5;background:#f6f9ff"></div>
           <div id="calc-input-strip" style="display:none;margin-bottom:16px;padding:9px 13px;background:#f8fafc;border:1px solid var(--border);border-radius:6px;align-items:center;gap:12px;flex-wrap:wrap">
             <span style="font-size:.74rem;color:var(--ink2)">Working from: <strong id="calc-input-label" style="color:#0068B5"></strong></span>
@@ -3136,6 +3219,7 @@ function completeLogin(u){
 
   initApp();
   try{ maybeShowStartChecklist(); }catch(e){}
+  try{ applyPopPermissions(); renderPopSummary(); }catch(e){}
   goStep(1); // Deal Info ("Start Your Deal Journey") is the landing page — Deal ARR / Fleet Calculator is a section reached after metadata, not a separate landing step
 }
 
@@ -3153,7 +3237,7 @@ const MOTION_DATA = {
   migrate: {
     title: 'Migration — net-new workload coming to AWS',
     sub: 'Nothing is running yet, so there is no usage to measure. The numbers come from the AWS Pricing Calculator.',
-    rate: 'Track 1 · 4.5% of eligible ARR · uncapped',
+    rate: 'Track 1 · 4.5% of eligible ARR · capped $1,000,000',
     steps: [
       'Go to <a href="https://calculator.aws/#/" target="_blank" rel="noopener" style="color:#0068B5;font-weight:700">calculator.aws</a> and build the estimate on the target Intel instances — m8i, c8i, r8i or x8i.',
       'For each workload set the instance type, size, instance count and region.',
@@ -3263,7 +3347,7 @@ const START_CHECKLIST = [
   {group:'You must bring these — the Smartsheet will not accept the row without them', tone:'block', items:[
     {t:'Activity Name',                 d:'The deal name. Customer plus workload is enough — "PACCAR Inc — SAP RISE on AWS".'},
     {t:'Partner or End Customer Name',  d:'The end customer, or the partner if one is delivering.'},
-    {t:'Activity Type — Migration or Modernization', d:'Migration is net-new workload coming to AWS and pays 4.5% of eligible ARR, uncapped. Modernization is an existing fleet being upgraded and pays 1%, capped at $250,000. This one field sets the rate.'},
+    {t:'Activity Type — Migration or Modernization', d:'Migration is net-new workload coming to AWS and pays 4.5% of eligible ARR capped at $1,000,000. Modernization is an existing fleet being upgraded and pays 1%, capped at $250,000. This one field sets the rate.'},
     {t:'ACE Opportunity ID',            d:'The deal has to be registered on ACE. Without it AWS Approval returns the record rather than reviewing it. Get it from the account team before you start.'},
     {t:'Start Date and End Date',       d:'The activity window has to fit inside 12 months. The customer project can run longer; the funded activity cannot.'},
     {t:'AWS Instances Used',            d:'The Intel 8th gen family the workload runs on — m8i, c8i, r8i or x8i. Eligibility rests on this.'},
@@ -3995,14 +4079,14 @@ function getFleetRegionMultiplier(id){
 
 function computeRate(dealType){
   // The single rate table, mirrored by compute_dne() in lambda_function.py:
-  // Migrate 4.5% uncapped; Modernize 1% capped $250,000 PER DEAL.
+  // Migrate 4.5% capped $1,000,000; Modernize 1% capped $250,000 PER DEAL.
   // Matching is tolerant ("Modernize", "Modernization", "modernize" all work)
   // but the default is CONSERVATIVE: an unrecognized or unselected type gets
-  // the capped 1% track, never the uncapped 4.5%. The old exact-match version
+  // the capped 1% track, never the capped at $1,000,000 4.5%. The old exact-match version
   // silently priced Proof of Concept deals — and any deal where the type was
   // left on "— Select —" — at the generous rate.
   const dt = String(dealType||'').trim().toLowerCase();
-  if(dt.startsWith('migrat')) return {rate:0.045, cap:null, label:'4.5% (Migrate)'};
+  if(dt.startsWith('migrat')) return {rate:0.045, cap:1000000, label:'4.5% (Migrate — capped $1,000,000)'};
   if(dt.startsWith('mod')) return {rate:0.01, cap:250000, label:'1% (Modernization — capped $250,000)'};
   return {rate:0.01, cap:250000, label:'1% capped $250,000 (deal type not set — select Migrate or Modernize for the correct rate)'};
 }
@@ -4136,15 +4220,15 @@ function renderTrackBanner(){
     '<div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:' + (known ? '#0068B5' : '#92400e') + ';margin-bottom:7px">' +
       (known ? 'Track — this sets the rate' : 'Pick the track first — nothing below is right until you do') + '</div>' +
     '<div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:9px">' +
-      card('migrate',  'Migration',     'Net-new workload to AWS · 4.5%, uncapped',        dt.startsWith('migrat')) +
+      card('migrate',  'Migration',     'Net-new workload to AWS · 4.5%, capped $1M',        dt.startsWith('migrat')) +
       card('modernize','Modernization', 'Existing fleet upgraded · 1%, capped $250,000',   isMod) +
     '</div>' +
     (known
       ? '<div style="font-size:.73rem;color:#555;line-height:1.55">Pricing at <strong style="color:#0068B5">' + info.label + '</strong>. ' +
         (isMod
           ? 'The rate applies to the annual spend <strong>after</strong> modernization, and the funding is capped at $250,000 however large the fleet is.'
-          : 'The rate applies to the annual spend on eligible Intel instances once the workload is running. There is no cap.') + '</div>'
-      : '<div style="font-size:.73rem;color:#78350f;line-height:1.55">Until you choose, every figure below is calculated at <strong>1% capped at $250,000</strong> — the cautious rate. A Migration deal is worth 4.5% uncapped, so a wrong default here understates the ask by a long way.</div>');
+          : 'The rate applies to the annual spend on eligible Intel instances once the workload is running, capped at $1,000,000.') + '</div>'
+      : '<div style="font-size:.73rem;color:#78350f;line-height:1.55">Until you choose, every figure below is calculated at <strong>1% capped at $250,000</strong> — the cautious rate. A Migration deal is worth 4.5% capped at $1,000,000, so a wrong default here understates the ask by a long way.</div>');
 }
 
 /* One place to set the track, whichever view you logged in through.
@@ -4152,6 +4236,175 @@ function renderTrackBanner(){
    buried in Deal Metadata that people never found, so deals silently
    priced at the cautious 1%. This writes both fields and refreshes
    everything that depends on them. */
+/* ── THE SIMPLE PATH ─────────────────────────────────────────────
+   Two questions, one number. Migration asks for the future annual spend
+   because nothing is running yet. Modernization takes the Cost Explorer
+   export and works it out, which is Chris Clee's flow: you cannot ask a
+   seller to guess a fleet they can measure. */
+function qaSetTrack(kind){
+  setTrack(kind);
+  // Clear anything derived from a previous answer. Switching track used to
+  // leave the last upload's vCPU figures attached to a completely different
+  // deal, which showed 80 vCPUs against a $40M migration.
+  window._qaVcpus = null;
+  ['migrate','modernize'].forEach(k=>{
+    const b=document.getElementById('qa-'+k); if(!b) return;
+    const on = k===kind;
+    b.style.borderColor = on ? '#0068B5' : '#d8d8d8';
+    b.style.background  = on ? '#0068B5' : '#fff';
+    b.style.color       = on ? '#fff' : '#0A1628';
+  });
+  const s2 = document.getElementById('qa-step2');
+  const q  = document.getElementById('qa-q2');
+  const area = document.getElementById('qa-input-area');
+  s2.style.display='block';
+
+  if(kind==='migrate'){
+    q.textContent = '2. What will they spend on Intel instances in a year?';
+    area.innerHTML =
+      '<input type="number" id="qa-spend" placeholder="e.g. 2000000" oninput="qaAnswer()" style="max-width:280px">' +
+      '<div class="hint" style="margin-top:4px">The yearly AWS bill for the m8i, c8i, r8i or x8i instances only — not their whole AWS spend.</div>' +
+      '<button type="button" onclick="toggleCalcDetail(true)" style="background:none;border:none;color:#0068B5;font-size:.74rem;font-weight:700;cursor:pointer;text-decoration:underline;padding:0;margin-top:7px">I do not know the number — help me work it out &rarr;</button>';
+  } else {
+    q.textContent = '2. Upload their Cost Explorer export';
+    area.innerHTML =
+      '<input type="file" id="qa-ce" accept=".csv" onchange="qaCostExplorer(this)" style="max-width:320px;font-size:.78rem">' +
+      '<div class="hint" style="margin-top:4px">Their existing fleet. Every instance gets mapped to its Intel 8th gen target and the new yearly spend is worked out for you.</div>' +
+      '<div id="qa-ce-status" style="font-size:.74rem;color:var(--ink3);margin-top:6px"></div>' +
+      '<button type="button" onclick="showDataGuide(\'modernize\')" style="background:none;border:none;color:#0068B5;font-size:.74rem;font-weight:700;cursor:pointer;text-decoration:underline;padding:0;margin-top:7px">How do I get that file? &rarr;</button>' +
+      '<div style="margin-top:11px;padding-top:11px;border-top:1px dashed var(--border)">' +
+        '<div style="font-size:.74rem;color:var(--ink2);margin-bottom:4px">Or type the yearly spend after upgrading, if you already know it:</div>' +
+        '<input type="number" id="qa-spend" placeholder="e.g. 2000000" oninput="qaAnswer()" style="max-width:280px">' +
+      '</div>';
+  }
+  qaAnswer();
+}
+
+function qaCostExplorer(input){
+  const status = document.getElementById('qa-ce-status');
+  const file = input.files && input.files[0];
+  if(!file) return;
+  status.textContent = 'Reading ' + file.name + '…';
+  const reader = new FileReader();
+  reader.onload = e => {
+    const parsed = parseCostExplorerCsv(String(e.target.result));
+    if(parsed.error){ status.innerHTML = '<span style="color:#b91c1c;font-weight:600">' + parsed.error + '</span>'; return; }
+    const {mapped, origTotal, modTotal, vcpusNow, vcpusAfter} = mapModernization(parsed.rows);
+    window._qaVcpus = {now: vcpusNow, after: vcpusAfter, origTotal: origTotal};
+    status.innerHTML = mapped.length + ' instance types read. Spending ' + fmtUSD(origTotal) +
+      ' a year now; ' + fmtUSD(modTotal) + ' a year after upgrading.' +
+      (vcpusNow ? '<br>About ' + Math.round(vcpusNow).toLocaleString() + ' vCPUs today, ' +
+                  Math.round(vcpusAfter).toLocaleString() + ' after — the newer generation does the same work with ' +
+                  (vcpusAfter < vcpusNow ? 'fewer' : 'more') + '.' : '');
+    const box = document.getElementById('qa-spend');
+    if(box){ box.value = Math.round(modTotal); }
+    qaAnswer();
+  };
+  reader.readAsText(file);
+}
+
+function qaAnswer(){
+  const out = document.getElementById('qa-answer');
+  if(!out) return;
+  const spend = parseFloat((document.getElementById('qa-spend')||{}).value) || 0;
+  if(!(spend > 0)){ out.style.display='none'; return; }
+  const info = getRateInfo();
+  const raw = spend * info.rate;
+  const capped = info.cap ? Math.min(raw, info.cap) : raw;
+  const wasCapped = info.cap && raw > info.cap;
+  const isMod = /^mod/i.test(resolveDealType()||'');
+  out.style.display='block';
+  out.innerHTML =
+    '<div style="background:#0A1628;border-radius:10px;padding:16px 18px;color:#fff">' +
+      '<div style="font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.6)">Intel can fund up to</div>' +
+      '<div style="font-size:2.1rem;font-weight:800;color:#FF9900;line-height:1.15;margin:2px 0 6px">' + fmtUSD(capped) + '</div>' +
+      '<div style="font-size:.77rem;color:rgba(255,255,255,.85);line-height:1.6">' +
+        fmtUSD(spend) + ' a year &times; ' + (isMod ? '1%' : '4.5%') + ' = ' + fmtUSD(raw) +
+        (wasCapped ? '. That is over the ' + fmtUSD(info.cap) + ' cap for this track, so the most you can ask for is ' + fmtUSD(info.cap) + '.' : '.') +
+      '</div>' +
+      (function(){
+        const v = window._qaVcpus;
+        const bits = [];
+        if(v && v.now){
+          bits.push(Math.round(v.now).toLocaleString() + ' vCPUs today &rarr; ' + Math.round(v.after).toLocaleString() + ' after');
+          if(spend>0) bits.push(fmtUSD(spend / Math.max(1, v.after)) + ' per vCPU per year');
+        }
+        if(v && v.origTotal && v.origTotal > spend){
+          bits.push('customer saves ' + fmtUSD(v.origTotal - spend) + ' a year');
+        }
+        if(capped>0 && spend>0){
+          const threeYr = spend * 3;
+          bits.push(fmtUSD(threeYr) + ' of AWS spend over three years against ' + fmtUSD(capped) + ' of Intel funding');
+        }
+        return bits.length
+          ? '<div style="font-size:.73rem;color:rgba(255,255,255,.75);line-height:1.6;margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.15)">' + bits.join(' &middot; ') + '</div>'
+          : '';
+      })() +
+      '<div style="font-size:.72rem;color:rgba(255,255,255,.6);line-height:1.55;margin-top:8px">This is a ceiling, not a cheque. What gets paid is whatever the customer\'s Cost Explorer export proves they actually spent.</div>' +
+      '<button type="button" onclick="qaUseNumber()" class="btn btn-primary" style="margin-top:12px">Use this and carry on &rarr;</button>' +
+    '</div>';
+}
+
+function qaUseNumber(){
+  const spend = parseFloat((document.getElementById('qa-spend')||{}).value) || 0;
+  if(!(spend>0)) return;
+  const isMod = /^mod/i.test(resolveDealType()||'');
+  setDealARR(spend, isMod ? 'the Modernization quick calculator' : 'the Migration quick calculator');
+  goStep(1);
+}
+
+/* There was no way to start a fresh deal. The app autosaves to
+   localStorage and restores on load, so finishing one deal and beginning
+   another left every field, every fleet and the whole loaded-deal state
+   sitting there. People read that as the app caching old data. It was
+   not caching -- there was simply nothing that cleared it. */
+function startNewDeal(){
+  if(!confirm('Start a new deal? Anything not submitted on the current one will be cleared.')) return;
+  // Every text-ish input and select on the deal pages.
+  document.querySelectorAll('#step1 input, #step1 select, #step1 textarea, #step3 input, #step3 select, #step3 textarea')
+    .forEach(el=>{
+      if(el.type==='file'){ el.value=''; return; }
+      if(el.type==='checkbox' || el.type==='radio'){ el.checked=false; return; }
+      if(el.tagName==='SELECT'){ el.selectedIndex = 0; return; }
+      el.value='';
+      delete el.dataset.userEdited;
+      delete el.dataset.livePriced;
+      delete el.dataset.regionPriced;
+    });
+  // Fleets, teams, plays.
+  fleets = []; fleetCount = 0;
+  const fc = document.getElementById('fleet-container'); if(fc) fc.innerHTML='';
+  try{ selectedPlays.clear(); }catch(e){}
+  multiDealRows = [];
+  // Loaded-deal and derivation state.
+  window._loadedDealId = null; window._loadedDeal = null;
+  window._arrSource = null; window._arrSourceAt = null;
+  window._calcInputSource = null; window._ceResult = null;
+  const badge = document.getElementById('arr-source-badge'); if(badge) badge.style.display='none';
+  // The quick calculator.
+  ['qa-migrate','qa-modernize'].forEach(id=>{
+    const b=document.getElementById(id);
+    if(b){ b.style.borderColor='#d8d8d8'; b.style.background='#fff'; b.style.color='#0A1628'; }
+  });
+  ['qa-step2','qa-answer'].forEach(id=>{ const e=document.getElementById(id); if(e) e.style.display='none'; });
+  // The saved draft itself, or it all comes straight back on reload.
+  try{ localStorage.removeItem(DRAFT_KEY); }catch(e){}
+  try{ resetInputChoice(); }catch(e){}
+  try{ addFleet(); updateTotals(); renderTrackBanner(); renderPopSummary(); }catch(e){}
+  try{ renderChangesRequestedBanner(null); }catch(e){}
+  goStep(3);
+}
+
+function toggleCalcDetail(forceOpen){
+  const d = document.getElementById('calc-detail');
+  const t = document.getElementById('calc-detail-toggle');
+  if(!d) return;
+  const open = forceOpen === true ? true : d.style.display === 'none';
+  d.style.display = open ? 'block' : 'none';
+  if(t) t.innerHTML = open ? 'Hide the detail &uarr;' : 'Show the detail — fleets, regions, discounts &rarr;';
+  if(open) d.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
 function setTrack(kind){
   const awsField = document.getElementById('prd-deal-type');
   if(awsField){
@@ -4394,9 +4647,9 @@ function updateTotals(){
   const totList=fleets.reduce((s,f)=>s+(f.listARR||0),0);
   const totActual=fleets.reduce((s,f)=>s+(f.actualARR||0),0);
   // The $250K Modernize cap is a PER-DEAL limit. Each fleet row shows its own
-  // uncapped share, but the deal total clamps the summed Modernize portion —
+  // capped at $1,000,000 share, but the deal total clamps the summed Modernize portion —
   // otherwise a three-region Modernize deal could display up to $750K, a
-  // number the program rules do not support. Migrate fleets are uncapped.
+  // number the program rules do not support. Migrate fleets are capped at $1,000,000.
   const migRebate=fleets.filter(f=>f.type!=='mod').reduce((s,f)=>s+(f.rebate||0),0);
   const modRebate=Math.min(fleets.filter(f=>f.type==='mod').reduce((s,f)=>s+(f.rebate||0),0), 250000);
   const totRebate=migRebate+modRebate;
@@ -4674,7 +4927,9 @@ function parseCostExplorerCsv(content){
   types.forEach(it => {
     const raw = ceNum(totals[costCols[it]]);
     if(raw === null) return;
-    out.push({ type: it, annualCost: raw * factor });
+    const hIdx = hrsCols[it];
+    const rawHrs = (hIdx !== undefined) ? ceNum(totals[hIdx]) : null;
+    out.push({ type: it, annualCost: raw * factor, annualHours: rawHrs === null ? null : rawHrs * factor });
   });
   return {rows: out, months: nPeriods};
 }
@@ -4691,6 +4946,14 @@ function mapModernization(rows){
       return;
     }
     const [target, perf, oldMo, newMo] = m;
+    // Average instance count from hours, then vCPUs. 8760 hours in a year, so
+    // annual hours over 8760 is how many were running on average.
+    const avgCount = r.annualHours ? (r.annualHours / 8760) : null;
+    const sizeOf = n => (String(n).split('.')[1] || '');
+    if(avgCount){
+      r.vcpusNow   = avgCount * (vcpusForSize(sizeOf(r.type)) || 0);
+      r.vcpusAfter = Math.ceil(avgCount / (perf || 1)) * (vcpusForSize(sizeOf(target)) || 0);
+    }
     if(!(oldMo > 0) || !(newMo > 0)){
       mapped.push({...r, target, modAnnual:r.annualCost, note:'No price on file for this pair — carried at current cost.'});
       modTotal += r.annualCost;
@@ -4703,7 +4966,9 @@ function mapModernization(rows){
   });
   modTotal += unmappedCost;
   mapped.sort((a,b)=>b.annualCost-a.annualCost);
-  return {mapped, origTotal, modTotal, unmappedCost};
+  const vcpusNow   = mapped.reduce((s,r)=>s+(r.vcpusNow||0),0);
+  const vcpusAfter = mapped.reduce((s,r)=>s+(r.vcpusAfter||0),0);
+  return {mapped, origTotal, modTotal, unmappedCost, vcpusNow, vcpusAfter};
 }
 
 function handleCostExplorerUpload(input){
@@ -5346,10 +5611,10 @@ async function answerIntelQuestion(msg){
 
   // Program rules — these are exact, no AI needed for any of this.
   if(/modern.*cap|cap.*modern|250,?000|250k/i.test(q)){
-    return "Modernize is 1% of eligible ARR (post-discount), capped at $250,000. Migrate is 4.5%, uncapped. If a deal is close to the cap, the extra ARR above the cap threshold doesn't add any further funding.";
+    return "Modernize is 1% of eligible ARR (post-discount), capped at $250,000. Migrate is 4.5%, capped at $1,000,000. If a deal is close to the cap, the extra ARR above the cap threshold doesn't add any further funding.";
   }
   if(/rate.*(m8i|c8i|r8i|x8i)|iap rate/i.test(q)){
-    return "The rate depends on Deal Type, not instance family: Migrate is 4.5% of eligible ARR, uncapped. Modernize is 1%, capped at $250,000. All four families — m8i, c8i, r8i, x8i — qualify equally.";
+    return "The rate depends on Deal Type, not instance family: Migrate is 4.5% of eligible ARR capped at $1,000,000. Modernize is 1%, capped at $250,000. All four families — m8i, c8i, r8i, x8i — qualify equally.";
   }
   if(/discount|blended|edp|pricing benefit/i.test(q)){
     return "Customer Pricing Benefit defaults to 0% — no discount is assumed unless you enter the customer's actual pricing benefit. DNE = eligible ARR (after whatever discount you set) × rate.";
@@ -6648,6 +6913,12 @@ function getCurrentDealData(){
     // The 8th gen target the deal moves to. Read by the funding gates and
     // the Smartsheet export, but never written until now, so every deal
     // carried an unclearable 'no Intel 8th gen target' blocker.
+    popStatus: v('pop-status') || 'not_due',
+    popQuarter: v('pop-quarter'),
+    popReceived: v('pop-received'),
+    popConfirmedBy: v('pop-confirmed-by'),
+    popLink: v('pop-link'),
+    popNote: v('pop-note'),
     arrSource: window._arrSource || null,
     arrSourceAt: window._arrSourceAt || null,
     migTo: v('target-instance-intel') || v('mig-to') ||
@@ -7244,8 +7515,8 @@ function getSmartsheetRows(d){
     ['IPIC Activity Description', activityDesc],
     ['Start Date', d.migStart],
     ['End Date', d.closeDate || d.migTargetDate],
-    ['POP Due Date', '(TCC confirms)'],
-    ['Claim Quarter', d.claimQuarter || '(TCC assigns)'],
+    ['POP Due Date', d.popReceived || '(TCC confirms)'],
+    ['Claim Quarter', d.claimQuarter || d.popQuarter || '(TCC assigns)'],
     ['Partner or End Customer Name', d.partnerName || d.custName],
     ['Status', d.status],
     ['Intel Budget Year', d.intelBudgetYear],
@@ -7260,7 +7531,7 @@ function getSmartsheetRows(d){
     ['Intel Rep Name', d.intelRepName],
     ['AWS Rep Name', d.awsRepName],
     ['Migration Project Description', d.workload],
-    ['POP Available?', 'No (true only post-SOW)'],
+    ['POP Available?', d.popStatus==='confirmed' ? 'Yes — confirmed by TCC' : (d.popStatus==='received' ? 'Received, under review' : 'No')],
     ['AWS Instances Used', d.migTo],
     ['Region/Country of Execution', d.awsRegion],
     ['Cost of Infrastructure (ARR)', infraArr ? fmt(infraArr) : ''],
@@ -7466,9 +7737,53 @@ function renderChangesRequestedBanner(d){
     '<div style="font-size:.72rem;color:#78350f;margin-top:6px">' + (d.changesRequestedBy||'A reviewer') + (d.changesRequestedDate ? ' on ' + d.changesRequestedDate : '') + '</div>';
 }
 
+/* Only TCC and admins maintain POP. Everyone else sees it read-only —
+   the status is useful to a seller, but it is not theirs to set. */
+function applyPopPermissions(){
+  const canEdit = currentUser && (currentUser.tier==='tcc' || currentUser.tier==='admin');
+  ['pop-status','pop-quarter','pop-received','pop-confirmed-by','pop-link','pop-note'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(!el) return;
+    if(canEdit){ el.removeAttribute('disabled'); el.style.background=''; }
+    else { el.setAttribute('disabled','disabled'); el.style.background='#f5f5f5'; }
+  });
+  const note = document.getElementById('pop-readonly-note');
+  if(note) note.style.display = canEdit ? 'none' : 'block';
+}
+
+const POP_STATES = {
+  not_due:   {label:'Not yet due',                   tone:'#616161', bg:'#f5f7fa', why:'The claim window has not opened. Nothing to chase.'},
+  requested: {label:'Requested from customer',       tone:'#d97706', bg:'#fffbeb', why:'TCC has asked. If this sits here past the claim date the funding rolls to the next cycle.'},
+  received:  {label:'Received by TCC',               tone:'#0068B5', bg:'#f6f9ff', why:'The export is in. TCC is checking it against the target ARR.'},
+  confirmed: {label:'Confirmed — clear to disburse', tone:'#16a34a', bg:'#f0fdf4', why:'Checked and accepted. Payment can proceed.'},
+  query:     {label:'Query raised with customer',    tone:'#dc2626', bg:'#fef2f2', why:'Something did not reconcile. Read the notes below — this one is blocking payment.'}
+};
+
+function renderPopSummary(){
+  const host = document.getElementById('pop-summary');
+  if(!host) return;
+  const st = (document.getElementById('pop-status')||{}).value || 'not_due';
+  const s = POP_STATES[st] || POP_STATES.not_due;
+  const q = (document.getElementById('pop-quarter')||{}).value || '';
+  const d = (document.getElementById('pop-received')||{}).value || '';
+  const by = (document.getElementById('pop-confirmed-by')||{}).value || '';
+  const link = (document.getElementById('pop-link')||{}).value || '';
+  host.innerHTML =
+    '<div style="border-left:4px solid ' + s.tone + ';background:' + s.bg + ';border-radius:0 6px 6px 0;padding:9px 12px">' +
+      '<div style="font-size:.79rem;font-weight:700;color:' + s.tone + '">' + s.label + (q ? ' &middot; ' + q : '') + '</div>' +
+      '<div style="font-size:.73rem;color:#555;line-height:1.5;margin-top:2px">' + s.why + '</div>' +
+      ((d||by) ? '<div style="font-size:.71rem;color:var(--ink3);margin-top:4px">' + (d?'Received '+d:'') + (d&&by?' · ':'') + (by?'confirmed by '+by:'') + '</div>' : '') +
+      (link ? '<div style="margin-top:5px"><a href="' + link.replace(/"/g,'&quot;') + '" target="_blank" rel="noopener" style="font-size:.73rem;color:#0068B5;font-weight:700">Open the file where TCC holds it &rarr;</a></div>' : '') +
+    '</div>';
+}
+
 function restoreDeal(d){
   window._loadedDeal = d;
   try{ renderChangesRequestedBanner(d); }catch(e){}
+  setVal('pop-status', d.popStatus || 'not_due'); setVal('pop-quarter', d.popQuarter);
+  setVal('pop-received', d.popReceived); setVal('pop-confirmed-by', d.popConfirmedBy);
+  setVal('pop-link', d.popLink); setVal('pop-note', d.popNote);
+  try{ applyPopPermissions(); renderPopSummary(); }catch(e){}
   // The fleet array drives the totals bar, the SOW fallback, the approval card
   // headline and the IPIC export. It was never restored, so all four read zero
   // the moment a deal was reopened.

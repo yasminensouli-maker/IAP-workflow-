@@ -24,11 +24,18 @@ MAX_UPLOAD_BYTES = int(os.environ.get('MAX_UPLOAD_BYTES', str(15 * 1024 * 1024))
 # ── CONFIG (env vars — PRD Section 10; change via console, no code edit) ──
 TABLE = os.environ.get('TABLE', 'iap-deals')
 FROM_EMAIL = os.environ.get('FROM_EMAIL', 'yasmine@cloudzero.ca')
+# Where replies go. Mail can be sent from any address on a domain SES has
+# verified, with no mailbox behind it -- but a reply to an address with no
+# inbox vanishes silently, which in an approval chain means losing an
+# "approved, go ahead". This routes replies somewhere a human reads.
+REPLY_TO_EMAIL = os.environ.get('REPLY_TO_EMAIL', '').strip()
 APP_URL = os.environ.get('APP_URL', 'https://main.dgxv59n7ru973.amplifyapp.com')
 
 RATE_MIGRATE = float(os.environ.get('RATE_MIGRATE', '0.045'))      # Migrate / Modernize
 RATE_OPTIMIZE = float(os.environ.get('RATE_OPTIMIZE', '0.01'))
 OPTIMIZE_CAP = float(os.environ.get('OPTIMIZE_CAP', '250000'))
+# Migrate is capped too as of Aug 2026 — it used to be uncapped.
+MIGRATE_CAP = float(os.environ.get('MIGRATE_CAP', '1000000'))
 # BLENDED_DISCOUNT removed — it was a hidden 20% haircut applied underneath
 # the visible math (the exact double-discount pattern this program's tooling
 # has been burned by before). Discounts are applied once, visibly, in the
@@ -73,7 +80,7 @@ ADMIN_USERS = {
     'reidelj@amazon.com':          {'pass': _admin_pass('ADMIN_PASS_JEANINE'),  'tier':'admin', 'name':'Jeanine Reidel', 'label':'AWS Approval (Admin)', 'approver':'core'},
     'clchrisz@amazon.com':         {'pass': _admin_pass('ADMIN_PASS_CHRIS'),    'tier':'core',  'name':'Chris Chlee',    'label':'AWS Approval (SA)', 'approver':'core'},
     'akanksha.r.bilani@intel.com': {'pass': _admin_pass('ADMIN_PASS_AKANKSHA'),'tier':'intel_approver','name':'Akanksha Bilani','label':'Intel Leadership','approver':'intel'},
-    'brendon.roosken@intel.com':   {'pass': _admin_pass('ADMIN_PASS_BRENDON'), 'tier':'intel_approver','name':'Brendon Roosken','label':'Intel Leadership','approver':'intel'},
+    'brendon.roosken@intel.com':   {'pass': _admin_pass('ADMIN_PASS_BRENDON'), 'tier':'admin','name':'Brendon Roosken','label':'Intel Leadership (Admin)','approver':'intel'},
     'deep.grewal@intel.com':       {'pass': _admin_pass('ADMIN_PASS_DEEP'),    'tier':'intel_approver','name':'Deep Grewal',    'label':'Intel Leadership','approver':'intel'},
     'jacobx.barksdale@intel.com':  {'pass': _admin_pass('ADMIN_PASS_TCC'),     'tier':'tcc',   'name':'Jacob Barksdale','label':'TCC',             'approver':'tcc'},
 }
@@ -82,6 +89,8 @@ ADMIN_USERS = {
 # but need approver-level access rather than the generic seller tier —
 # checked by email after the shared domain password succeeds.
 DOMAIN_APPROVER_UPGRADES = {
+    'brendon.roosken@intel.com':  {'tier':'admin',          'name':'Brendon Roosken','label':'Intel Leadership (Admin)','approver':'intel'},
+    'akanksha.r.bilani@intel.com':{'tier':'intel_approver','name':'Akanksha Bilani','label':'Intel Leadership','approver':'intel'},
     'deep.grewal@intel.com':      {'tier':'intel_approver','name':'Deep Grewal',    'label':'Intel Leadership','approver':'intel'},
     'jacobx.barksdale@intel.com': {'tier':'tcc',            'name':'Jacob Barksdale','label':'TCC',             'approver':'tcc'},
 }
@@ -100,14 +109,19 @@ def now_utc():
 
 def send_email(to_addresses, subject, body_text):
     try:
-        ses.send_email(
-            Source=FROM_EMAIL,
-            Destination={'ToAddresses': to_addresses},
-            Message={
+        kwargs = {
+            'Source': FROM_EMAIL,
+            'Destination': {'ToAddresses': to_addresses},
+            'Message': {
                 'Subject': {'Data': subject, 'Charset': 'UTF-8'},
                 'Body': {'Text': {'Data': body_text, 'Charset': 'UTF-8'}}
             }
-        )
+        }
+        # Only set it when configured. An empty ReplyToAddresses list is fine,
+        # but a list containing an empty string is rejected by SES.
+        if REPLY_TO_EMAIL:
+            kwargs['ReplyToAddresses'] = [REPLY_TO_EMAIL]
+        ses.send_email(**kwargs)
         return True
     except Exception as e:
         print(f"SES error to {to_addresses}: {str(e)}")
@@ -122,8 +136,8 @@ def log_email(deal, recipients, subject):
 def compute_dne(eligible_arr, deal_type):
     """Canonical funding formula — the single source of truth, mirrored by
     computeRate() in index.html:
-        Funding = Eligible ARR x Rate. Migrate 4.5% uncapped;
-        Modernize 1% capped at $250,000 per deal.
+        Funding = Eligible ARR x Rate. Migrate 4.5% capped at $1,000,000;
+        Modernize 1% capped at $250,000. Both tracks are capped per deal.
     Eligible ARR arrives already net of any visible, user-chosen discount —
     no hidden haircut is applied here (the old fixed 20% was removed).
     Unrecognized deal types get the CONSERVATIVE track (1%, capped): a rate
@@ -131,7 +145,7 @@ def compute_dne(eligible_arr, deal_type):
     arr = float(eligible_arr or 0)
     dt = str(deal_type or '').strip().lower()
     if dt.startswith('migrat'):
-        return arr * RATE_MIGRATE
+        return min(arr * RATE_MIGRATE, MIGRATE_CAP)
     return min(arr * RATE_OPTIMIZE, OPTIMIZE_CAP)
 
 def compute_deal_dne(deal):
