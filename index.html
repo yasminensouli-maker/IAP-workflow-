@@ -1477,7 +1477,7 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
       <button id="global-back-btn" onclick="goBack()" style="display:none;align-items:center;gap:4px;background:transparent;color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:5px;padding:6px 12px;font-size:.75rem;cursor:pointer;font-family:Arial,sans-serif;margin-right:12px">← Back</button>
       <div class="app-header-logo" onclick="goStep(1)" style="cursor:pointer" title="Back to Start Your Deal Journey">INTEL × AWS</div>
       <div class="app-header-title" onclick="goStep(1)" style="cursor:pointer" title="Back to Start Your Deal Journey">Deal Desk</div>
-      <span id="build-stamp" title="Which build you are looking at. If this does not match what you just deployed, you are on a cached page." style="font-size:.62rem;color:rgba(255,255,255,.55);margin-left:9px;letter-spacing:.03em;white-space:nowrap">BUILD 2026-08-07 17:40 UTC</span>
+      <span id="build-stamp" title="Which build you are looking at. If this does not match what you just deployed, you are on a cached page." style="font-size:.62rem;color:rgba(255,255,255,.55);margin-left:9px;letter-spacing:.03em;white-space:nowrap">BUILD 2026-08-07 19:10 UTC</span>
     </div>
     <div class="app-header-right">
       <span id="draft-indicator" style="font-size:.72rem;color:var(--ink3);margin-right:10px"></span><span class="user-pill" id="user-pill">—</span>
@@ -1622,18 +1622,31 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
                 <label>Customer Industry</label>
                 <select id="cust-industry-intel">
                   <option value="">— Select —</option>
-                  <option>Financial Services</option>
-                  <option>Healthcare & Life Sciences</option>
-                  <option>Manufacturing</option>
-                  <option>Media & Entertainment</option>
-                  <option>Retail & CPG</option>
-                  <option>Technology / ISV</option>
-                  <option>Telecommunications</option>
-                  <option>Energy & Utilities</option>
-                  <option>Public Sector / Government</option>
+                  <option>Advertising &amp; Marketing</option>
+                  <option>Aerospace &amp; Satellite</option>
+                  <option>Agriculture</option>
                   <option>Automotive</option>
-                  <option>Aerospace & Defense</option>
-                  <option>Other</option>
+                  <option>Consumer Packaged Goods</option>
+                  <option>Education</option>
+                  <option>Energy</option>
+                  <option>Engineering &amp; Construction</option>
+                  <option>Financial Services</option>
+                  <option>Games</option>
+                  <option>Government</option>
+                  <option>Healthcare</option>
+                  <option>Life Sciences</option>
+                  <option>Manufacturing</option>
+                  <option>Media &amp; Entertainment</option>
+                  <option>Mining &amp; Natural Resources</option>
+                  <option>Nonprofit</option>
+                  <option>Power &amp; Utilities</option>
+                  <option>Professional Services</option>
+                  <option>Retail</option>
+                  <option>Semiconductor &amp; Electronics</option>
+                  <option>Software &amp; Internet</option>
+                  <option>Telecommunications</option>
+                  <option>Transportation &amp; Logistics</option>
+                  <option>Travel &amp; Hospitality</option>
                 </select>
               </div>
               <div class="f-group">
@@ -1877,16 +1890,31 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
               <label>Customer Industry</label>
               <select id="cust-industry">
                 <option value="">— Select Industry —</option>
+                <option>Advertising &amp; Marketing</option>
+                <option>Aerospace &amp; Satellite</option>
+                <option>Agriculture</option>
+                <option>Automotive</option>
+                <option>Consumer Packaged Goods</option>
+                <option>Education</option>
+                <option>Energy</option>
+                <option>Engineering &amp; Construction</option>
                 <option>Financial Services</option>
-                <option>Healthcare &amp; Life Sciences</option>
+                <option>Games</option>
+                <option>Government</option>
+                <option>Healthcare</option>
+                <option>Life Sciences</option>
                 <option>Manufacturing</option>
                 <option>Media &amp; Entertainment</option>
-                <option>Retail &amp; CPG</option>
-                <option>Technology / ISV</option>
+                <option>Mining &amp; Natural Resources</option>
+                <option>Nonprofit</option>
+                <option>Power &amp; Utilities</option>
+                <option>Professional Services</option>
+                <option>Retail</option>
+                <option>Semiconductor &amp; Electronics</option>
+                <option>Software &amp; Internet</option>
                 <option>Telecommunications</option>
-                <option>Energy &amp; Utilities</option>
-                <option>Public Sector / Government</option>
-                <option>Other</option>
+                <option>Transportation &amp; Logistics</option>
+                <option>Travel &amp; Hospitality</option>
               </select>
             </div>
             <div class="f-group span2">
@@ -7886,7 +7914,18 @@ function v(id){
 }
 function setVal(id,val){
   const el=document.getElementById(id);
-  if(el&&val!=null) el.value=val;
+  if(!el || val==null) return;
+  // Setting a dropdown to a value it does not offer silently blanks it --
+  // which would erase the industry on every deal saved under the old list.
+  // Keep the stored value visible and flagged so a human can re-pick it.
+  if(el.tagName==='SELECT' && val!=='' &&
+     !Array.prototype.some.call(el.options, function(o){ return o.value===val || o.text===val; })){
+    const opt=document.createElement('option');
+    opt.value=val; opt.text=val+' (legacy \u2014 please re-select)';
+    opt.dataset.legacy='1';
+    el.appendChild(opt);
+  }
+  el.value=val;
 }
 function fmt(n){
   if(!n&&n!==0) return '$0';
@@ -8169,6 +8208,73 @@ if('serviceWorker' in navigator){
     })
     .catch(function(e){ console.log('SW cleanup:', e); });
 }
+
+/* ── STALE BUILD DETECTOR ──────────────────────────────────────
+   Belt and braces on top of the no-store header in customHttp.yml.
+   Even with correct headers a page can sit open in a tab for hours
+   across a deploy, and the person keeps using a version that no
+   longer matches the backend. This re-fetches the page bypassing
+   cache, compares the BUILD stamp against the one that is running,
+   and offers a reload if they differ. It never reloads on its own --
+   losing half-typed deal data to a surprise refresh would be worse
+   than looking at a slightly old page. */
+(function(){
+  var el = document.getElementById('build-stamp');
+  if(!el || !window.fetch) return;
+  var running = (el.textContent || '').trim();
+  var STAMP = /BUILD \d{4}-\d{2}-\d{2} \d{2}:\d{2} UTC/;
+  var lastCheck = 0, shown = false;
+
+  function offerReload(latest){
+    if(shown) return;
+    shown = true;
+    var bar = document.createElement('div');
+    bar.setAttribute('role','status');
+    bar.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:99999;'
+      + 'background:#0A1628;color:#fff;padding:11px 16px;display:flex;'
+      + 'align-items:center;gap:14px;font-size:.8rem;'
+      + 'box-shadow:0 -2px 12px rgba(0,0,0,.28)';
+    var msg = document.createElement('span');
+    msg.style.cssText = 'flex:1';
+    msg.textContent = 'A newer version of this page is available ('
+      + latest.replace('BUILD ','') + '). You are on '
+      + running.replace('BUILD ','') + '.';
+    var go = document.createElement('button');
+    go.textContent = 'Reload';
+    go.style.cssText = 'background:#FF9900;color:#0A1628;border:0;border-radius:5px;'
+      + 'padding:6px 15px;font-weight:700;font-size:.78rem;cursor:pointer';
+    go.onclick = function(){
+      location.replace(location.pathname + '?v=' + Date.now());
+    };
+    var no = document.createElement('button');
+    no.textContent = 'Not now';
+    no.style.cssText = 'background:transparent;color:#cbd5e1;border:1px solid #475569;'
+      + 'border-radius:5px;padding:6px 13px;font-size:.78rem;cursor:pointer';
+    no.onclick = function(){ bar.remove(); };
+    bar.appendChild(msg); bar.appendChild(go); bar.appendChild(no);
+    document.body.appendChild(bar);
+  }
+
+  function check(){
+    var now = Date.now();
+    if(now - lastCheck < 60000) return;   // at most once a minute
+    lastCheck = now;
+    fetch(location.pathname + '?cachecheck=' + now, {cache:'no-store'})
+      .then(function(r){ return r.ok ? r.text() : null; })
+      .then(function(html){
+        if(!html) return;
+        var m = html.match(STAMP);
+        if(!m) return;
+        if(m[0].trim() !== running) offerReload(m[0].trim());
+      })
+      .catch(function(){ /* offline or blocked -- stay quiet */ });
+  }
+
+  setTimeout(check, 4000);
+  document.addEventListener('visibilitychange', function(){
+    if(document.visibilityState === 'visible') check();
+  });
+})();
 </script>
 
 <!-- ── ASK NOVA FLOATING PANEL ── -->
