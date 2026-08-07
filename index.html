@@ -1477,7 +1477,7 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
       <button id="global-back-btn" onclick="goBack()" style="display:none;align-items:center;gap:4px;background:transparent;color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:5px;padding:6px 12px;font-size:.75rem;cursor:pointer;font-family:Arial,sans-serif;margin-right:12px">← Back</button>
       <div class="app-header-logo" onclick="goStep(1)" style="cursor:pointer" title="Back to Start Your Deal Journey">INTEL × AWS</div>
       <div class="app-header-title" onclick="goStep(1)" style="cursor:pointer" title="Back to Start Your Deal Journey">Deal Desk</div>
-      <span id="build-stamp" title="Which build you are looking at. If this does not match what you just deployed, you are on a cached page." style="font-size:.62rem;color:rgba(255,255,255,.55);margin-left:9px;letter-spacing:.03em;white-space:nowrap">BUILD 2026-08-05 14:49 UTC</span>
+      <span id="build-stamp" title="Which build you are looking at. If this does not match what you just deployed, you are on a cached page." style="font-size:.62rem;color:rgba(255,255,255,.55);margin-left:9px;letter-spacing:.03em;white-space:nowrap">BUILD 2026-08-07 17:40 UTC</span>
     </div>
     <div class="app-header-right">
       <span id="draft-indicator" style="font-size:.72rem;color:var(--ink3);margin-right:10px"></span><span class="user-pill" id="user-pill">—</span>
@@ -7500,45 +7500,61 @@ function refreshCRMHeader(){
 }
 
 function getSmartsheetRows(d){
+  // Column order, wording and value vocabulary all match TCC's live sheet.
+  // Anything the sheet computes itself (POP Due Date, Intake Entry Date) or
+  // locks (IPIC Activity Description) is deliberately absent -- pasting into
+  // those columns is rejected. Claim Quarter is left to TCC: in their data it
+  // tracks when the claim is filed, which intake cannot know.
   const infraArr = (d.arrEc2||0)+(d.arrRds||0)+(d.arrElastiCache||0)+(d.arrOpenSearch||0) || d.targetArr || 0;
   const isMigrate = (d.actType||'').toLowerCase().startsWith('migrat');
-  const activityType = isMigrate ? 'Migration' : (d.actType ? 'Modernization' : '');
-  const fundingPct = !isMigrate && d.actType ? '1% (capped $250,000)' : (isMigrate ? '4.5%' : '');
+  const track = isMigrate ? 'Migration' : (d.actType ? 'Modernization' : '');
+  const fundingPct = !isMigrate && d.actType ? '1% (capped $250,000)' : (isMigrate ? '4.5% (capped $1,000,000)' : '');
   const submitter = (d.team||[])[0] || {};
-  const isMigrationYN = d.actType ? (isMigrate ? 'Yes' : 'No') : '';
-  const activityDesc = [d.actType||'Deal', 'for', d.custName||'', '—', d.workload||'workload not specified'].join(' ');
+  const activityDesc = [d.actType||'Deal', 'for', d.custName||'', '\u2014', d.workload||'workload not specified'].join(' ');
+  const num = v => (v || v===0) ? String(Math.round(v)) : '';
+
+  // TCC's Status dropdown has its own vocabulary; ours does not appear in it.
+  const statusMap = {
+    'draft':'', 'submitted':'Discovery', 'under review':'Discovery',
+    'approved (dne set)':'Discovery',
+    'intel leadership approved':'Onboarding w/ TCC', 'sow issued':'Onboarding w/ TCC'
+  };
+  const popMap = {
+    'confirmed':'Yes, I can upload these now', 'received':'Yes, I can upload these now',
+    'requested':'Yes, they will be available soon', 'not_due':'Yes, they will be available soon'
+  };
 
   return [
+    ['IPIC Activity #', d.ipicNum || ''],
+    ['Activity Type', track],
     ['Activity Name', d.dealName],
-    ['Activity Type', activityType],
-    ['IPIC Activity #', d.ipicNum || '(TCC assigns after SOW)'],
-    ['IPIC Activity Description', activityDesc],
     ['Start Date', d.migStart],
     ['End Date', d.closeDate || d.migTargetDate],
-    ['POP Due Date', d.popReceived || '(TCC confirms)'],
-    ['Claim Quarter', d.claimQuarter || d.popQuarter || '(TCC assigns)'],
+    ['Claim Quarter', ''],
     ['Partner or End Customer Name', d.partnerName || d.custName],
-    ['Status', d.status],
+    ['Status', statusMap[String(d.status||'').toLowerCase()] || 'Discovery'],
+    ['Notes', d.notes || ''],
     ['Intel Budget Year', d.intelBudgetYear],
-    ['Intel Contribution Amount', d.dne ? fmt(d.dne) : ''],
+    ['Intel Contribution Amount', num(d.dne)],
     ['ACE Opportunity ID', d.aceID],
-    ['Funding amount not to exceed', d.dne ? fmt(d.dne) : ''],
+    ['Funding amount not to exceed', num(d.dne)],
     ['Funding Percentage', fundingPct],
-    ['AWS Alignment', d.awsRegion],
-    ['Intake Entry Date', (d.submittedAt||'').slice(0,10)],
+    ['AWS Alignment', d.aceID ? 'true' : 'false'],
     ['Submitter Name', submitter.name],
     ['Submitter Email', submitter.email],
     ['Intel Rep Name', d.intelRepName],
     ['AWS Rep Name', d.awsRepName],
     ['Migration Project Description', d.workload],
-    ['POP Available?', d.popStatus==='confirmed' ? 'Yes — confirmed by TCC' : (d.popStatus==='received' ? 'Received, under review' : 'No')],
+    ['POP Available?', popMap[String(d.popStatus||'').toLowerCase()] || ''],
     ['AWS Instances Used', d.migTo],
     ['Region/Country of Execution', d.awsRegion],
-    ['Cost of Infrastructure (ARR)', infraArr ? fmt(infraArr) : ''],
-    ['Cost of Migration (Engineering Work)', d.migrationCost ? fmt(d.migrationCost) : ''],
+    ['Cost of Infrastructure (ARR)', num(infraArr)],
+    ['Cost of Migration (Engineering Work)', num(d.migrationCost)],
     ['Workload Selection', workloadSelectionDisplay(d.workloadSelection)],
-    ['Requested funding amount', d.dne ? fmt(d.dne) : ''],
-    ['Is this for a Migration activity?', isMigrationYN],
+    ['Requested funding amount', num(d.dne)],
+    ['Is this for a Migration activity?', d.actType ? (isMigrate ? 'Yes' : 'No - something else') : ''],
+    ['Is this a migration activity?', track],
+    ['Activity Description', activityDesc],
     ['Expected ROI', (d.dne && d.migrationCost>0) ? Math.round((d.dne-d.migrationCost)/d.migrationCost*100)+'%' : ''],
   ];
 }
