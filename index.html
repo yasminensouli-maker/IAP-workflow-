@@ -1477,7 +1477,7 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
       <button id="global-back-btn" onclick="goBack()" style="display:none;align-items:center;gap:4px;background:transparent;color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:5px;padding:6px 12px;font-size:.75rem;cursor:pointer;font-family:Arial,sans-serif;margin-right:12px">← Back</button>
       <div class="app-header-logo" onclick="goStep(1)" style="cursor:pointer" title="Back to Start Your Deal Journey">INTEL × AWS</div>
       <div class="app-header-title" onclick="goStep(1)" style="cursor:pointer" title="Back to Start Your Deal Journey">Deal Desk</div>
-      <span id="build-stamp" title="Which build you are looking at. If this does not match what you just deployed, you are on a cached page." style="font-size:.62rem;color:rgba(255,255,255,.55);margin-left:9px;letter-spacing:.03em;white-space:nowrap">BUILD 2026-08-07 21:50 UTC</span>
+      <span id="build-stamp" title="Which build you are looking at. If this does not match what you just deployed, you are on a cached page." style="font-size:.62rem;color:rgba(255,255,255,.55);margin-left:9px;letter-spacing:.03em;white-space:nowrap">BUILD 2026-08-07 23:30 UTC</span>
     </div>
     <div class="app-header-right">
       <span id="draft-indicator" style="font-size:.72rem;color:var(--ink3);margin-right:10px"></span><span class="user-pill" id="user-pill">—</span>
@@ -2848,7 +2848,7 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
           <div style="font-size:.72rem;color:var(--ink3);margin-bottom:10px">This is a live table, not a link — it auto-fills from whatever's entered above. Click a cell, select the row (or the whole table), copy, then paste directly into a new row in Smartsheet. Columns match the sheet's actual order.</div>
           <div style="display:flex;gap:8px;margin-bottom:10px">
             <button class="btn btn-secondary btn-sm" onclick="refreshSmartsheetRow()">↺ Refresh from current deal</button>
-            <button class="btn btn-aws btn-sm" onclick="copySmartsheetRow()">⧉ Copy Row</button>
+            <button class="btn btn-aws btn-sm" onclick="copySmartsheetRow(this)">⧉ Copy Row</button>
             <button class="btn btn-secondary btn-sm" onclick="downloadSmartsheetRow(getCurrentDealData())">⇩ Download (CSV)</button>
           </div>
           <div style="overflow-x:auto;border:1px solid var(--border);border-radius:6px">
@@ -4125,6 +4125,38 @@ function computeRate(dealType){
    what the Intel seller's Program Type card writes to. Reading only the
    first one meant an Intel Migrate deal priced at the Modernize rate.
    Read whichever one the person actually had in front of them. */
+/* ── INTEL'S RETURN ON A DEAL ────────────────────────────────────
+   Intel earns silicon revenue, not rebate. On Xeon 6 that runs at about
+   2.5% of the customer's AWS spend -- derived from published list prices
+   (6980P $17,800, 6952P $11,400), ~512 vCPUs on a two-socket server, six
+   year amortisation, against realistic discounting and utilisation.
+   Confirm against Intel finance; it is one constant, changed here.
+
+   It is a rate per YEAR. IAP funding is paid once. Comparing a single
+   year against the whole funding makes every deal look like a loss, so
+   both the annual figure and the three-year total are always shown. */
+const XEON6_SILICON_RATE = 0.025;
+
+function intelReturn(d){
+  d = d || {};
+  const arr = Number(d.intelEligibleArr) || 0;
+  const dne = Number(d.dne) || 0;
+  const vcpus = (d.fleets || []).reduce(function(t, f){
+    return t + ((Number(f.count) || 0) *
+      (typeof vcpusForSize === 'function' ? (vcpusForSize(f.size) || 0) : 0));
+  }, 0);
+  const perYear = arr * XEON6_SILICON_RATE;
+  return {
+    arr: arr, dne: dne, vcpus: vcpus,
+    ratePct: (XEON6_SILICON_RATE * 100).toFixed(1),
+    perYear: perYear,
+    threeYear: perYear * 3,
+    ratio: dne > 0 ? (perYear * 3) / dne : 0,
+    breakeven: perYear > 0 ? dne / perYear : 0,
+    arrPerVcpu: vcpus > 0 ? arr / vcpus : 0
+  };
+}
+
 function resolveDealType(){
   const awsField = (document.getElementById('prd-deal-type')||{}).value || '';
   if(awsField) return awsField;
@@ -4612,6 +4644,13 @@ function calcFleet(id){
   fleet.rebate=rebate;
   fleet.instance=document.getElementById('f'+id+'-inst').value;
   fleet.region=(document.getElementById('f'+id+'-region')||{}).value||'';
+  // count, size and the discount key were never written back, so every saved
+  // deal carried fleets with no instance count and no size. Anything that
+  // tried to total vCPUs from a stored deal therefore got zero -- silently,
+  // because zero looks like "no fleets" rather than like a bug.
+  fleet.count=parseFloat((document.getElementById('f'+id+'-count')||{}).value)||0;
+  fleet.size=(document.getElementById('f'+id+'-size')||{}).value||'';
+  fleet.discount=discSel;
 
   // Update row display
   const result=document.getElementById('f'+id+'-result');
@@ -5431,11 +5470,24 @@ function generateSummary(){
         row('AWS Rep Name', d.awsRepName),
       ].join(''))}
 
-      ${section('Sales Plays & ROI', [
-        row('Selected Plays', (d.selectedPlays||[]).join(', ')),
-        row('Total Rebate (fleets)', fmtD(d.totRebate)),
-        row('Expected ROI (10×)', fmtD((d.totRebate||0)*10)),
-      ].join(''))}
+      ${(function(){
+        const r = intelReturn(d);
+        const rows = [
+          row('Selected Plays', (d.selectedPlays||[]).join(', ')),
+          row('Total vCPUs (from Fleet Builder)', r.vcpus ? r.vcpus.toLocaleString() : '— no fleets entered'),
+          row('Intel-Eligible ARR', fmtD(r.arr)),
+          row('Intel silicon revenue @ ' + r.ratePct + '% (per year)', r.arr ? fmtD(r.perYear) : '—'),
+          row('Over three years', r.arr ? fmtD(r.threeYear) : '—'),
+          row('IAP funding (DNE, paid once)', fmtD(r.dne)),
+        ];
+        if(r.arr > 0 && r.dne > 0){
+          rows.push(row('Three-year return on funding',
+            r.ratio.toFixed(2) + '\u00d7 \u2014 breakeven at ' + r.breakeven.toFixed(1) + ' years'));
+        }
+        if(r.arrPerVcpu > 0){ rows.push(row('ARR per vCPU', fmtD(r.arrPerVcpu) + ' / yr')); }
+        rows.push(row('Assumption', r.ratePct + '% silicon content on Xeon 6 \u2014 confirm with Intel finance'));
+        return section('Intel Return \u2014 vCPUs and silicon revenue', rows.join(''));
+      })()}
 
       ${section('Attached Files', [
       ].join(''))}
@@ -6412,13 +6464,39 @@ async function renderApprovalQueue(){
           <div class="approval-grid-item"><label>Workload</label><div class="val">${(deal.workloadSelection||'').replace(/\n/g,', ')||'—'}</div></div>
           <div class="approval-grid-item"><label>Submitter</label><div class="val">${(deal.team&&deal.team[0])?deal.team[0].name:deal.fhName||'—'}</div></div>
           <div class="approval-grid-item"><label>AWS Region</label><div class="val">${deal.awsRegion||'—'}</div></div>
-          <div class="approval-grid-item"><label>AWS Region</label><div class="val">${deal.awsRegion||'—'}</div></div>
+          <div class="approval-grid-item"><label>Total vCPUs</label><div class="val">${(function(){const v=intelReturn(deal).vcpus;return v?v.toLocaleString():'—';})()}</div></div>
           <div class="approval-grid-item"><label>Cost Explorer</label><div class="val"><span style="color:var(--ink3)">Post-SOW (TCC collects)</span></div></div>
           <div class="approval-grid-item"><label>Payment Option</label><div class="val">${deal.paymentOption||'—'}</div></div>
           <div class="approval-grid-item"><label>Win Wire</label><div class="val">${deal.winWire?'Yes':'No'}</div></div>
           <div class="approval-grid-item"><label>Smartsheet</label><div class="val" style="font-size:.7rem">${deal.smartsheetSync||'—'}</div></div>
           <div class="approval-grid-item"><label>DNE</label><div class="val" style="color:var(--intel)">${deal.dne?fmt(deal.dne):'Not set'}</div></div>
         </div>
+        ${(function(){
+          /* What Intel gets back, shown where the decision is actually made.
+             Approvers were being asked to sign off funding with no view of
+             the return it buys. */
+          const r = intelReturn(deal);
+          if(!(r.arr > 0)) return '';
+          const cell = (label, val, colour) =>
+            '<div class="approval-grid-item"><label>' + label + '</label>' +
+            '<div class="val"' + (colour ? ' style="color:' + colour + '"' : '') + '>' + val + '</div></div>';
+          return '<div style="background:#f6f9ff;border:1px solid #dbe6f7;border-radius:8px;padding:11px 13px;margin-top:10px">'
+            + '<div style="font-size:.7rem;font-weight:800;color:#001f5c;text-transform:uppercase;'
+            + 'letter-spacing:.05em;margin-bottom:8px">Intel return \u2014 what this funding buys</div>'
+            + '<div class="approval-grid">'
+            +   cell('Total vCPUs', r.vcpus ? r.vcpus.toLocaleString() : '\u2014')
+            +   cell('Silicon revenue / yr', fmt(r.perYear))
+            +   cell('Over three years', fmt(r.threeYear))
+            +   cell('IAP funding (once)', fmt(r.dne))
+            +   cell('3-yr return', r.dne > 0 ? r.ratio.toFixed(2) + '\u00d7' : '\u2014',
+                     r.ratio >= 1 ? '#166534' : '#b91c1c')
+            +   cell('Breakeven', r.dne > 0 && r.perYear > 0 ? r.breakeven.toFixed(1) + ' years' : '\u2014')
+            + '</div>'
+            + '<div style="font-size:.66rem;color:var(--ink3);margin-top:7px">Assumes '
+            + r.ratePct + '% silicon content on Xeon 6, from published list pricing. '
+            + 'Silicon revenue recurs annually; IAP funding is paid once.</div>'
+            + '</div>';
+        })()}
         ${dneChainHTML(deal)}
         ${myTier==='core'?`
         <div style="background:#f0f5ff;border:1px solid #c7d7f5;border-radius:8px;padding:10px 12px;margin-top:10px">
@@ -7744,7 +7822,7 @@ function refreshSmartsheetRow(){
   ).join('');
 }
 
-async function copySmartsheetRow(){
+async function copySmartsheetRow(btn){
   const d = getCurrentDealData();
   const rows = getSmartsheetRows(d);
   // Tab-separated values — this is the exact format spreadsheet apps
@@ -7758,18 +7836,37 @@ async function copySmartsheetRow(){
   // Value line only. The instruction on screen says paste into a new row, and
   // including the header inserted a literal header row above the data every time.
   const tsv = valueLine;
+  // This used to read the global `event` AFTER an await. By then the event
+  // loop has moved on and `event` is null, so `event.target` threw -- landing
+  // in the catch and telling people the copy had failed when it had actually
+  // worked. The button is passed in explicitly now.
+  const say = (msg) => {
+    if(!btn) return;
+    const original = btn.dataset.label || btn.textContent;
+    btn.dataset.label = original;
+    btn.textContent = msg;
+    setTimeout(() => { btn.textContent = original; }, 2800);
+  };
+  let copied = false;
   try {
     await navigator.clipboard.writeText(tsv);
-    const btn = event.target.closest('button');
-    if(btn){
-      const original = btn.textContent;
-      btn.textContent = '✓ Copied — paste into Smartsheet';
-      setTimeout(() => { btn.textContent = original; }, 2500);
-    }
+    copied = true;
   } catch(e){
-    alert('Could not copy automatically — select the row in the table below and copy it manually instead.');
-    console.error('Clipboard copy failed:', e);
+    // Clipboard API needs a secure context and can be blocked by policy.
+    // Fall back to the old selection method, which works almost everywhere.
+    try{
+      const ta = document.createElement('textarea');
+      ta.value = tsv;
+      ta.setAttribute('readonly','');
+      ta.style.cssText = 'position:fixed;top:0;left:-9999px;opacity:0';
+      document.body.appendChild(ta);
+      ta.select(); ta.setSelectionRange(0, tsv.length);
+      copied = document.execCommand('copy');
+      document.body.removeChild(ta);
+    }catch(e2){ copied = false; }
+    if(!copied) console.error('Clipboard copy failed:', e);
   }
+  say(copied ? '✓ Copied — paste into Smartsheet' : '✕ Could not copy — select the row below');
 }
 
 /* ── FUNDING GATES ──────────────────────────────────────────────
