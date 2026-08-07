@@ -1477,7 +1477,7 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
       <button id="global-back-btn" onclick="goBack()" style="display:none;align-items:center;gap:4px;background:transparent;color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:5px;padding:6px 12px;font-size:.75rem;cursor:pointer;font-family:Arial,sans-serif;margin-right:12px">← Back</button>
       <div class="app-header-logo" onclick="goStep(1)" style="cursor:pointer" title="Back to Start Your Deal Journey">INTEL × AWS</div>
       <div class="app-header-title" onclick="goStep(1)" style="cursor:pointer" title="Back to Start Your Deal Journey">Deal Desk</div>
-      <span id="build-stamp" title="Which build you are looking at. If this does not match what you just deployed, you are on a cached page." style="font-size:.62rem;color:rgba(255,255,255,.55);margin-left:9px;letter-spacing:.03em;white-space:nowrap">BUILD 2026-08-07 19:10 UTC</span>
+      <span id="build-stamp" title="Which build you are looking at. If this does not match what you just deployed, you are on a cached page." style="font-size:.62rem;color:rgba(255,255,255,.55);margin-left:9px;letter-spacing:.03em;white-space:nowrap">BUILD 2026-08-07 21:50 UTC</span>
     </div>
     <div class="app-header-right">
       <span id="draft-indicator" style="font-size:.72rem;color:var(--ink3);margin-right:10px"></span><span class="user-pill" id="user-pill">—</span>
@@ -2153,13 +2153,14 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
             <div style="display:flex;gap:12px;margin-top:10px;flex-wrap:wrap">
               <div class="f-group" style="min-width:220px">
                 <label>Intel-Eligible ARR ($) <span class="req">*</span></label>
-                <input type="number" id="intel-eligible-arr" placeholder="0" min="0" oninput="this.dataset.userEdited=1;window._arrSource=null;var b=document.getElementById('arr-source-badge');if(b)b.style.display='none'">
+                <input type="number" id="intel-eligible-arr" placeholder="0" min="0" oninput="this.dataset.userEdited=1;window._arrSource=null;var b=document.getElementById('arr-source-badge');if(b)b.style.display='none';if(typeof renderArrSuggestions==='function')renderArrSuggestions()">
                 <div id="arr-source-badge" style="display:none;font-size:.68rem;font-weight:700;color:#0068B5;background:#eef5ff;border:1px solid #d3e3fb;border-radius:5px;padding:4px 8px;margin-top:5px"></div>
                 <span class="hint">This is the number that drives DNE and the funding math — not total ARR, and not necessarily the same as ACE ARR.</span>
                 <button type="button" onclick="goStep(3)" style="background:none;border:none;color:#0068B5;font-size:.74rem;font-weight:700;cursor:pointer;text-decoration:underline;padding:0;margin-top:5px">Don't type this by hand — get it from the calculator &rarr;</button>
                 <div style="font-size:.7rem;color:var(--ink2);background:#f6f9ff;border:1px solid #dbe6f7;border-radius:6px;padding:7px 10px;margin-top:6px;line-height:1.5">Keep the full ACE amount above. The Intel-eligible figure here is usually a portion of it — often smaller — and that's expected. Enter the part of this opportunity that runs on eligible Intel instances.</div>
               </div>
             </div>
+            <div id="arr-suggestions" style="display:none;margin-top:10px"></div>
             <div id="arr-eligible-line" style="font-size:.78rem;color:var(--intel);font-weight:700;margin-top:2px"></div>
           </div>
           <div class="form-grid" style="margin-top:14px">
@@ -4210,9 +4211,10 @@ function recalcAceFromServices(){
   // their own value in. ACE ARR is untouched here entirely: it's a separate,
   // Salesforce-sourced figure that can legitimately differ from this one.
   const eligibleEl = document.getElementById('intel-eligible-arr');
-  if(eligibleEl && !eligibleEl.dataset.userEdited && sum>0){
+  if(eligibleEl && !eligibleEl.dataset.userEdited && !eligibleEl.value && sum>0){
     eligibleEl.value = Math.round(netExpected);
   }
+  if(typeof renderArrSuggestions === 'function') renderArrSuggestions();
   const eligibleLine = document.getElementById('arr-eligible-line');
   if(eligibleLine){
     eligibleLine.textContent = sum>0 ? 'Suggested Intel-Eligible ARR at '+discountPct+'% discount: '+fmtD(netExpected)+' — edit the field above if the real number differs' : '';
@@ -4376,6 +4378,7 @@ function qaAnswer(){
 function qaUseNumber(){
   const spend = parseFloat((document.getElementById('qa-spend')||{}).value) || 0;
   if(!(spend>0)) return;
+  window._qaLastNumber = spend;
   const isMod = /^mod/i.test(resolveDealType()||'');
   setDealARR(spend, isMod ? 'the Modernization quick calculator' : 'the Migration quick calculator');
   goStep(1);
@@ -4406,7 +4409,8 @@ function startNewDeal(){
   multiDealRows = [];
   // Loaded-deal and derivation state.
   window._loadedDealId = null; window._loadedDeal = null;
-  window._arrSource = null; window._arrSourceAt = null;
+  window._arrSource = null; window._arrSourceAt = null; window._qaLastNumber = null;
+  if(typeof renderArrSuggestions === 'function') renderArrSuggestions();
   window._calcInputSource = null; window._ceResult = null;
   const badge = document.getElementById('arr-source-badge'); if(badge) badge.style.display='none';
   // The quick calculator.
@@ -4694,8 +4698,14 @@ function updateTotals(){
 
   // Fleet Builder feeds Intel-Eligible ARR, not ACE ARR — ACE ARR is a
   // separate, Salesforce-sourced figure that can legitimately differ.
+  // Fill only a field that is genuinely empty; otherwise offer it as a
+  // button and let the person choose. Overwriting a number they can see
+  // is what made this feel unpredictable.
   const eligibleEl=document.getElementById('intel-eligible-arr');
-  if(eligibleEl && !eligibleEl.dataset.userEdited && totList>0) eligibleEl.value=Math.round(totActual);
+  if(eligibleEl && !eligibleEl.dataset.userEdited && !eligibleEl.value && totActual>0){
+    setDealARR(Math.round(totActual), 'the Fleet Builder' + (fleetDiscountSummary() ? ' (' + fleetDiscountSummary() + ')' : ''));
+  }
+  renderArrSuggestions();
 }
 
 /* ── SALES PLAYS ─────────────────────────────────────────────── */
@@ -4874,6 +4884,119 @@ function runSolver(source){
    no traceable derivation and nobody could answer "show me your math".
    The source is carried onto the deal record and read by the funding
    gates — an ARR with no recorded derivation is a flagged risk. */
+
+/* ── WHERE THE ELIGIBLE ARR NUMBER CAN COME FROM ────────────────
+   Intel-Eligible ARR used to have three writers -- the service split,
+   the Fleet Builder and the quick calculator -- each gated on the same
+   "has anyone touched this?" flag. Whichever fired first won, and the
+   quick calculator set that flag when it wrote, which silently locked
+   the Fleet Builder out of the deal for good. It kept calculating and
+   stopped delivering, with nothing on screen to say so.
+
+   Now nothing overwrites a number a person can see. Every source that
+   has something to offer is listed under the field with its own button,
+   and typing by hand stays completely free. The only automatic fill is
+   into an empty, untouched field, which cannot destroy anything. */
+function fleetDiscountSummary(){
+  try{
+    var labels = [];
+    (fleets||[]).forEach(function(f){
+      if(!(f.listARR > 0)) return;
+      // calcFleet() writes back discRate but never the model key, so the
+      // fleet object's .discount stays at whatever addFleet() seeded. The
+      // dropdown itself is the authoritative value -- read that, as calcFleet does.
+      var sel = document.getElementById('f' + f.id + '-disc');
+      var key = sel ? sel.value : f.discount;
+      var m = DISCOUNT_MODELS.filter(function(d){ return d.val === key; })[0];
+      var name = m ? m.label.replace(/ \(no discount\)/,'') : null;
+      if(key === 'custom'){
+        var cd = document.getElementById('f' + f.id + '-customdisc');
+        var pctv = cd ? parseFloat(cd.value) : f.customDisc;
+        name = pctv ? 'custom ' + pctv + '%' : 'a custom rate';
+      }
+      if(!name && typeof f.discRate === 'number' && f.discRate > 0){
+        name = Math.round(f.discRate * 100) + '%';
+      }
+      if(name && labels.indexOf(name) === -1) labels.push(name);
+    });
+    if(!labels.length) return '';
+    if(labels.length === 1) return 'net of ' + labels[0];
+    return 'net of ' + labels.length + ' pricing models (' + labels.slice(0,2).join(', ') + (labels.length>2?', …':'') + ')';
+  }catch(e){ return ''; }
+}
+
+function arrOffers(){
+  var out = [];
+  try{
+    var totActual = (fleets||[]).reduce(function(s,f){ return s + (f.actualARR||0); }, 0);
+    if(totActual > 0){
+      out.push({ v: Math.round(totActual), src: 'the Fleet Builder',
+                 title: 'Fleet Builder total', note: fleetDiscountSummary() });
+    }
+  }catch(e){}
+  try{
+    var g = function(id){ return parseFloat((document.getElementById(id)||{}).value) || 0; };
+    var sum = g('arr-ec2') + g('arr-rds') + g('arr-elasticache') + g('arr-opensearch');
+    if(sum > 0){
+      var d = parseFloat((document.getElementById('cust-edp-discount')||{}).value) || 0;
+      if(d < 0) d = 0; if(d > 90) d = 90;
+      out.push({ v: Math.round(sum * (1 - d/100)), src: 'the service split',
+                 title: 'Service split (EC2 + RDS + ElastiCache + OpenSearch)',
+                 note: d > 0 ? 'net of ' + d + '% discount' : 'no discount applied' });
+    }
+  }catch(e){}
+  if(window._qaLastNumber > 0){
+    out.push({ v: Math.round(window._qaLastNumber), src: 'the quick calculator',
+               title: 'Quick calculator', note: '' });
+  }
+  return out;
+}
+
+function renderArrSuggestions(){
+  var box = document.getElementById('arr-suggestions');
+  var dest = document.getElementById('intel-eligible-arr');
+  if(!box || !dest) return;
+  var offers = arrOffers();
+  var current = Math.round(parseFloat(dest.value) || 0);
+
+  // Nothing to offer, or the only offer is already the value in the field.
+  var useful = offers.filter(function(o){ return o.v !== current; });
+  if(!useful.length){ box.style.display = 'none'; box.innerHTML = ''; return; }
+
+  var html = '<div style="font-size:.7rem;font-weight:800;text-transform:uppercase;'
+           + 'letter-spacing:.04em;color:var(--ink3);margin-bottom:6px">'
+           + 'Or bring a number in &mdash; you can still type your own</div>';
+  useful.forEach(function(o, i){
+    html += '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;'
+         +  'background:#f6f9ff;border:1px solid #dbe6f7;border-radius:6px;'
+         +  'padding:8px 11px;margin-bottom:6px">'
+         +  '<div style="flex:1;min-width:190px">'
+         +    '<div style="font-size:.95rem;font-weight:800;color:#0A1628">$'
+         +      o.v.toLocaleString() + '</div>'
+         +    '<div style="font-size:.68rem;color:var(--ink3)">' + o.title
+         +      (o.note ? ' &middot; ' + o.note : '') + '</div>'
+         +  '</div>'
+         +  '<button type="button" class="btn btn-aws btn-sm" '
+         +    'onclick="useArrOffer(' + i + ')">Use this number</button>'
+         +  '</div>';
+  });
+  if(current > 0){
+    html += '<div style="font-size:.68rem;color:var(--ink3)">The field currently holds $'
+         +  current.toLocaleString() + '. Nothing changes it unless you press a button above.</div>';
+  }
+  box.innerHTML = html;
+  box.style.display = 'block';
+  box._offers = useful;
+}
+
+function useArrOffer(i){
+  var box = document.getElementById('arr-suggestions');
+  var o = box && box._offers ? box._offers[i] : null;
+  if(!o) return;
+  setDealARR(o.v, o.src + (o.note ? ' (' + o.note + ')' : ''));
+  renderArrSuggestions();
+}
+
 function setDealARR(amount, sourceLabel, confirmElId){
   const dest = document.getElementById('intel-eligible-arr');
   const val = Math.round(parseFloat(amount) || 0);
