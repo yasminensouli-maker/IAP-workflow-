@@ -1477,7 +1477,7 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
       <button id="global-back-btn" onclick="goBack()" style="display:none;align-items:center;gap:4px;background:transparent;color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:5px;padding:6px 12px;font-size:.75rem;cursor:pointer;font-family:Arial,sans-serif;margin-right:12px">← Back</button>
       <div class="app-header-logo" onclick="goStep(1)" style="cursor:pointer" title="Back to Start Your Deal Journey">INTEL × AWS</div>
       <div class="app-header-title" onclick="goStep(1)" style="cursor:pointer" title="Back to Start Your Deal Journey">Deal Desk</div>
-      <span id="build-stamp" title="Which build you are looking at. If this does not match what you just deployed, you are on a cached page." style="font-size:.62rem;color:rgba(255,255,255,.55);margin-left:9px;letter-spacing:.03em;white-space:nowrap">BUILD 2026-08-08 17:45 UTC</span>
+      <span id="build-stamp" title="Which build you are looking at. If this does not match what you just deployed, you are on a cached page." style="font-size:.62rem;color:rgba(255,255,255,.55);margin-left:9px;letter-spacing:.03em;white-space:nowrap">BUILD 2026-08-08 18:30 UTC</span>
     </div>
     <div class="app-header-right">
       <span id="draft-indicator" style="font-size:.72rem;color:var(--ink3);margin-right:10px"></span><span class="user-pill" id="user-pill">—</span>
@@ -2207,6 +2207,25 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
 
 
 
+
+        <div class="section-card" id="attach-card" style="border:2px solid #FF9900">
+          <div class="section-card-title">Bill of Materials &amp; pricing evidence</div>
+          <div style="font-size:.75rem;color:var(--ink3);margin-bottom:10px;line-height:1.6">
+            Attach the BOM and the Simple Monthly Calculator export so approvers can see the
+            numbers behind the funding request. Anyone with access to this deal can add one at
+            any point, including after submission &mdash; so if a submitter leaves it out, it can
+            be added here rather than sent round by email. Max 15&nbsp;MB per file.
+            <strong>Do not attach Proof of Performance here</strong> &mdash; POP goes directly
+            between TCC and the customer, never through AWS.
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+            <input type="file" id="deal-attach"
+                   accept=".pdf,.xlsx,.xls,.csv,.docx,.pptx,.png,.jpg,.jpeg"
+                   onchange="handleDealAttach(this)" style="max-width:330px;font-size:.78rem">
+            <span id="deal-attach-status" style="font-size:.74rem;color:var(--ink3)"></span>
+          </div>
+          <div id="deal-attach-list" style="margin-top:10px"></div>
+        </div>
 
       <!-- ── STEP 2: CUSTOMER PROFILE ── -->
      
@@ -4465,6 +4484,7 @@ function startNewDeal(){
   multiDealRows = [];
   // Loaded-deal and derivation state.
   window._loadedDealId = null; window._loadedDeal = null;
+  dealAttachments = []; renderDealAttachments();
   window._arrSource = null; window._arrSourceAt = null; window._qaLastNumber = null;
   if(typeof renderArrSuggestions === 'function') renderArrSuggestions();
   window._calcInputSource = null; window._ceResult = null;
@@ -5058,6 +5078,84 @@ function useArrOffer(i){
   if(!o) return;
   setDealARR(o.v, o.src + (o.note ? ' (' + o.note + ')' : ''));
   renderArrSuggestions();
+}
+
+/* ── DEAL ATTACHMENTS (BOM / Simple Monthly Calculator) ─────────
+   The upload route already existed in the backend but was only wired to
+   the multi-deal rows, so a BOM could never be attached to an ordinary
+   deal -- which meant approvers were asked to approve a funding number
+   with no evidence behind it, and anything missing had to travel by
+   email. Attachments can be added at any stage, including after
+   submission, because in practice the submitter is often not the person
+   who has the file. */
+let dealAttachments = [];
+
+function renderDealAttachments(){
+  const box = document.getElementById('deal-attach-list');
+  if(!box) return;
+  if(!dealAttachments.length){ box.innerHTML = ''; return; }
+  box.innerHTML = dealAttachments.map(function(a, i){
+    return '<div style="display:flex;align-items:center;gap:10px;background:#f6f9ff;'
+      + 'border:1px solid #dbe6f7;border-radius:6px;padding:7px 11px;margin-bottom:6px">'
+      + '<span style="flex:1;font-size:.76rem;color:#0A1628;font-weight:600">'
+      +   (a.url ? '<a href="' + a.url + '" target="_blank" rel="noopener" style="color:#0068B5">'
+                 + escHtml(a.filename) + '</a>' : escHtml(a.filename))
+      + '</span>'
+      + '<span style="font-size:.68rem;color:var(--ink3)">' + (a.at||'').slice(0,10) + '</span>'
+      + '<button type="button" onclick="removeDealAttach(' + i + ')" '
+      + 'style="background:none;border:none;color:#b91c1c;cursor:pointer;font-size:.85rem">&times;</button>'
+      + '</div>';
+  }).join('');
+}
+
+function escHtml(t){
+  return String(t==null?'':t).replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+
+function removeDealAttach(i){
+  dealAttachments.splice(i,1);
+  renderDealAttachments();
+}
+
+async function handleDealAttach(input){
+  const file = input.files && input.files[0];
+  const status = document.getElementById('deal-attach-status');
+  if(!file) return;
+  if(file.size > 15*1024*1024){
+    status.textContent = 'That file is larger than 15 MB.';
+    status.style.color = '#b91c1c'; input.value=''; return;
+  }
+  status.textContent = 'Uploading ' + file.name + '…';
+  status.style.color = 'var(--ink3)';
+  try{
+    const b64 = await new Promise(function(res, rej){
+      const r = new FileReader();
+      r.onload = function(){ res(String(r.result).split(',')[1]); };
+      r.onerror = rej;
+      r.readAsDataURL(file);
+    });
+    const resp = await api('/upload', {method:'POST', body: JSON.stringify({
+      filename: file.name, data: b64,
+      dealRef: window._loadedDealId || (document.getElementById('cust-name')||{}).value || 'unassigned'
+    })});
+    const result = await resp.json();
+    if(result.uploaded){
+      dealAttachments.push({key:result.key, filename:result.filename,
+                            url:result.url, at:new Date().toISOString()});
+      renderDealAttachments();
+      status.textContent = '\u2713 ' + result.filename + ' attached';
+      status.style.color = '#166534';
+    } else {
+      status.textContent = result.error || 'Upload failed.';
+      status.style.color = '#b91c1c';
+    }
+  }catch(e){
+    status.textContent = 'Upload failed \u2014 ' + friendlyError(e);
+    status.style.color = '#b91c1c';
+  }
+  input.value = '';
 }
 
 function setDealARR(amount, sourceLabel, confirmElId){
@@ -6521,6 +6619,24 @@ async function renderApprovalQueue(){
             + 'Silicon revenue recurs annually; IAP funding is paid once.</div>'
             + '</div>';
         })()}
+        ${(function(){
+          const att = deal.attachments || [];
+          if(!att.length) return '<div style="background:#FEF3C7;border:1px solid #F59E0B;'
+            + 'border-radius:8px;padding:9px 12px;margin-top:10px;font-size:.72rem;color:#7c4a03">'
+            + 'No Bill of Materials attached. Approvers have no pricing evidence for this figure.</div>';
+          return '<div style="background:#f6f9ff;border:1px solid #dbe6f7;border-radius:8px;'
+            + 'padding:10px 12px;margin-top:10px">'
+            + '<div style="font-size:.7rem;font-weight:800;color:#001f5c;text-transform:uppercase;'
+            + 'letter-spacing:.05em;margin-bottom:6px">Bill of Materials &amp; pricing evidence</div>'
+            + att.map(function(a){
+                return '<div style="font-size:.75rem;margin-bottom:3px">'
+                  + (a.url ? '<a href="' + a.url + '" target="_blank" rel="noopener" '
+                           + 'style="color:#0068B5;font-weight:600">' + (a.filename||'attachment') + '</a>'
+                           : (a.filename||'attachment'))
+                  + '</div>';
+              }).join('')
+            + '</div>';
+        })()}
         ${dneChainHTML(deal)}
         ${myTier==='core'?`
         <div style="background:#f0f5ff;border:1px solid #c7d7f5;border-radius:8px;padding:10px 12px;margin-top:10px">
@@ -7125,6 +7241,7 @@ function getCurrentDealData(){
     segment:v('deal-segment'),prog:v('deal-program'),
     cadence:v('deal-cadence'),status:v('deal-status'),
     custName:vAny('cust-name','cust-name-intel'),custAcct:v('cust-acct'),
+    attachments:dealAttachments,
     industry:vAny('cust-industry','cust-industry-intel'),workload:vAny('cust-workload','intel-notes'),
     awsRegion:v('cust-awsregion'),recipient:v('cust-recipient'),
     partnerName:v('partner-name'),partnerTier:v('partner-tier'),partnerSpmsId:v('partner-spms-id'),
@@ -8147,6 +8264,8 @@ function restoreDeal(d){
   setVal('deal-segment',d.segment);setVal('deal-program',d.prog);
   setVal('deal-cadence',d.cadence);setVal('deal-status',d.status);
   setVal('cust-name',d.custName);setVal('cust-acct',d.custAcct);
+  dealAttachments = Array.isArray(d.attachments) ? d.attachments.slice() : [];
+  renderDealAttachments();
   setVal('cust-industry',d.industry);setVal('cust-workload',d.workload);
   setVal('cust-awsregion',d.awsRegion);setVal('cust-recipient',d.recipient);
   setVal('partner-name',d.partnerName);setVal('partner-tier',d.partnerTier);
