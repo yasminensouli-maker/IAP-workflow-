@@ -1477,7 +1477,7 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
       <button id="global-back-btn" onclick="goBack()" style="display:none;align-items:center;gap:4px;background:transparent;color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:5px;padding:6px 12px;font-size:.75rem;cursor:pointer;font-family:Arial,sans-serif;margin-right:12px">← Back</button>
       <div class="app-header-logo" onclick="goStep(1)" style="cursor:pointer" title="Back to Start Your Deal Journey">INTEL × AWS</div>
       <div class="app-header-title" onclick="goStep(1)" style="cursor:pointer" title="Back to Start Your Deal Journey">Deal Desk</div>
-      <span id="build-stamp" title="Which build you are looking at. If this does not match what you just deployed, you are on a cached page." style="font-size:.62rem;color:rgba(255,255,255,.55);margin-left:9px;letter-spacing:.03em;white-space:nowrap">BUILD 2026-08-07 23:30 UTC</span>
+      <span id="build-stamp" title="Which build you are looking at. If this does not match what you just deployed, you are on a cached page." style="font-size:.62rem;color:rgba(255,255,255,.55);margin-left:9px;letter-spacing:.03em;white-space:nowrap">BUILD 2026-08-08 16:30 UTC</span>
     </div>
     <div class="app-header-right">
       <span id="draft-indicator" style="font-size:.72rem;color:var(--ink3);margin-right:10px"></span><span class="user-pill" id="user-pill">—</span>
@@ -3108,10 +3108,28 @@ function setLoginTab(tab){
   });
 }
 
+/* Sign-in fired twice on a single attempt -- a click landing alongside the
+   Enter key, or an impatient second click while the first request was still
+   in flight. Two requests meant two sessions logged and two notification
+   emails per sign-in. Neither login function had anything stopping a second
+   call starting before the first finished. */
+let _loginInFlight = false;
+
+function _lockLogin(on){
+  _loginInFlight = on;
+  document.querySelectorAll('.btn-login').forEach(function(b){
+    b.disabled = on;
+    b.style.opacity = on ? '.6' : '';
+    b.style.cursor = on ? 'wait' : '';
+  });
+}
+
 async function domainLogin(which){
   const email = (document.getElementById('login-'+which+'-email').value||'').trim().toLowerCase();
   const pass = (document.getElementById('login-'+which+'-pass').value||'').trim();
   const err = document.getElementById('login-'+which+'-error');
+  if(_loginInFlight) return;
+  _lockLogin(true);
   err.style.display = 'none';
   try {
     const resp = await fetch(API_URL + '/auth/domain-login', {
@@ -3124,6 +3142,8 @@ async function domainLogin(which){
   } catch(e){
     err.textContent = friendlyError(e);
     err.style.display = 'block';
+  } finally {
+    _lockLogin(false);
   }
 }
 
@@ -3131,6 +3151,8 @@ async function doLogin(){
   const email = (document.getElementById('login-email').value||'').trim().toLowerCase();
   const pass  = (document.getElementById('login-pass').value||'').trim();
   const err   = document.getElementById('login-error');
+  if(_loginInFlight) return;
+  _lockLogin(true);
   err.style.display = 'none';
   try {
     const resp = await fetch(API_URL + '/auth/admin-login', {
@@ -3143,6 +3165,8 @@ async function doLogin(){
   } catch(e){
     err.textContent = friendlyError(e) + ' Contact yasmine@cloudzero.ca for access.';
     err.style.display = 'block';
+  } finally {
+    _lockLogin(false);
   }
 }
 
