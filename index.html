@@ -528,7 +528,7 @@ textarea{resize:vertical;min-height:72px}
   background:var(--green-light);
   border-radius:var(--radius);
   display:grid;
-  grid-template-columns:repeat(4,1fr);
+  grid-template-columns:repeat(3,1fr);
   gap:8px;
   font-family:'Arial',sans-serif;
   font-size:.72rem;
@@ -1338,63 +1338,68 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
      WELCOME PAGE — shown first, hands off to LOGIN SCREEN below.
      Skipped entirely if a valid session is already restored.
 ══════════════════════════════════════════════ -->
-<div id="welcome-screen" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;background:#0A1628;padding:32px 20px;font-family:Arial,sans-serif">
+<div id="welcome-screen" style="display:flex;flex-direction:column;justify-content:center;min-height:100vh;background:#0A1930;padding:0;font-family:'Intel One Display','Segoe UI',Arial,sans-serif;position:relative;overflow:hidden">
 
-  <div style="max-width:700px;width:100%">
+  <div style="position:absolute;inset:0;background:linear-gradient(115deg,#0A1930 0%,#0d2440 52%,#123a66 100%);"></div>
+  <div style="position:absolute;top:0;right:0;width:46%;height:100%;
+              background:linear-gradient(160deg,rgba(30,90,155,.38),rgba(10,25,48,0));
+              clip-path:polygon(38% 0, 100% 0, 100% 100%, 0 100%);"></div>
+  <div style="position:absolute;bottom:0;left:0;width:100%;height:38%;
+              background:linear-gradient(180deg,rgba(6,16,32,0),rgba(6,16,32,.55));
+              clip-path:polygon(0 42%, 100% 0, 100% 100%, 0 100%);"></div>
 
-    <div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:32px">
-      <div style="background:#0068B5;border-radius:5px;padding:6px 14px">
-        <span style="color:#fff;font-weight:900;font-size:15px;letter-spacing:1px;font-family:Arial,sans-serif">intel</span>
-      </div>
-      <div style="color:rgba(255,255,255,.25);font-size:18px;font-weight:200">|</div>
-      <div><img style="height:26px;width:auto;display:block;" src="logo.png" alt="Intel × AWS"></div>
-    </div>
+  <div style="position:relative;max-width:1040px;width:100%;margin:0 auto;padding:48px 60px">
 
-    <div style="text-align:center;margin-bottom:30px">
-      <div style="font-size:.72rem;color:#FF9900;text-transform:uppercase;letter-spacing:.18em;font-weight:700;margin-bottom:12px">20+ Years of Joint Engineering</div>
-      <h1 style="font-size:2rem;font-weight:900;color:#fff;margin:0 0 14px 0;line-height:1.2">Intel and AWS are moving<br>the industry forward together.</h1>
-      <p style="font-size:.88rem;color:rgba(255,255,255,.65);line-height:1.8;margin:0 auto;max-width:580px">Intel Xeon 6 processors are custom-engineered exclusively for AWS — available on no other hyperscaler. The Intel Accelerate Program provides resources to support customer migrations and modernizations, funded directly by Intel so AWS sellers accelerate deals without touching quota.</p>
-    </div>
-
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:24px">
-      <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:16px;text-align:center">
-        <div style="font-size:.68rem;color:#FF9900;font-weight:700;margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em">Exclusive Hardware</div>
-        <div style="font-size:.7rem;color:rgba(255,255,255,.55);line-height:1.6">Xeon 6 purpose-built only for AWS. Available on no other hyperscaler.</div>
-      </div>
-      <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:16px;text-align:center">
-        <div style="font-size:.68rem;color:#FF9900;font-weight:700;margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em">Intel Funded</div>
-        <div style="font-size:.7rem;color:rgba(255,255,255,.55);line-height:1.6">Intel provides resources to support migrations and modernizations. No quota impact.</div>
-      </div>
-      <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:16px;text-align:center">
-        <div style="font-size:.68rem;color:#FF9900;font-weight:700;margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em">Supply Secured</div>
-        <div style="font-size:.7rem;color:rgba(255,255,255,.55);line-height:1.6">Intel and AWS supply agreement secures priority Xeon 6 access. No equivalent on any other hyperscaler.</div>
+    <!-- logo.png is the intel | aws lockup itself -- both marks are in the file,
+         so it is shown on its own rather than rebuilt alongside a text wordmark. -->
+    <div style="margin-bottom:52px">
+      <img src="/logo.png" alt="Intel and AWS" style="height:42px;width:auto;display:block"
+           onerror="this.style.display='none';document.getElementById('logo-fallback').style.display='flex';">
+      <div id="logo-fallback" style="display:none;align-items:center;gap:16px">
+        <span style="color:#fff;font-weight:800;font-size:29px;letter-spacing:-.02em">intel<span style="font-size:11px;vertical-align:super;font-weight:400">&reg;</span></span>
+        <span style="width:1px;height:28px;background:rgba(255,255,255,.35)"></span>
+        <span style="color:#fff;font-weight:800;font-size:25px;letter-spacing:-.01em">aws</span>
       </div>
     </div>
 
-    <div style="background:rgba(0,104,181,.12);border:1px solid rgba(0,104,181,.3);border-radius:8px;padding:16px;margin-bottom:20px">
-      <div style="font-size:.63rem;color:#60a5fa;text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin-bottom:12px">Intel Accelerate Program — IAP 2026</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
-        <div>
-          <div style="font-size:.75rem;color:#FF9900;font-weight:700;margin-bottom:5px">Track 1 — Migration</div>
-          <div style="font-size:.7rem;color:rgba(255,255,255,.65);line-height:1.6">Resources to support customers migrating from on-premises or another hyperscaler. Targets supply-constrained, end-of-life, and net-new workload scenarios.</div>
-        </div>
-        <div>
-          <div style="font-size:.75rem;color:#FF9900;font-weight:700;margin-bottom:5px">Track 2 — Modernization</div>
-          <div style="font-size:.7rem;color:rgba(255,255,255,.65);line-height:1.6">Resources to support existing AWS customers modernizing pre-8th gen x86 fleets to unlock performance gains and GenAI readiness.</div>
-        </div>
-      </div>
+    <div style="font-family:'Courier New',monospace;font-size:.72rem;color:#29A8E0;text-transform:uppercase;letter-spacing:.28em;font-weight:700;margin-bottom:18px">Intel Acceleration Program</div>
+
+    <h1 style="font-size:2.9rem;font-weight:800;color:#fff;margin:0 0 18px 0;line-height:1.1;letter-spacing:-.025em;max-width:16ch">Deal support and acceleration.</h1>
+
+    <div style="display:flex;width:230px;height:3px;margin-bottom:24px">
+      <div style="flex:1;background:#0068B5"></div>
+      <div style="flex:1;background:#29A8E0"></div>
+      <div style="flex:1;background:#FF9900"></div>
     </div>
 
-    <div style="text-align:center;margin-bottom:24px">
-      <div style="font-size:.7rem;color:rgba(255,255,255,.3);letter-spacing:.06em">Trusted across Automotive · Media &amp; Entertainment · Financial Services · Manufacturing · Telecommunications · Enterprise Software</div>
-    </div>
+    <p style="font-size:1.02rem;color:rgba(255,255,255,.72);line-height:1.7;margin:0 0 40px 0;max-width:56ch">Upgrade customers to the new generation. Intel Xeon 6 is purpose built for AWS, and the program supports the migrations and modernizations that get customers onto it.</p>
+
+    <!-- What's new: the "oh, cool" line. Figures, not adjectives. -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(255,255,255,.1);margin-bottom:16px;max-width:720px">
+      <div style="background:#0d2440;padding:20px 18px">
+        <div style="font-family:'Courier New',monospace;font-size:.6rem;color:#29A8E0;letter-spacing:.16em;text-transform:uppercase;margin-bottom:9px">Xeon 6 &middot; m8i r8i c8i</div>
+        <div style="font-size:1.55rem;font-weight:800;color:#fff;letter-spacing:-.02em;line-height:1">128</div>
+        <div style="font-size:.68rem;color:rgba(255,255,255,.5);line-height:1.55;margin-top:5px">vCPUs on the largest 8th gen sizes, on AWS before anywhere else.</div>
+      </div>
+      <div style="background:#0d2440;padding:20px 18px">
+        <div style="font-family:'Courier New',monospace;font-size:.6rem;color:#29A8E0;letter-spacing:.16em;text-transform:uppercase;margin-bottom:9px">Fewer instances</div>
+        <div style="font-size:1.55rem;font-weight:800;color:#FF9900;letter-spacing:-.02em;line-height:1">1.3&times;</div>
+        <div style="font-size:.68rem;color:rgba(255,255,255,.5);line-height:1.55;margin-top:5px">Typical consolidation moving 5th gen to 8th, same work on a smaller fleet.</div>
+      </div>
+      <div style="background:#0d2440;padding:20px 18px">
+        <div style="font-family:'Courier New',monospace;font-size:.6rem;color:#29A8E0;letter-spacing:.16em;text-transform:uppercase;margin-bottom:9px">Built in</div>
+        <div style="font-size:1.55rem;font-weight:800;color:#fff;letter-spacing:-.02em;line-height:1">AMX</div>
+        <div style="font-size:.68rem;color:rgba(255,255,255,.5);line-height:1.55;margin-top:5px">Inference on the CPU already in the fleet. No accelerator queue.</div>
+      </div>
+          </div>
+    <div style="font-family:'Courier New',monospace;font-size:.58rem;color:rgba(255,255,255,.28);letter-spacing:.1em;text-transform:uppercase;margin-bottom:40px">Figures are directional. Size every deal from the BOM</div>
 
     <button onclick="document.getElementById('welcome-screen').style.display='none';document.getElementById('login-screen').style.display='flex';"
-      style="width:100%;background:#FF9900;color:#0A1628;border:none;border-radius:7px;padding:13px;font-size:.88rem;font-weight:800;cursor:pointer;font-family:Arial,sans-serif;letter-spacing:.2px;margin-bottom:14px">
-      Continue to Sign In →
+      style="background:#FF9900;color:#0A1930;border:none;border-radius:2px;padding:16px 46px;font-size:.86rem;font-weight:800;cursor:pointer;font-family:inherit;letter-spacing:.04em">
+      Sign in
     </button>
 
-    <div style="text-align:center;font-size:.7rem;color:rgba(255,255,255,.2)">Intel Accelerate Program 2026 · Managed by AWS Approval · Confidential — Authorized Users Only</div>
+    <div style="font-family:'Courier New',monospace;font-size:.6rem;color:rgba(255,255,255,.3);letter-spacing:.13em;text-transform:uppercase;margin-top:44px;line-height:1.9">Managed by CloudZero Group &middot; GTM engineering &middot; Confirmed AWS and Intel partner<br>Confidential &middot; Authorized users only &middot; 2026</div>
   </div>
 </div>
 
@@ -1477,7 +1482,7 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
       <button id="global-back-btn" onclick="goBack()" style="display:none;align-items:center;gap:4px;background:transparent;color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:5px;padding:6px 12px;font-size:.75rem;cursor:pointer;font-family:Arial,sans-serif;margin-right:12px">← Back</button>
       <div class="app-header-logo" onclick="goStep(1)" style="cursor:pointer" title="Back to Start Your Deal Journey">INTEL × AWS</div>
       <div class="app-header-title" onclick="goStep(1)" style="cursor:pointer" title="Back to Start Your Deal Journey">Deal Desk</div>
-      <span id="build-stamp" title="Which build you are looking at. If this does not match what you just deployed, you are on a cached page." style="font-size:.62rem;color:rgba(255,255,255,.55);margin-left:9px;letter-spacing:.03em;white-space:nowrap">BUILD 2026-08-08 18:30 UTC</span>
+      <span id="build-stamp" title="Which build you are looking at. If this does not match what you just deployed, you are on a cached page." style="font-size:.62rem;color:rgba(255,255,255,.55);margin-left:9px;letter-spacing:.03em;white-space:nowrap">BUILD 2026-08-13 00:15 UTC</span>
     </div>
     <div class="app-header-right">
       <span id="draft-indicator" style="font-size:.72rem;color:var(--ink3);margin-right:10px"></span><span class="user-pill" id="user-pill">—</span>
@@ -2518,6 +2523,26 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
             <button type="button" onclick="setBaselineMethod(3)" style="background:none;border:none;color:var(--ink3);font-size:.72rem;font-weight:700;cursor:pointer;text-decoration:underline;padding:0">&#9889; Ask Intel Anything</button>
           </div>
 
+          <div style="background:#FEF3C7;border:1px solid #F59E0B;border-left:4px solid #F59E0B;
+                      border-radius:8px;padding:13px 16px;margin-bottom:14px">
+            <div style="font-size:.72rem;font-weight:800;color:#7c4a03;text-transform:uppercase;
+                        letter-spacing:.05em;margin-bottom:7px">Read before you use this</div>
+            <div style="font-size:.79rem;color:#0A1628;line-height:1.75">
+              <strong>This does not replace the Simple Monthly Calculator or a Bill of Materials.</strong>
+              It sizes the funding so you know roughly where you stand. The Simple Monthly export and the
+              BOM are still required evidence, and TCC will ask for them. For SAP in particular, the BOM
+              is the only acceptable source &mdash; SAP RISE pricing carries storage, licensing and managed
+              services that are not eligible, and this tool cannot separate them for you.<br><br>
+              <strong>On PPAs: funding is calculated on annual contract value, not total contract value,
+              and only on the compute portion.</strong> A five-year $12M PPA does not fund against $12M.
+              It funds against the compute ACV for one year. Paying across more than a single year requires
+              exception approval before it is committed to a customer.<br><br>
+              <strong>The number this produces flows into the Intel-Eligible ARR field automatically.</strong>
+              Do not copy it anywhere by hand &mdash; a pasted figure loses its derivation, and a figure with
+              no derivation is the first thing questioned at the gate.
+            </div>
+          </div>
+
           <!-- Method tabs stay in the DOM but are no longer the entry point -->
           <div id="method-tabs" style="display:none;gap:0;margin-bottom:16px;border:1px solid var(--border);border-radius:6px;overflow:hidden">
             <button id="method-btn-1" onclick="setBaselineMethod(1)"
@@ -2760,7 +2785,7 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
             <div class="val" id="tot-nte">$0</div>
           </div>
           <div class="calc-total-item">
-            <label>Est. Payout at POP</label><span class="hint" style="font-size:.6rem">Expected, not guaranteed</span>
+            <label>Est. Payout at POP</label><span class="hint" style="font-size:.6rem">Expected, not guaranteed &mdash; flows into Intel-Eligible ARR on its own, do not copy it across</span>
             <div class="val highlight" id="tot-rebate">$0</div>
           </div>
         </div>
@@ -3213,6 +3238,7 @@ async function api(path, opts){
 }
 
 function completeLogin(u){
+  setTimeout(function(){ try{ honourDeepLink(); }catch(e){} }, 400);
   currentUser = {...u};
   saveSession(currentUser);
   // Set the baseline browser-history entry once, right when the app
@@ -6528,6 +6554,101 @@ function daysInStage(deal){
   return Math.max(0, Math.floor(ms/(1000*60*60*24)));
 }
 
+/* Attaching from the approval queue itself. The BOM is most often missing at
+   exactly the moment someone is trying to approve, and making them open the
+   deal, attach, save and come back meant it did not get done -- the file
+   travelled by email instead and the approval record stayed empty. */
+function queueAttachPrompt(dealId){
+  const el = document.getElementById('queue-attach-' + dealId);
+  if(el) el.click();
+}
+
+async function queueAttachFile(dealId, input){
+  const file = input.files && input.files[0];
+  if(!file) return;
+  if(file.size > 15*1024*1024){ alert('That file is larger than 15 MB.'); input.value=''; return; }
+  const btn = input.previousElementSibling;
+  const label = btn ? btn.textContent : '';
+  if(btn){ btn.textContent = 'Uploading\u2026'; btn.disabled = true; }
+  try{
+    const b64 = await new Promise(function(res, rej){
+      const r = new FileReader();
+      r.onload = function(){ res(String(r.result).split(',')[1]); };
+      r.onerror = rej; r.readAsDataURL(file);
+    });
+    const up = await api('/upload', {method:'POST',
+      body: JSON.stringify({filename:file.name, data:b64, dealRef:dealId})});
+    const result = await up.json();
+    if(!result.uploaded) throw new Error(result.error || 'Upload failed.');
+
+    const deals = await loadPipelineDealsFromCloud();
+    const deal = deals.find(function(d){ return d.id === dealId; });
+    if(!deal) throw new Error('Deal not found.');
+    deal.attachments = (deal.attachments || []).concat([{
+      key: result.key, filename: result.filename, url: result.url,
+      at: new Date().toISOString()
+    }]);
+    // statusExplicit stops the save being read as a stage change, which would
+    // re-fire the approval notifications for a deal that has not moved.
+    const save = await api('/deal', {method:'POST',
+      body: JSON.stringify(Object.assign({}, deal, {statusExplicit: true}))});
+    if(!save.ok) throw new Error('Could not save the attachment to the deal.');
+    if(btn){ btn.textContent = '\u2713 ' + result.filename; btn.disabled = false; }
+    renderApprovalQueue();
+  }catch(e){
+    if(btn){ btn.textContent = label; btn.disabled = false; }
+    alert('Attachment failed: ' + friendlyError(e));
+  }
+  input.value = '';
+}
+
+/* A link straight to the approval queue. The email's "Review and approve"
+   button landed people on the deal form, which is not where the decision is
+   made -- they then had to find the queue themselves. */
+function honourDeepLink(){
+  const want = (location.hash || '').replace('#','').toLowerCase();
+  if(want === 'queue' || want === 'approvals' || want === 'approve'){ goStep(8); return true; }
+  return false;
+}
+
+/* TCC pays on a quarterly cycle. Until now the app went quiet after approval,
+   so the question "when does the customer actually get paid" had no answer
+   anywhere in the system and came back to Yasmine by email every time. */
+const PAYMENT_QUARTERS = [
+  {label:'Q1', endsMonth: 2,  payMonth: 4,  payLabel:'April'},
+  {label:'Q2', endsMonth: 5,  payMonth: 7,  payLabel:'July'},
+  {label:'Q3', endsMonth: 8,  payMonth: 10, payLabel:'October'},
+  {label:'Q4', endsMonth: 11, payMonth: 1,  payLabel:'January'}
+];
+
+function nextPaymentPeriod(d){
+  const paidStages = /intel leadership approved|sow issued|paid/i;
+  if(!paidStages.test(d.status||'')) return null;
+  const base = new Date();
+  const m = base.getMonth();
+  let q = PAYMENT_QUARTERS.find(function(x){ return m <= x.endsMonth; }) || PAYMENT_QUARTERS[3];
+  const yr = (q.payMonth < m) ? base.getFullYear()+1 : base.getFullYear();
+  return {
+    quarter: q.label,
+    window: q.payLabel + ' ' + yr,
+    note: 'Disbursement follows Proof of Performance acceptance by TCC. '
+        + 'The date is the payment window, not a guaranteed release date.'
+  };
+}
+
+function paymentPeriodHTML(d){
+  const p = nextPaymentPeriod(d);
+  if(!p) return '';
+  return '<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;'
+    + 'padding:10px 13px;margin-top:10px">'
+    + '<div style="font-size:.7rem;font-weight:800;color:#166534;text-transform:uppercase;'
+    + 'letter-spacing:.05em;margin-bottom:4px">Next payment window</div>'
+    + '<div style="font-size:.85rem;color:#0A1628;font-weight:700">' + p.window
+    + ' <span style="font-weight:400;color:#5b6b7f">(' + p.quarter + ' cycle)</span></div>'
+    + '<div style="font-size:.7rem;color:#5b6b7f;margin-top:4px;line-height:1.6">' + p.note + '</div>'
+    + '</div>';
+}
+
 async function renderApprovalQueue(){
   if(!currentUser||!currentUser.approver) return;
   const myTier = currentUser.approver;
@@ -6637,6 +6758,7 @@ async function renderApprovalQueue(){
               }).join('')
             + '</div>';
         })()}
+        ${paymentPeriodHTML(deal)}
         ${dneChainHTML(deal)}
         ${myTier==='core'?`
         <div style="background:#f0f5ff;border:1px solid #c7d7f5;border-radius:8px;padding:10px 12px;margin-top:10px">
@@ -6682,6 +6804,10 @@ async function renderApprovalQueue(){
           <button class="btn btn-success btn-sm" onclick="approveDeal('${deal.id}')">✓ Approve — Move to ${myTier==='core'?'Intel':myTier==='intel'?'TCC':'Fully Approved'}</button>
           <button class="btn btn-secondary btn-sm" onclick="requestChanges('${deal.id}')">↩ Request Changes</button>
           <button class="btn btn-secondary btn-sm" onclick="loadDealById('${deal.id}');goStep(1)">👁 View Full Deal</button>
+          <button class="btn btn-secondary btn-sm" onclick="queueAttachPrompt('${deal.id}')">📎 Attach BOM</button>
+          <input type="file" id="queue-attach-${deal.id}" style="display:none"
+                 accept=".pdf,.xlsx,.xls,.csv,.docx,.pptx,.png,.jpg,.jpeg"
+                 onchange="queueAttachFile('${deal.id}', this)">
           ${deal.winWire ? `<button class="btn btn-secondary btn-sm" onclick="openWinWire('${deal.id}')" title="Generate an Outlook-ready win wire one-pager from this deal">🏆 Win Wire</button>` : ''}
         </div>
       </div>`;
@@ -6851,7 +6977,7 @@ async function renderPartnerDeals(){
 async function renderPipeline(){
   let deals = await loadPipelineDealsFromCloud();
   await syncBudgetFromCloud();
-  const totRebate=deals.reduce((s,d)=>s+(d.rebate||0),0);
+  const totRebate=deals.reduce((s,d)=>s+dealBenefit(d),0);
   const byStatus={draft:0,submitted:0,approved:0,paid:0};
   deals.forEach(d=>{
     const s=(d.status||'').toLowerCase();
@@ -6940,6 +7066,27 @@ async function renderPipeline(){
   filterPipeline();
 }
 
+/* The funding figure lives on d.dne. d.rebate is a fleet-level working value
+   that never reaches the deal record, so the pipeline read $0 for every row
+   and the Total Benefit Pipeline card read $0 with it. */
+function dealBenefit(d){
+  return Math.round(parseFloat(d.dne || d.rebate || d.nte || 0) || 0);
+}
+
+function pipeTotalsHTML(deals, canEdit, isSeller){
+  if(isSeller || !deals.length) return '';
+  const total = deals.reduce(function(s,d){ return s + dealBenefit(d); }, 0);
+  const approved = deals.filter(function(d){ return /approved|intel leadership|sow|paid/i.test(d.status||''); });
+  const approvedTotal = approved.reduce(function(s,d){ return s + dealBenefit(d); }, 0);
+  return '<tr style="background:#f6f9ff;border-top:2px solid #0A1628;font-weight:700">'
+    + '<td style="' + (canEdit?'':'display:none') + '"></td>'
+    + '<td style="font-size:.8rem">' + deals.length + ' deals</td>'
+    + '<td></td><td></td><td style="font-size:.72rem;color:#5b6b7f">'
+    +   approved.length + ' approved: ' + fmt(approvedTotal) + '</td>'
+    + '<td style="font-size:.9rem;color:#0A1628">' + fmt(total) + '</td>'
+    + '<td colspan="4"></td></tr>';
+}
+
 function pipeRowsHTML(deals, canEdit, isSeller){
   return deals.map(d=>{
     const daysIn = daysInStage(d);
@@ -6951,7 +7098,7 @@ function pipeRowsHTML(deals, canEdit, isSeller){
       <td style="${isSeller?'display:none':''}">${d.fhName||'—'}</td>
       <td style="${isSeller?'display:none':''}">${d.segment||'—'}</td>
       <td style="${isSeller?'display:none':''}">${d.prog||'—'}</td>
-      <td style="${isSeller?'display:none':''}">${fmt(d.rebate||0)}</td>
+      <td style="${isSeller?'display:none':''}">${fmt(dealBenefit(d))}</td>
       <td><span class="status-pill ${statusClass(d.status)}">${d.status||'Draft'}</span></td>
       <td style="${isSeller?'display:none':''};${daysColor}">${daysIn} day${daysIn===1?'':'s'}</td>
       <td style="${isSeller?'display:none':''}">${d.date||'—'}</td>
@@ -6993,7 +7140,8 @@ function filterPipeline(){
       ((window._pipeDeals||[]).length ? 'No deals match this search or filter.' : 'No deals submitted yet.')+'</td></tr>';
     return;
   }
-  tbody.innerHTML = pipeRowsHTML(deals, window._pipeCanEdit, window._pipeIsSeller);
+  tbody.innerHTML = pipeRowsHTML(deals, window._pipeCanEdit, window._pipeIsSeller)
+                  + pipeTotalsHTML(deals, window._pipeCanEdit, window._pipeIsSeller);
 }
 
 async function loadLoginActivity(){
@@ -7653,12 +7801,12 @@ function showSubmitSummary(){
     '<br>Win Wire: '+(data.winWire?'Yes':'No')+' · ACE: '+(data.aceID||'—')+
     (window._arrSource?'<br>ARR derived from: '+window._arrSource:'<br><span style="color:#92400e">ARR has no recorded derivation</span>')+'</div>';
   const line=(x,c)=>'<div style="font-size:.78rem;line-height:1.6;color:'+c+'"><strong>'+x.title+'</strong> — stops at '+x.gate+'<br><span style="font-size:.73rem;color:#555">'+x.why+'</span></div>';
-  if(blockers.length) html+='<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:10px 12px;margin-bottom:8px"><div style="font-size:.72rem;font-weight:700;color:#b91c1c;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Will be refused at the gate</div>'+blockers.map(x=>line(x,'#7f1d1d')).join('<div style="height:7px"></div>')+'</div>';
+  if(blockers.length) html+='<div style="background:#f6f9ff;border:1px solid #cfe0f7;border-radius:8px;padding:10px 12px;margin-bottom:8px"><div style="font-size:.72rem;font-weight:700;color:#0068B5;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Prerequisites &mdash; needed before payment, not before submitting</div><div style="font-size:.72rem;color:#5b6b7f;margin-bottom:8px;line-height:1.6">You can submit now and fill these in as they arrive. Nothing here blocks submission.</div>'+blockers.map(x=>line(x,'#0A1628')).join('<div style="height:7px"></div>')+'</div>';
   if(risks.length) html+='<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 12px;margin-bottom:8px"><div style="font-size:.72rem;font-weight:700;color:#92400e;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Likely to be cut or delayed</div>'+risks.map(x=>line(x,'#78350f')).join('<div style="height:7px"></div>')+'</div>';
   if(!blockers.length&&!risks.length) html+='<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:10px 12px;margin-bottom:8px;font-size:.8rem;color:#166534">This clears every gate. Nothing in the record invites a reduction.</div>';
   html+='<div style="display:flex;gap:10px;margin-top:14px;justify-content:flex-end">'+
     '<button class="btn btn-secondary" onclick="closeSubmitModal()">Go back and edit</button>'+
-    '<button class="btn btn-primary" onclick="finalizeSubmit()">'+(blockers.length?'Submit anyway':'Submit deal')+'</button></div>';
+    '<button class="btn btn-primary" onclick="finalizeSubmit()">Submit deal</button></div>';
   let m=document.getElementById('submit-modal');
   if(!m){
     m=document.createElement('div'); m.id='submit-modal';
