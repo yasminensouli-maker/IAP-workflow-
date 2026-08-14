@@ -1482,7 +1482,7 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
       <button id="global-back-btn" onclick="goBack()" style="display:none;align-items:center;gap:4px;background:transparent;color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:5px;padding:6px 12px;font-size:.75rem;cursor:pointer;font-family:Arial,sans-serif;margin-right:12px">← Back</button>
       <div class="app-header-logo" onclick="goStep(1)" style="cursor:pointer" title="Back to Start Your Deal Journey">INTEL × AWS</div>
       <div class="app-header-title" onclick="goStep(1)" style="cursor:pointer" title="Back to Start Your Deal Journey">Deal Desk</div>
-      <span id="build-stamp" title="Which build you are looking at. If this does not match what you just deployed, you are on a cached page." style="font-size:.62rem;color:rgba(255,255,255,.55);margin-left:9px;letter-spacing:.03em;white-space:nowrap">BUILD 2026-08-13 00:15 UTC</span>
+      <span id="build-stamp" title="Which build you are looking at. If this does not match what you just deployed, you are on a cached page." style="font-size:.62rem;color:rgba(255,255,255,.55);margin-left:9px;letter-spacing:.03em;white-space:nowrap">BUILD 2026-08-14 15:35 UTC</span>
     </div>
     <div class="app-header-right">
       <span id="draft-indicator" style="font-size:.72rem;color:var(--ink3);margin-right:10px"></span><span class="user-pill" id="user-pill">—</span>
@@ -1592,6 +1592,40 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
           <div class="step-desc" id="step1-desc">Fast-track intake for the Intel × AWS co-investment program — the fields below are everything needed to route this opportunity.</div>
         </div>
 
+        <div class="section-card" id="deal-type-card" style="border:2px solid var(--intel)">
+          <div class="section-card-title">What kind of deal is this?</div>
+          <div style="font-size:.72rem;color:var(--ink3);margin-bottom:12px">Pick one before anything else. It sets the funding rate everything downstream is calculated from.</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px" role="radiogroup" aria-label="Deal type">
+            <div id="dt-card-migrate" role="radio" aria-checked="false" tabindex="0"
+                 onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectDealType('migrate');}"
+                 onclick="selectDealType('migrate')"
+                 style="border:2px solid var(--border);border-radius:8px;padding:16px;cursor:pointer;transition:.2s">
+              <div style="font-weight:700;font-size:.85rem;color:var(--intel);margin-bottom:6px">Migrate</div>
+              <div style="font-size:.72rem;color:var(--ink2);line-height:1.5">Workloads coming to AWS from on-premises, end-of-life hardware, or elsewhere.</div>
+              <div style="font-size:1.05rem;font-weight:800;color:var(--intel);margin-top:8px">4.5% of ARR</div>
+              <div style="font-size:.64rem;color:var(--ink3);margin-top:2px">Capped $1,000,000</div>
+            </div>
+            <div id="dt-card-modernize" role="radio" aria-checked="false" tabindex="0"
+                 onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectDealType('modernize');}"
+                 onclick="selectDealType('modernize')"
+                 style="border:2px solid var(--border);border-radius:8px;padding:16px;cursor:pointer;transition:.2s">
+              <div style="font-weight:700;font-size:.85rem;color:var(--intel);margin-bottom:6px">Modernize</div>
+              <div style="font-size:.72rem;color:var(--ink2);line-height:1.5">Existing AWS fleets moving to current generation Intel. Right-size, unlock performance.</div>
+              <div style="font-size:1.05rem;font-weight:800;color:var(--intel);margin-top:8px">1% of ARR</div>
+              <div style="font-size:.64rem;color:var(--ink3);margin-top:2px">Capped $250,000</div>
+            </div>
+            <div id="dt-card-netnew" role="radio" aria-checked="false" tabindex="0"
+                 onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectDealType('netnew');}"
+                 onclick="selectDealType('netnew')"
+                 style="border:2px solid var(--border);border-radius:8px;padding:16px;cursor:pointer;transition:.2s">
+              <div style="font-weight:700;font-size:.85rem;color:var(--intel);margin-bottom:6px">Net new on Intel</div>
+              <div style="font-size:.72rem;color:var(--ink2);line-height:1.5">Greenfield workloads landing straight onto Intel. Nothing being moved.</div>
+              <div style="font-size:1.05rem;font-weight:800;color:var(--intel);margin-top:8px">4.5% of ARR</div>
+              <div style="font-size:.64rem;color:var(--ink3);margin-top:2px">Priced as Migrate, recorded separately</div>
+            </div>
+          </div>
+        </div>
+
         <div style="font-size:.78rem;color:#92400e;background:#FEF3C7;border-left:3px solid #F59E0B;border-radius:5px;padding:8px 12px;margin-bottom:16px">
           Ensure you have scoped this with an SA, and/or review with Chris Chlee (<a href="mailto:clchrisz@amazon.com" style="color:#92400e;text-decoration:underline">clchrisz@amazon.com</a>).
         </div>
@@ -1623,37 +1657,7 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
                 <label>Customer Name</label>
                 <input type="text" id="cust-name-intel" placeholder="e.g. Acme Corporation">
               </div>
-              <div class="f-group">
-                <label>Customer Industry</label>
-                <select id="cust-industry-intel">
-                  <option value="">— Select —</option>
-                  <option>Advertising &amp; Marketing</option>
-                  <option>Aerospace &amp; Satellite</option>
-                  <option>Agriculture</option>
-                  <option>Automotive</option>
-                  <option>Consumer Packaged Goods</option>
-                  <option>Education</option>
-                  <option>Energy</option>
-                  <option>Engineering &amp; Construction</option>
-                  <option>Financial Services</option>
-                  <option>Games</option>
-                  <option>Government</option>
-                  <option>Healthcare</option>
-                  <option>Life Sciences</option>
-                  <option>Manufacturing</option>
-                  <option>Media &amp; Entertainment</option>
-                  <option>Mining &amp; Natural Resources</option>
-                  <option>Nonprofit</option>
-                  <option>Power &amp; Utilities</option>
-                  <option>Professional Services</option>
-                  <option>Retail</option>
-                  <option>Semiconductor &amp; Electronics</option>
-                  <option>Software &amp; Internet</option>
-                  <option>Telecommunications</option>
-                  <option>Transportation &amp; Logistics</option>
-                  <option>Travel &amp; Hospitality</option>
-                </select>
-              </div>
+              
               <div class="f-group">
                 <label>Country</label>
                 <select id="fh-country-intel">
@@ -1668,7 +1672,13 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
               <div class="f-group">
                 <label>Estimated Annual EC2 Spend (USD)</label>
                 <input type="number" id="est-arr-intel" placeholder="e.g. 1000000" min="0" step="10000" oninput="calcIntelFunding()">
-                <span class="hint">This drives the Intel co-investment calculation. Don't have this number yet? Build an estimate in the <a href="https://calculator.aws" target="_blank" rel="noopener" style="color:var(--intel);font-weight:600">AWS Pricing Calculator ↗</a> — add the target Gen 8 Intel instances (m8i, c8i, r8i, x8i) the customer will run, and it totals the monthly cost. Multiply that monthly total by 12 and type the result in here.</span>
+                <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+                <button type="button" class="btn btn-secondary btn-sm" onclick="goStep(3);setTimeout(function(){setBaselineMethod(1);var e=document.getElementById('baseline-method-1');if(e)e.scrollIntoView({behavior:'smooth',block:'start'});},80)">Fleet Builder</button>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="goStep(3);setTimeout(function(){setBaselineMethod(2);var e=document.getElementById('baseline-method-2');if(e)e.scrollIntoView({behavior:'smooth',block:'start'});},80)">SAP RISE BOM</button>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="goStep(3);setTimeout(function(){setBaselineMethod(5);var e=document.getElementById('baseline-method-5');if(e)e.scrollIntoView({behavior:'smooth',block:'start'});},80)">Cost Explorer export</button>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="goStep(3);setTimeout(function(){setBaselineMethod(3);var e=document.getElementById('baseline-method-3');if(e)e.scrollIntoView({behavior:'smooth',block:'start'});},80)">Ask Intel Anything</button>
+              </div>
+              <span class="hint">This drives the Intel co-investment calculation. The same calculators the AWS team uses are above, or build an estimate in the <a href="https://calculator.aws" target="_blank" rel="noopener" style="color:var(--intel);font-weight:600">AWS Pricing Calculator ↗</a> — add the target Gen 8 Intel instances (m8i, c8i, r8i, x8i) the customer will run, and it totals the monthly cost. Multiply that monthly total by 12 and type the result in here.</span>
               </div>
             </div>
           </div>
@@ -1676,7 +1686,7 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
           <div class="section-card">
             <div class="section-card-title">Program Type</div>
             <div style="font-size:.7rem;color:var(--ink3);margin-bottom:10px">Added by: Intel Seller — drives funding rate</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px">
               <div id="prog-card-migrate" role="radio" aria-checked="false" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectIntelProgram('migrate');}" onclick="selectIntelProgram('migrate')" style="border:2px solid var(--border);border-radius:8px;padding:16px;cursor:pointer;transition:.2s">
                 <div style="font-weight:700;font-size:.85rem;color:var(--intel);margin-bottom:6px">Migrate</div>
                 <div style="font-size:.72rem;color:var(--ink2);line-height:1.5">Net new workloads to AWS — moving from on-premises, end-of-life hardware, or another cloud</div>
@@ -1686,6 +1696,11 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
                 <div style="font-weight:700;font-size:.85rem;color:var(--intel);margin-bottom:6px">Modernization</div>
                 <div style="font-size:.72rem;color:var(--ink2);line-height:1.5">Upgrade to new Gen for incremental value — existing AWS customers on pre-8th gen x86, right-size fleet, unlock GenAI budget</div>
                 <div style="font-size:1.1rem;font-weight:800;color:var(--intel);margin-top:8px">1% of ARR (capped $250K)</div>
+              </div>
+              <div id="prog-card-netnew" role="radio" aria-checked="false" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectIntelProgram('netnew');}" onclick="selectIntelProgram('netnew')" style="border:2px solid var(--border);border-radius:8px;padding:16px;cursor:pointer;transition:.2s">
+                <div style="font-weight:700;font-size:.85rem;color:var(--intel);margin-bottom:6px">Net new on Intel</div>
+                <div style="font-size:.72rem;color:var(--ink2);line-height:1.5">Greenfield workloads landing straight onto Intel. Nothing being moved.</div>
+                <div style="font-size:1.1rem;font-weight:800;color:var(--intel);margin-top:8px">4.5% of ARR</div>
               </div>
             </div>
             <div id="intel-funding-result" style="display:none;padding:14px 16px;background:linear-gradient(135deg,#f0f4ff,#e8f0fe);border-radius:8px;border:1px solid var(--intel)">
@@ -1891,37 +1906,7 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
                 oninput="validateAcct(this)">
               <span class="hint">Used to verify EC2 spend in Cost Explorer</span>
             </div>
-            <div class="f-group span2">
-              <label>Customer Industry</label>
-              <select id="cust-industry">
-                <option value="">— Select Industry —</option>
-                <option>Advertising &amp; Marketing</option>
-                <option>Aerospace &amp; Satellite</option>
-                <option>Agriculture</option>
-                <option>Automotive</option>
-                <option>Consumer Packaged Goods</option>
-                <option>Education</option>
-                <option>Energy</option>
-                <option>Engineering &amp; Construction</option>
-                <option>Financial Services</option>
-                <option>Games</option>
-                <option>Government</option>
-                <option>Healthcare</option>
-                <option>Life Sciences</option>
-                <option>Manufacturing</option>
-                <option>Media &amp; Entertainment</option>
-                <option>Mining &amp; Natural Resources</option>
-                <option>Nonprofit</option>
-                <option>Power &amp; Utilities</option>
-                <option>Professional Services</option>
-                <option>Retail</option>
-                <option>Semiconductor &amp; Electronics</option>
-                <option>Software &amp; Internet</option>
-                <option>Telecommunications</option>
-                <option>Transportation &amp; Logistics</option>
-                <option>Travel &amp; Hospitality</option>
-              </select>
-            </div>
+            
             <div class="f-group span2">
               <label>Workload Selection (check all that apply)</label>
               <div id="workload-checks" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px">
@@ -2014,19 +1999,7 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
               <input type="date" id="deal-close">
               <span class="hint">Approximate is fine — dates can be amended after submission. Program maximum: one year.</span>
             </div>
-            <div class="f-group">
-              <label>AWS Segment</label>
-              <select id="deal-segment">
-                <option value="">— Segment —</option>
-                <option>CSD</option>
-                <option>DNB</option>
-                <option>ENT</option>
-                <option>ISV</option>
-                <option>SMB</option>
-                <option>STRAT</option>
-                <option>SUP</option>
-              </select>
-            </div>
+            
             <div class="f-group">
               <label>Intel Segment</label>
               <select id="intel-segment">
@@ -2260,11 +2233,7 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
                 <option>Other</option>
               </select>
             </div>
-            <div class="f-group">
-              <label>Cost of Migration — Engineering ($)</label>
-              <input type="number" id="migration-cost" placeholder="0" min="0">
-              <span class="hint">Professional services / engineering effort, separate from infrastructure ARR</span>
-            </div>
+            
             <div class="f-group span2">
               <label>Partner Role in Deal</label>
               <textarea id="partner-role" style="min-height:54px" placeholder="e.g. Systems integrator managing the migration. Will receive 50% of rebate as performance incentive."></textarea>
@@ -3036,7 +3005,6 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
                 <th id="pipe-th-check" style="display:none"><input type="checkbox" id="pipe-select-all" onchange="toggleSelectAllDeals(this)"></th>
                 <th>Customer</th>
                 <th id="pipe-th-submitter">Submitter</th>
-                <th id="pipe-th-segment">Segment</th>
                 <th id="pipe-th-program">Program</th>
                 <th id="pipe-th-benefit">Benefit Est.</th>
                 <th>Status</th>
@@ -3288,7 +3256,10 @@ function completeLogin(u){
     const mn9=document.getElementById('mnav9');
     if(mn9) mn9.style.display='flex';
   }
-  if(currentUser.approver){
+  // An admin is an approver everywhere, so the menu item must not depend on
+  // the approver field alone. A session missing that field used to leave the
+  // person with no Approval Queue item at all and no way to reach it.
+  if(currentUser.approver || currentUser.tier==='admin'){
     document.getElementById('nav-approval').style.display='flex';
     const mn8=document.getElementById('mnav8');
     if(mn8) mn8.style.display='flex';
@@ -3453,7 +3424,6 @@ const START_CHECKLIST = [
     {t:'Workload Selection',            d:'SAP RISE, VMware, Oracle, SQL Server, HPC, GenAI inference, analytics, mainframe, web and API, or other.'},
     {t:'Migration Project Description', d:'A few sentences on what is moving and why. This is what TCC reads to understand the deal.'},
     {t:'Cost of Infrastructure (ARR)',  d:'The annual compute figure the rate applies to. The calculator produces this from your BOM, Cost Explorer export or SAP RISE BOM — you do not type it in.'},
-    {t:'Cost of Migration (Engineering Work)', d:'The engineering cost of doing the migration. The Smartsheet uses it to calculate return on investment.'},
     {t:'AWS Rep Name and Intel Rep Name', d:'Who owns this on each side. Both are separate Smartsheet columns.'},
     {t:'AWS Alignment',                 d:'The AWS person or team this deal is aligned to.'},
   ]},
@@ -4885,28 +4855,54 @@ function renderPlayTags(){
 /* ── ACE SUMMARY ─────────────────────────────────────────────── */
 /* ── ACE ID VALIDATION ───────────────────────────────────────── */
 /* ── INTEL SELLER VIEW FUNCTIONS ───────────────────────────── */
-function selectIntelProgram(type){
-  const migrate = document.getElementById('prog-card-migrate');
-  const optimize = document.getElementById('prog-card-modernize');
-  if(!migrate || !optimize) return;
-  migrate.style.border = type==='migrate' ? '2px solid var(--intel)' : '2px solid var(--border)';
-  migrate.style.background = type==='migrate' ? '#f0f4ff' : '';
-  optimize.style.border = type==='modernize' ? '2px solid var(--intel)' : '2px solid var(--border)';
-  optimize.style.background = type==='modernize' ? '#f0f4ff' : '';
-  // Sync to main program field
-  const mainProg = document.getElementById('deal-program');
-  if(mainProg) mainProg.value = type==='migrate' ? 'migrate' : 'modernize';
-  // Also set the field the rate table actually reads, or the DNE prices
-  // every Intel-entered deal at the conservative 1% default.
+/* Deal type is now chosen before anything else, because it sets the rate that
+   every downstream figure depends on. Net new prices as Migrate (4.5%) but
+   stores its own type, so greenfield is reportable without inventing a rate
+   the program does not have. */
+const DEAL_TYPES = {
+  migrate:   {label:'Migrate',          awsValue:'Migrate',   rate:0.045},
+  modernize: {label:'Modernize',        awsValue:'Modernize', rate:0.01},
+  netnew:    {label:'Net new on Intel', awsValue:'Migrate',   rate:0.045}
+};
+
+function selectDealType(type){
+  if(!DEAL_TYPES[type]) return;
+  ['migrate','modernize','netnew'].forEach(function(t){
+    const el = document.getElementById('dt-card-' + t);
+    if(!el) return;
+    el.style.border     = (t===type) ? '2px solid var(--intel)' : '2px solid var(--border)';
+    el.style.background = (t===type) ? '#f0f4ff' : '';
+    el.setAttribute('aria-checked', t===type ? 'true' : 'false');
+  });
+  window._dealType = type;
+
+  // Drive the field the rate table actually reads. Net new maps to Migrate so
+  // it prices at 4.5%; the distinct type is kept on window._dealType and saved
+  // with the deal.
   const awsProg = document.getElementById('prd-deal-type');
   if(awsProg){
-    awsProg.value = type==='migrate' ? 'Migrate' : 'Modernize';
+    awsProg.value = DEAL_TYPES[type].awsValue;
     try{ handleProgramChange(); }catch(e){}
   }
-  migrate.setAttribute('aria-checked', type==='migrate' ? 'true' : 'false');
-  optimize.setAttribute('aria-checked', type==='modernize' ? 'true' : 'false');
+  const mainProg = document.getElementById('deal-program');
+  if(mainProg) mainProg.value = (type==='modernize') ? 'modernize' : 'migrate';
+
+  // Keep the Intel seller cards in step with this choice.
+  ['migrate','modernize','netnew'].forEach(function(t){
+    const el = document.getElementById('prog-card-' + t);
+    if(!el) return;
+    el.style.border     = (t===type) ? '2px solid var(--intel)' : '2px solid var(--border)';
+    el.style.background = (t===type) ? '#f0f4ff' : '';
+    el.setAttribute('aria-checked', t===type ? 'true' : 'false');
+  });
+  try{ if(typeof calcIntelFunding === 'function') calcIntelFunding(); }catch(e){}
+}
+
+function selectIntelProgram(type){
+  // The Intel seller cards and the onset cards are the same choice, so this
+  // is now one code path rather than two that drifted apart.
+  selectDealType(type);
   window._intelProgram = type;
-  calcIntelFunding();
 }
 
 /* ── TWO-WAY "WHAT COULD BE" SOLVER ────────────────────────────
@@ -5537,7 +5533,6 @@ function generateSummary(){
         row('Origination Notes', d.originNotes),
         row('GTM Region', d.region),
         row('Country', d.country),
-        row('AWS Segment', d.segment),
       ].join(''))}
 
       ${section('Deal Metadata', [
@@ -5593,6 +5588,7 @@ function generateSummary(){
       ].join('')) : ''}
 
       ${section('ACE / Co-Sell / Opportunity IDs', [
+        row('Deal Type', (window.DEAL_TYPES && d.dealType && DEAL_TYPES[d.dealType]) ? DEAL_TYPES[d.dealType].label : (d.actType||'')),
         row('ACE Opportunity ID', d.aceID),
         row('SFDC Opportunity ID', d.sfdcID),
         row('Campaign Code', d.campaignCode),
@@ -5609,7 +5605,6 @@ function generateSummary(){
         row('Partner SPMS ID', d.partnerSpmsId),
         row('Partner Type', d.partnerTier),
         row('Partner Role', d.partnerRole),
-        row('Cost of Migration — Engineering', d.migrationCost ? fmtD(d.migrationCost) : ''),
       ].join(''))}
 
       ${section('Deal Team', [
@@ -6650,13 +6645,35 @@ function paymentPeriodHTML(d){
 }
 
 async function renderApprovalQueue(){
-  if(!currentUser||!currentUser.approver) return;
-  const myTier = currentUser.approver;
+  const container0 = document.getElementById('approval-queue-content');
+  if(!currentUser){
+    if(container0) container0.innerHTML = '<div style="padding:32px;text-align:center;color:var(--ink3);font-size:.82rem">Sign in to see the approval queue.</div>';
+    return;
+  }
+  // An admin is an approver everywhere. The filter below used to compare
+  // currentUser.approver against 'admin', but approver only ever holds
+  // 'core' | 'intel' | 'tcc' -- so that branch could never be true and an
+  // admin saw only their own tier. Tier is what carries 'admin'.
+  const isAdmin = currentUser.tier === 'admin';
+  const myTier = currentUser.approver || (isAdmin ? 'core' : null);
+
+  // Returning silently here left a blank panel with no explanation, which is
+  // what an approver whose session lost its approver field actually saw.
+  if(!myTier && !isAdmin){
+    if(container0) container0.innerHTML =
+      '<div style="padding:28px;text-align:center;color:var(--ink3);font-size:.82rem;line-height:1.7">'
+      + 'Your account is signed in but carries no approver role, so there is nothing to show here.<br>'
+      + 'Signed in as <strong>' + (currentUser.email||'unknown') + '</strong>'
+      + (currentUser.tier ? ' (' + currentUser.tier + ')' : '') + '.<br>'
+      + 'Sign out and back in; if it persists, contact yasmine@cloudzero.ca.</div>';
+    return;
+  }
+
   const allDeals = await loadPipelineDealsFromCloud();
   const deals = allDeals.filter(d=>{
     const stage = d.approvalStage||'core';
-    // Show deals at my tier or earlier (for context)
-    return stage === myTier || (myTier==='admin' && stage !== 'approved');
+    // Admins follow every deal through every stage; approvers see their own.
+    return isAdmin ? stage !== 'approved' : stage === myTier;
   });
 
   const container = document.getElementById('approval-queue-content');
@@ -6664,13 +6681,18 @@ async function renderApprovalQueue(){
   const title = document.getElementById('approval-title');
 
   badge.textContent = currentUser.label+' · Approval Queue';
-  title.textContent = myTier==='core'?'AWS Approval Review':myTier==='intel'?'Intel Leadership Approval':'TCC — Ready for SOW';
+  title.textContent = isAdmin ? 'Approval Queue — all stages'
+    : (myTier==='core'?'AWS Approval Review':myTier==='intel'?'Intel Leadership Approval':'TCC — Ready for SOW');
 
-  const pending = deals.filter(d=>(d.approvalStage||'core')===myTier);
-  const done = deals.filter(d=>(d.approvalStage||'core')!==myTier);
+  // For an admin "pending" means anything not yet fully approved, so the
+  // queue follows a deal from submission to SOW rather than going blank the
+  // moment it leaves their own stage.
+  const pending = isAdmin ? deals.filter(d=>(d.approvalStage||'core')!=='approved')
+                          : deals.filter(d=>(d.approvalStage||'core')===myTier);
+  const done = isAdmin ? [] : deals.filter(d=>(d.approvalStage||'core')!==myTier);
 
   if(deals.length===0){
-    container.innerHTML='<div style="padding:32px;text-align:center;color:var(--ink3);font-family:Arial,sans-serif;font-size:.82rem">No deals pending your approval right now.</div>';
+    container.innerHTML='<div style="padding:32px;text-align:center;color:var(--ink3);font-family:Arial,sans-serif;font-size:.82rem;line-height:1.7">No deals pending your approval right now.<br><span style="font-size:.72rem">Signed in as '+(currentUser.email||'')+' · '+(currentUser.label||currentUser.tier||'')+'</span></div>';
     return;
   }
 
@@ -6801,7 +6823,7 @@ async function renderApprovalQueue(){
         </div>`:''}
         ${deal.workload?`<div style="margin-top:10px;font-size:.73rem;color:var(--ink2);font-family:Arial,sans-serif;padding-top:8px;border-top:1px solid var(--border2)">${deal.workload}</div>`:''}
         <div class="approval-actions">
-          <button class="btn btn-success btn-sm" onclick="approveDeal('${deal.id}')">✓ Approve — Move to ${myTier==='core'?'Intel':myTier==='intel'?'TCC':'Fully Approved'}</button>
+          <button class="btn btn-success btn-sm" onclick="approveDeal('${deal.id}')">✓ Approve — Move to ${(function(){const st=deal.approvalStage||'core';return st==='core'?'Intel':st==='intel'?'TCC':'Fully Approved';})()}</button>
           <button class="btn btn-secondary btn-sm" onclick="requestChanges('${deal.id}')">↩ Request Changes</button>
           <button class="btn btn-secondary btn-sm" onclick="loadDealById('${deal.id}');goStep(1)">👁 View Full Deal</button>
           <button class="btn btn-secondary btn-sm" onclick="queueAttachPrompt('${deal.id}')">📎 Attach BOM</button>
@@ -7032,7 +7054,7 @@ async function renderPipeline(){
   }
 
   // Sellers (AWS/Intel) see deal + status only — hide submitter, segment, program, benefit, date
-  ['pipe-th-submitter','pipe-th-segment','pipe-th-program','pipe-th-benefit','pipe-th-days','pipe-th-date'].forEach(id=>{
+  ['pipe-th-submitter','pipe-th-program','pipe-th-benefit','pipe-th-days','pipe-th-date'].forEach(id=>{
     const el=document.getElementById(id);
     if(el) el.style.display = isSeller ? 'none' : '';
   });
@@ -7081,7 +7103,7 @@ function pipeTotalsHTML(deals, canEdit, isSeller){
   return '<tr style="background:#f6f9ff;border-top:2px solid #0A1628;font-weight:700">'
     + '<td style="' + (canEdit?'':'display:none') + '"></td>'
     + '<td style="font-size:.8rem">' + deals.length + ' deals</td>'
-    + '<td></td><td></td><td style="font-size:.72rem;color:#5b6b7f">'
+    + '<td></td><td style="font-size:.72rem;color:#5b6b7f">'
     +   approved.length + ' approved: ' + fmt(approvedTotal) + '</td>'
     + '<td style="font-size:.9rem;color:#0A1628">' + fmt(total) + '</td>'
     + '<td colspan="4"></td></tr>';
@@ -7096,7 +7118,6 @@ function pipeRowsHTML(deals, canEdit, isSeller){
       <td style="${canEdit?'':'display:none'}"><input type="checkbox" class="deal-select-cb" value="${d.id}" onchange="onDealCheckboxChange()"></td>
       <td>${d.custName||'—'}</td>
       <td style="${isSeller?'display:none':''}">${d.fhName||'—'}</td>
-      <td style="${isSeller?'display:none':''}">${d.segment||'—'}</td>
       <td style="${isSeller?'display:none':''}">${d.prog||'—'}</td>
       <td style="${isSeller?'display:none':''}">${fmt(dealBenefit(d))}</td>
       <td><span class="status-pill ${statusClass(d.status)}">${d.status||'Draft'}</span></td>
@@ -7386,11 +7407,11 @@ function getCurrentDealData(){
     region:v('fh-region'),country:vAny('fh-country','fh-country-intel'),
     origin:v('deal-origin'),originNotes:v('deal-origin-notes'),
     dealDate:v('deal-date'),migStart:vAny('mig-start','mig-start-intel'),closeDate:vAny('deal-close','mig-end-intel'),
-    segment:v('deal-segment'),prog:v('deal-program'),
+    prog:v('deal-program'),dealType:window._dealType||'',
     cadence:v('deal-cadence'),status:v('deal-status'),
     custName:vAny('cust-name','cust-name-intel'),custAcct:v('cust-acct'),
     attachments:dealAttachments,
-    industry:vAny('cust-industry','cust-industry-intel'),workload:vAny('cust-workload','intel-notes'),
+    workload:vAny('cust-workload','intel-notes'),
     awsRegion:v('cust-awsregion'),recipient:v('cust-recipient'),
     partnerName:v('partner-name'),partnerTier:v('partner-tier'),partnerSpmsId:v('partner-spms-id'),
     partnerRole:v('partner-role'),
@@ -7427,7 +7448,7 @@ function getCurrentDealData(){
     awsRepName:(getTeamData().find(t=>t.role==='aws-account')||{}).name||'',
     iapProgram:v('iap-program')||'standard', discountMode:v('discount-mode')||'blended',
     discountVerified:v('discount-verified')||'assumed',
-    migrationCost:parseFloat(v('migration-cost'))||0, pricingCalcLink:v('pricing-calc-link'),
+    pricingCalcLink:v('pricing-calc-link'),
     // The 8th gen target the deal moves to. Read by the funding gates and
     // the Smartsheet export, but never written until now, so every deal
     // carried an unclearable 'no Intel 8th gen target' blocker.
@@ -8007,12 +8028,7 @@ function refreshCRMHeader(){
   set('crm-pay', (d.paymentOption||'').split(' ')[0]);
   set('crm-ace', d.aceID);
   set('crm-ww', d.winWire?'Yes — Fast Track + Draw Entry':'No');
-  if(d.dne && d.migrationCost>0){
-    const roi=((d.dne - d.migrationCost)/d.migrationCost*100);
-    set('crm-roi', roi.toFixed(0)+'% (DNE vs. migration cost)');
-  } else {
-    set('crm-roi', d.migrationCost?'Add DNE to calculate':'Add migration cost to calculate');
-  }
+  set('crm-roi', '');
   const st=document.getElementById('crm-stage'); if(st) st.textContent=d.status||'Draft';
   renderSmartsheetPreview(d);
 }
@@ -8034,8 +8050,7 @@ function getSmartsheetRows(d){
   const submitter = (d.team||[])[0] || {};
   const activityDesc = [d.actType||'Deal', 'for', d.custName||'', '\u2014', d.workload||'workload not specified'].join(' ');
   const num = v => (v || v===0) ? String(Math.round(v)) : '';
-  const roi = (d.dne && d.migrationCost>0)
-    ? Math.round((d.dne-d.migrationCost)/d.migrationCost*100)+'%' : '';
+  const roi = '';   // migration-cost input removed; Jacob's ROI column stays blank
 
   const statusMap = {
     'draft':'', 'submitted':'Discovery', 'under review':'Discovery',
@@ -8083,7 +8098,6 @@ function getSmartsheetRows(d){
     ['AWS Instances Used',                  d.migTo],
     ['Region/Country of Execution',         d.awsRegion],
     ['Cost of Infrastructure (ARR)',        num(infraArr)],
-    ['Cost of Migration (Engineering Work)', num(d.migrationCost)],
     ['Workload Selection',                  workloadSelectionDisplay(d.workloadSelection)],
     ['Requested funding amount',            num(d.dne)],
     ['Is this for a Migration activity?',   d.actType ? (isMigrate ? 'Yes' : 'No - something else') : ''],
@@ -8363,7 +8377,7 @@ function restoreDeal(d){
   if(Array.isArray(d.fleets)) fleets = d.fleets.slice();
   // Mirror into the Intel view too, or restoring a draft blanks everything an
   // Intel seller typed while showing them a reassuring "restored" banner.
-  setVal('cust-name-intel', d.custName); setVal('cust-industry-intel', d.industry);
+  setVal('cust-name-intel', d.custName);
   setVal('fh-country-intel', d.country); setVal('mig-start-intel', d.migStart);
   setVal('mig-end-intel', d.closeDate); setVal('ace-id-intel', d.aceID);
   setVal('intel-notes', d.workload); setVal('est-arr-intel', d.intelEligibleArr||'');
@@ -8384,7 +8398,7 @@ function restoreDeal(d){
   setVal('discount-mode',d.discountMode); setVal('discount-verified',d.discountVerified);
   const aceEl=document.getElementById('ace-amount'); if(aceEl){ aceEl.value=d.aceAmount||''; aceEl.dataset.userEdited=1; }
   const eligibleEl=document.getElementById('intel-eligible-arr'); if(eligibleEl){ eligibleEl.value=d.intelEligibleArr||''; eligibleEl.dataset.userEdited=1; }
-  setVal('migration-cost',d.migrationCost);
+
   setVal('partner-spms-id',d.partnerSpmsId);
   setVal('deal-competitive',d.competitive); handleCompetitiveChange();
   setVal('deal-time-sensitive',d.timeSensitive); handleTimeSensitiveChange();
@@ -8409,12 +8423,13 @@ function restoreDeal(d){
       handleEmailDomain(id);
     });
   }
-  setVal('deal-segment',d.segment);setVal('deal-program',d.prog);
+  setVal('deal-program',d.prog);
+  if(d.dealType) selectDealType(d.dealType);
   setVal('deal-cadence',d.cadence);setVal('deal-status',d.status);
   setVal('cust-name',d.custName);setVal('cust-acct',d.custAcct);
   dealAttachments = Array.isArray(d.attachments) ? d.attachments.slice() : [];
   renderDealAttachments();
-  setVal('cust-industry',d.industry);setVal('cust-workload',d.workload);
+  setVal('cust-workload',d.workload);
   setVal('cust-awsregion',d.awsRegion);setVal('cust-recipient',d.recipient);
   setVal('partner-name',d.partnerName);setVal('partner-tier',d.partnerTier);
   setVal('partner-role',d.partnerRole);
