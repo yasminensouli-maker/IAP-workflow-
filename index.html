@@ -1482,7 +1482,7 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
       <button id="global-back-btn" onclick="goBack()" style="display:none;align-items:center;gap:4px;background:transparent;color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:5px;padding:6px 12px;font-size:.75rem;cursor:pointer;font-family:Arial,sans-serif;margin-right:12px">← Back</button>
       <div class="app-header-logo" onclick="goStep(1)" style="cursor:pointer" title="Back to Start Your Deal Journey">INTEL × AWS</div>
       <div class="app-header-title" onclick="goStep(1)" style="cursor:pointer" title="Back to Start Your Deal Journey">Deal Desk</div>
-      <span id="build-stamp" title="Which build you are looking at. If this does not match what you just deployed, you are on a cached page." style="font-size:.62rem;color:rgba(255,255,255,.55);margin-left:9px;letter-spacing:.03em;white-space:nowrap">BUILD 2026-08-14 15:35 UTC</span>
+      <span id="build-stamp" title="Which build you are looking at. If this does not match what you just deployed, you are on a cached page." style="font-size:.62rem;color:rgba(255,255,255,.55);margin-left:9px;letter-spacing:.03em;white-space:nowrap">BUILD 2026-08-14 18:00 UTC</span>
     </div>
     <div class="app-header-right">
       <span id="draft-indicator" style="font-size:.72rem;color:var(--ink3);margin-right:10px"></span><span class="user-pill" id="user-pill">—</span>
@@ -1595,33 +1595,24 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
         <div class="section-card" id="deal-type-card" style="border:2px solid var(--intel)">
           <div class="section-card-title">What kind of deal is this?</div>
           <div style="font-size:.72rem;color:var(--ink3);margin-bottom:12px">Pick one before anything else. It sets the funding rate everything downstream is calculated from.</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px" role="radiogroup" aria-label="Deal type">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px" role="radiogroup" aria-label="Deal type">
             <div id="dt-card-migrate" role="radio" aria-checked="false" tabindex="0"
                  onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectDealType('migrate');}"
                  onclick="selectDealType('migrate')"
-                 style="border:2px solid var(--border);border-radius:8px;padding:16px;cursor:pointer;transition:.2s">
-              <div style="font-weight:700;font-size:.85rem;color:var(--intel);margin-bottom:6px">Migrate</div>
-              <div style="font-size:.72rem;color:var(--ink2);line-height:1.5">Workloads coming to AWS from on-premises, end-of-life hardware, or elsewhere.</div>
-              <div style="font-size:1.05rem;font-weight:800;color:var(--intel);margin-top:8px">4.5% of ARR</div>
-              <div style="font-size:.64rem;color:var(--ink3);margin-top:2px">Capped $1,000,000</div>
+                 style="border:2px solid var(--border);border-radius:8px;padding:18px;cursor:pointer;transition:.2s">
+              <div style="font-weight:700;font-size:.9rem;color:var(--intel);margin-bottom:7px">Net new workloads</div>
+              <div style="font-size:.74rem;color:var(--ink2);line-height:1.55">Migrate or build. Workloads coming to AWS from on-premises or elsewhere, and greenfield workloads landing straight onto Intel.</div>
+              <div style="font-size:1.15rem;font-weight:800;color:var(--intel);margin-top:10px">4.5% of ARR</div>
+              <div style="font-size:.66rem;color:var(--ink3);margin-top:2px">Capped $1,000,000</div>
             </div>
             <div id="dt-card-modernize" role="radio" aria-checked="false" tabindex="0"
                  onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectDealType('modernize');}"
                  onclick="selectDealType('modernize')"
-                 style="border:2px solid var(--border);border-radius:8px;padding:16px;cursor:pointer;transition:.2s">
-              <div style="font-weight:700;font-size:.85rem;color:var(--intel);margin-bottom:6px">Modernize</div>
-              <div style="font-size:.72rem;color:var(--ink2);line-height:1.5">Existing AWS fleets moving to current generation Intel. Right-size, unlock performance.</div>
-              <div style="font-size:1.05rem;font-weight:800;color:var(--intel);margin-top:8px">1% of ARR</div>
-              <div style="font-size:.64rem;color:var(--ink3);margin-top:2px">Capped $250,000</div>
-            </div>
-            <div id="dt-card-netnew" role="radio" aria-checked="false" tabindex="0"
-                 onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectDealType('netnew');}"
-                 onclick="selectDealType('netnew')"
-                 style="border:2px solid var(--border);border-radius:8px;padding:16px;cursor:pointer;transition:.2s">
-              <div style="font-weight:700;font-size:.85rem;color:var(--intel);margin-bottom:6px">Net new on Intel</div>
-              <div style="font-size:.72rem;color:var(--ink2);line-height:1.5">Greenfield workloads landing straight onto Intel. Nothing being moved.</div>
-              <div style="font-size:1.05rem;font-weight:800;color:var(--intel);margin-top:8px">4.5% of ARR</div>
-              <div style="font-size:.64rem;color:var(--ink3);margin-top:2px">Priced as Migrate, recorded separately</div>
+                 style="border:2px solid var(--border);border-radius:8px;padding:18px;cursor:pointer;transition:.2s">
+              <div style="font-weight:700;font-size:.9rem;color:var(--intel);margin-bottom:7px">Upgrade and refresh to grow</div>
+              <div style="font-size:.74rem;color:var(--ink2);line-height:1.55">Existing AWS fleets moving to current generation Intel. Right-size, unlock performance, free budget for growth.</div>
+              <div style="font-size:1.15rem;font-weight:800;color:var(--intel);margin-top:10px">1% of ARR</div>
+              <div style="font-size:.66rem;color:var(--ink3);margin-top:2px">Capped $250,000</div>
             </div>
           </div>
         </div>
@@ -1686,21 +1677,16 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
           <div class="section-card">
             <div class="section-card-title">Program Type</div>
             <div style="font-size:.7rem;color:var(--ink3);margin-bottom:10px">Added by: Intel Seller — drives funding rate</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
               <div id="prog-card-migrate" role="radio" aria-checked="false" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectIntelProgram('migrate');}" onclick="selectIntelProgram('migrate')" style="border:2px solid var(--border);border-radius:8px;padding:16px;cursor:pointer;transition:.2s">
-                <div style="font-weight:700;font-size:.85rem;color:var(--intel);margin-bottom:6px">Migrate</div>
-                <div style="font-size:.72rem;color:var(--ink2);line-height:1.5">Net new workloads to AWS — moving from on-premises, end-of-life hardware, or another cloud</div>
+                <div style="font-weight:700;font-size:.85rem;color:var(--intel);margin-bottom:6px">Net new workloads</div>
+                <div style="font-size:.72rem;color:var(--ink2);line-height:1.5">Migrate or build. From on-premises or elsewhere, or greenfield straight onto Intel.</div>
                 <div style="font-size:1.1rem;font-weight:800;color:var(--intel);margin-top:8px">4.5% of ARR</div>
               </div>
               <div id="prog-card-modernize" role="radio" aria-checked="false" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectIntelProgram('modernize');}" onclick="selectIntelProgram('modernize')" style="border:2px solid var(--border);border-radius:8px;padding:16px;cursor:pointer;transition:.2s">
-                <div style="font-weight:700;font-size:.85rem;color:var(--intel);margin-bottom:6px">Modernization</div>
-                <div style="font-size:.72rem;color:var(--ink2);line-height:1.5">Upgrade to new Gen for incremental value — existing AWS customers on pre-8th gen x86, right-size fleet, unlock GenAI budget</div>
+                <div style="font-weight:700;font-size:.85rem;color:var(--intel);margin-bottom:6px">Upgrade and refresh to grow</div>
+                <div style="font-size:.72rem;color:var(--ink2);line-height:1.5">Existing AWS fleets moving to current generation Intel.</div>
                 <div style="font-size:1.1rem;font-weight:800;color:var(--intel);margin-top:8px">1% of ARR (capped $250K)</div>
-              </div>
-              <div id="prog-card-netnew" role="radio" aria-checked="false" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectIntelProgram('netnew');}" onclick="selectIntelProgram('netnew')" style="border:2px solid var(--border);border-radius:8px;padding:16px;cursor:pointer;transition:.2s">
-                <div style="font-weight:700;font-size:.85rem;color:var(--intel);margin-bottom:6px">Net new on Intel</div>
-                <div style="font-size:.72rem;color:var(--ink2);line-height:1.5">Greenfield workloads landing straight onto Intel. Nothing being moved.</div>
-                <div style="font-size:1.1rem;font-weight:800;color:var(--intel);margin-top:8px">4.5% of ARR</div>
               </div>
             </div>
             <div id="intel-funding-result" style="display:none;padding:14px 16px;background:linear-gradient(135deg,#f0f4ff,#e8f0fe);border-radius:8px;border:1px solid var(--intel)">
@@ -4165,16 +4151,38 @@ function computeRate(dealType){
    first one meant an Intel Migrate deal priced at the Modernize rate.
    Read whichever one the person actually had in front of them. */
 /* ── INTEL'S RETURN ON A DEAL ────────────────────────────────────
-   Intel earns silicon revenue, not rebate. On Xeon 6 that runs at about
-   2.5% of the customer's AWS spend -- derived from published list prices
-   (6980P $17,800, 6952P $11,400), ~512 vCPUs on a two-socket server, six
-   year amortisation, against realistic discounting and utilisation.
-   Confirm against Intel finance; it is one constant, changed here.
+   Basis: 3.5% of Intel-eligible ARR, set by Yasmine on 14 Aug 2026 from
+   Intel's own finding that silicon lands between 2% and 4% of total
+   consumption ARR on net new. It is Intel's number, so it holds up in
+   front of Intel finance in a way a derived figure would not.
 
-   It is a rate per YEAR. IAP funding is paid once. Comparing a single
-   year against the whole funding makes every deal look like a loss, so
-   both the annual figure and the three-year total are always shown. */
-const XEON6_SILICON_RATE = 0.025;
+   Cross-checked 14 Aug 2026 against hardware maths, independently:
+     Xeon 6980P, 128 cores / 256 threads, Intel current RCP $13,955
+       -> $54.51 per vCPU one-time, $10.90 per vCPU per year over 5 years
+     At roughly $394 of ARR per vCPU that is 2.77% of ARR -- inside
+     Intel's 2-4% band. Two unrelated routes, same answer.
+
+   AWS runs custom Xeon 6 parts exclusive to AWS, so no published list
+   price applies directly. Everything above is a public-SKU proxy.
+
+   The rate does not vary by workload. c8i, m8i, r8i and x8i share the
+   same die; what differs between them is memory, which Intel does not
+   sell. ARR per vCPU runs about $384 compute, $423 general purpose, $515
+   memory-optimised -- a spread of roughly a third, not the multiples that
+   scaling on ARR by workload would imply.
+
+   Per vCPU is kept as a CHECK, not the calculation. A coherent deal lands
+   between $8 and $16 of silicon per vCPU per year. Outside that band the
+   fleet or the ARR is wrong, and it is worth catching before an approver
+   does.
+
+   Both figures are per YEAR. IAP funding is paid once, so the annual
+   number and the three year total are always shown together. */
+const SILICON_ARR_RATE = 0.035;
+const SILICON_BAND_LOW = 0.02;
+const SILICON_BAND_HIGH = 0.04;
+const SILICON_PER_VCPU_MIN = 8;
+const SILICON_PER_VCPU_MAX = 16;
 
 function intelReturn(d){
   d = d || {};
@@ -4184,15 +4192,30 @@ function intelReturn(d){
     return t + ((Number(f.count) || 0) *
       (typeof vcpusForSize === 'function' ? (vcpusForSize(f.size) || 0) : 0));
   }, 0);
-  const perYear = arr * XEON6_SILICON_RATE;
+
+  const perYear = arr * SILICON_ARR_RATE;
+  const perVcpu = vcpus > 0 ? perYear / vcpus : 0;
+  // The check: silicon per vCPU outside $8-$16 means the fleet and the ARR
+  // disagree with each other, whichever one is wrong.
+  const checkOk = vcpus > 0
+    ? (perVcpu >= SILICON_PER_VCPU_MIN && perVcpu <= SILICON_PER_VCPU_MAX)
+    : null;
+
   return {
     arr: arr, dne: dne, vcpus: vcpus,
-    ratePct: (XEON6_SILICON_RATE * 100).toFixed(1),
+    ratePct: (SILICON_ARR_RATE * 100).toFixed(1),
+    basis: (SILICON_ARR_RATE * 100).toFixed(1) + '% of Intel-eligible ARR',
     perYear: perYear,
     threeYear: perYear * 3,
+    low: arr * SILICON_BAND_LOW * 3,
+    high: arr * SILICON_BAND_HIGH * 3,
     ratio: dne > 0 ? (perYear * 3) / dne : 0,
+    ratioLow: dne > 0 ? (arr * SILICON_BAND_LOW * 3) / dne : 0,
+    ratioHigh: dne > 0 ? (arr * SILICON_BAND_HIGH * 3) / dne : 0,
     breakeven: perYear > 0 ? dne / perYear : 0,
-    arrPerVcpu: vcpus > 0 ? arr / vcpus : 0
+    arrPerVcpu: vcpus > 0 ? arr / vcpus : 0,
+    siliconPerVcpu: perVcpu,
+    checkOk: checkOk
   };
 }
 
@@ -4860,14 +4883,17 @@ function renderPlayTags(){
    stores its own type, so greenfield is reportable without inventing a rate
    the program does not have. */
 const DEAL_TYPES = {
-  migrate:   {label:'Migrate',          awsValue:'Migrate',   rate:0.045},
-  modernize: {label:'Modernize',        awsValue:'Modernize', rate:0.01},
-  netnew:    {label:'Net new on Intel', awsValue:'Migrate',   rate:0.045}
+  migrate:   {label:'Net new workloads (migrate or build)', awsValue:'Migrate',   rate:0.045},
+  modernize: {label:'Upgrade and refresh to grow',          awsValue:'Modernize', rate:0.01},
+  // Retired as a separate choice on 14 Aug 2026 and folded into migrate.
+  // Kept so deals saved with it still restore rather than losing their type.
+  netnew:    {label:'Net new workloads (migrate or build)', awsValue:'Migrate',   rate:0.045}
 };
 
 function selectDealType(type){
   if(!DEAL_TYPES[type]) return;
-  ['migrate','modernize','netnew'].forEach(function(t){
+  if(type === 'netnew') type = 'migrate';   // folded in, see DEAL_TYPES
+  ['migrate','modernize'].forEach(function(t){
     const el = document.getElementById('dt-card-' + t);
     if(!el) return;
     el.style.border     = (t===type) ? '2px solid var(--intel)' : '2px solid var(--border)';
@@ -4888,7 +4914,7 @@ function selectDealType(type){
   if(mainProg) mainProg.value = (type==='modernize') ? 'modernize' : 'migrate';
 
   // Keep the Intel seller cards in step with this choice.
-  ['migrate','modernize','netnew'].forEach(function(t){
+  ['migrate','modernize'].forEach(function(t){
     const el = document.getElementById('prog-card-' + t);
     if(!el) return;
     el.style.border     = (t===type) ? '2px solid var(--intel)' : '2px solid var(--border)';
@@ -5619,7 +5645,7 @@ function generateSummary(){
           row('Selected Plays', (d.selectedPlays||[]).join(', ')),
           row('Total vCPUs (from Fleet Builder)', r.vcpus ? r.vcpus.toLocaleString() : '— no fleets entered'),
           row('Intel-Eligible ARR', fmtD(r.arr)),
-          row('Intel silicon revenue @ ' + r.ratePct + '% (per year)', r.arr ? fmtD(r.perYear) : '—'),
+          row('Intel silicon revenue (per year)', r.perYear ? fmtD(r.perYear) : '—'),
           row('Over three years', r.arr ? fmtD(r.threeYear) : '—'),
           row('IAP funding (DNE, paid once)', fmtD(r.dne)),
         ];
@@ -5628,7 +5654,7 @@ function generateSummary(){
             r.ratio.toFixed(2) + '\u00d7 \u2014 breakeven at ' + r.breakeven.toFixed(1) + ' years'));
         }
         if(r.arrPerVcpu > 0){ rows.push(row('ARR per vCPU', fmtD(r.arrPerVcpu) + ' / yr')); }
-        rows.push(row('Assumption', r.ratePct + '% silicon content on Xeon 6 \u2014 confirm with Intel finance'));
+        rows.push(row('Basis', r.basis + ' (Intel band 2\u20134%) \u2014 confirm with Intel finance'));
         return section('Intel Return \u2014 vCPUs and silicon revenue', rows.join(''));
       })()}
 
@@ -6730,6 +6756,8 @@ async function renderApprovalQueue(){
           <div class="approval-grid-item"><label>Submitter</label><div class="val">${(deal.team&&deal.team[0])?deal.team[0].name:deal.fhName||'—'}</div></div>
           <div class="approval-grid-item"><label>AWS Region</label><div class="val">${deal.awsRegion||'—'}</div></div>
           <div class="approval-grid-item"><label>Total vCPUs</label><div class="val">${(function(){const v=intelReturn(deal).vcpus;return v?v.toLocaleString():'—';})()}</div></div>
+          <div class="approval-grid-item"><label>Silicon per vCPU / yr</label><div class="val">${(function(){const r=intelReturn(deal);if(!r.siliconPerVcpu) return '—';const v='$'+r.siliconPerVcpu.toFixed(2);return r.checkOk?v:('<span style="color:#b45309">'+v+' ⚠</span>');})()}</div></div>
+          <div class="approval-grid-item"><label>Customer ARR per vCPU</label><div class="val">${(function(){const r=intelReturn(deal);return r.arrPerVcpu?('$'+Math.round(r.arrPerVcpu).toLocaleString()):'—';})()}</div></div>
           <div class="approval-grid-item"><label>Cost Explorer</label><div class="val"><span style="color:var(--ink3)">Post-SOW (TCC collects)</span></div></div>
           <div class="approval-grid-item"><label>Payment Option</label><div class="val">${deal.paymentOption||'—'}</div></div>
           <div class="approval-grid-item"><label>Win Wire</label><div class="val">${deal.winWire?'Yes':'No'}</div></div>
@@ -6758,7 +6786,7 @@ async function renderApprovalQueue(){
             +   cell('Breakeven', r.dne > 0 && r.perYear > 0 ? r.breakeven.toFixed(1) + ' years' : '\u2014')
             + '</div>'
             + '<div style="font-size:.66rem;color:var(--ink3);margin-top:7px">Assumes '
-            + r.ratePct + '% silicon content on Xeon 6, from published list pricing. '
+            + r.basis + '. '
             + 'Silicon revenue recurs annually; IAP funding is paid once.</div>'
             + '</div>';
         })()}
