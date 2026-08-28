@@ -1547,7 +1547,7 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
         <div class="sidebar-label">Operating Tenets</div>
         <div class="tenets">
           <div class="tenet-item"><strong>Actual Spend</strong>Rebate applies to post-discount ARR on Intel instances across EC2, RDS, ElastiCache, and OpenSearch, never list price.</div>
-          <div class="tenet-item"><strong>TCC Channel</strong>Intel funds TCC · The Channel Company disburses to partner or customer. AWS does not participate in payment.</div>
+          <div class="tenet-item"><strong>TCC Channel</strong>Intel funds TCC · The Channel Company processes payment to partner or customer, confirmed via a Cost Explorer export shared directly by the customer. AWS does not participate in payment.</div>
           <div class="tenet-item"><strong>POP Required</strong>Proof of Performance due before claim date or rolls to next cycle.</div>
           <div class="tenet-item"><strong>Intel Xeon 6</strong>Eligible instances must be Intel-optimized. Non-Intel accelerator and CPU families are excluded.</div>
         </div>
@@ -6002,7 +6002,7 @@ async function answerIntelQuestion(msg){
     return "Only i-suffix Intel Gen 8 families qualify: m8i, c8i, r8i, x8i, across EC2, RDS, ElastiCache, and OpenSearch. Non-Intel families are excluded from every calculation.";
   }
   if(/approv|flow|process|who approves|steps/i.test(q)){
-    return "Submit → Pre-approval (Yasmine, Chris Chlee, or Jeanine — any one) → AWS Approval (Bryan or Dinc — any one) → Intel Approval (Brendon, or the Intel owner for the region: Deep for NAMER, Fabio for LATAM, Diego for EMEA, Jason for APJ) → TCC (Jacob) generates the SOW and disburses. Each gate needs one approver, not all of them. TCC does not approve funding.";
+    return "Submit → Pre-approval (Yasmine, Chris Chlee, or Jeanine — any one) → AWS Approval (Bryan or Dinc — any one) → Intel Approval (Brendon, or the Intel owner for the region: Deep for NAMER, Fabio for LATAM, Diego for EMEA, Jason for APJ) → TCC (Jacob) generates the SOW. Funding is confirmed against a Cost Explorer export the customer shares directly. Each gate needs one approver, not all of them. TCC does not approve funding.";
   }
   if(/win wire|fast track|draw/i.test(q)){
     return "Win Wire stays internal unless separately nominated as a customer case study. Saying yes fast-tracks the deal and enters the customer and submitter into a prize draw once submitted.";
@@ -6167,10 +6167,10 @@ function downloadProgramOnePager(){
       <tr><td>Migrate</td><td>4.5% of post-discount ARR</td><td>—</td></tr>
       <tr><td>Modernize</td><td>1% of post-discount ARR</td><td>$250,000</td></tr>
     </table>
-    <div class="card" style="margin-top:10px">Rebate applies to <strong>actual spend</strong>, post-discount, never list price. The calculated figure is a Do Not Exceed (DNE) ceiling, not a guaranteed payout — actual disbursement follows Proof of Performance.</div>
+    <div class="card" style="margin-top:10px">Rebate applies to <strong>actual spend</strong>, post-discount, never list price. The calculated figure is a Do Not Exceed (DNE) ceiling, not a guaranteed payout — payment is confirmed against a Cost Explorer export the customer shares directly, after Proof of Performance.</div>
 
     <h2>Who Pays, Who Doesn't</h2>
-    <div class="card"><strong>Intel</strong> funds the program. <strong>TCC (The Channel Company)</strong> disburses to the partner or customer. <strong>AWS does not participate in payment</strong> and never shares customer cost data on the customer's behalf.</div>
+    <div class="card"><strong>Intel</strong> funds the program. <strong>TCC (The Channel Company)</strong> processes payment to the partner or customer, confirmed against a <strong>Cost Explorer export the customer shares directly</strong>. <strong>AWS does not participate in payment</strong> and never shares customer cost data on the customer's behalf.</div>
 
     <h2>Approval Path</h2>
     <table>
@@ -6179,7 +6179,7 @@ function downloadProgramOnePager(){
       <tr><td>2 · Pre-approval</td><td>Yasmine Nsouli, Chris Chlee, Jeanine Reidel — any one</td><td>Review deal; Chris validates Simple Monthly figures</td></tr>
       <tr><td>3 · AWS Approval</td><td>Bryan, Dinc — any one</td><td>AWS sign-off on the deal and the funding ask</td></tr>
       <tr><td>4 · Intel Approval</td><td>Brendon Roosken, or the Intel owner for the region — Deep Grewal (NAMER), Fabio Pesiguelo (LATAM), Diego Bailon Humpert (EMEA), Jason Tan (APJ)</td><td>Approves the funding amount. Brendon can approve any region.</td></tr>
-      <tr><td>5 · TCC / IPIC</td><td>Jacob Barksdale</td><td>Logs into IPIC, generates the SOW, manages disbursement. Does not approve funding.</td></tr>
+      <tr><td>5 · TCC / IPIC</td><td>Jacob Barksdale</td><td>Logs into IPIC, generates the SOW, processes payment against the customer's Cost Explorer export. Does not approve funding.</td></tr>
     </table>
 
     <h2>Proof of Performance (POP)</h2>
@@ -6308,7 +6308,7 @@ function downloadWorkflowGuide(){
       <tr><td>2 · Pre-approval</td><td>Yasmine Nsouli, Chris Chlee, Jeanine Reidel — any one</td></tr>
       <tr><td>3 · AWS Approval</td><td>Bryan, Dinc — any one</td></tr>
       <tr><td>4 · Intel Approval</td><td>Brendon Roosken, or the region owner: Deep (NAMER), Fabio (LATAM), Diego (EMEA), Jason (APJ) — final funding approval</td></tr>
-      <tr><td>5 · TCC</td><td>Jacob Barksdale generates the SOW, disburses payment</td></tr>
+      <tr><td>5 · TCC</td><td>Jacob Barksdale generates the SOW, processes payment against the customer's Cost Explorer export</td></tr>
     </table>
 
     <h2>Guardrails</h2>
@@ -6316,7 +6316,7 @@ function downloadWorkflowGuide(){
       AWS never shares Cost Explorer data with Intel or TCC — the customer sends it directly.<br>
       Apply the rebate to post-discount ARR, never list price.<br>
       Only m8i, c8i, r8i, x8i count — all other families are excluded.<br>
-      The DNE figure is a ceiling, not a guaranteed payout — actual disbursement follows Proof of Performance.<br>
+      The DNE figure is a ceiling, not a guaranteed payout — payment is confirmed against a Cost Explorer export the customer shares directly, after Proof of Performance.<br>
       Q4 requires one full billing cycle at 75%+ run-rate, not a single-day spike.
     </div>
 
@@ -6357,11 +6357,16 @@ function validateAcct(el){
 }
 
 /* ── SOW GENERATION ──────────────────────────────────────────── */
-function generateSOW(){
-  if(!(currentUser && (currentUser.tier==='tcc' || currentUser.tier==='admin'))){
-    alert('The SOW is generated by TCC once Intel leadership has approved the deal — it\'ll be ready for them at that point.');
-    return;
-  }
+// Single source of truth for SOW content. generateSOW() (on-screen HTML) and
+// downloadSOWWord() (the .rtf a customer actually receives) used to compute
+// these fields independently and had drifted: the download button produced
+// an entirely different, older document -- wrong section order, no Cost
+// Explorer language, a payment schedule hardcoded to July 2026 (already in
+// the past), and only one of the two invoice contacts. A customer who was
+// shown the correct on-screen SOW could still be emailed the wrong one.
+// Both renderers now read from this one function so they cannot diverge --
+// change a field here and both outputs update together.
+function buildSOWData(){
   // Pull from SOW detail fields (Step 7) first, fall back to earlier steps
   const custLegal   = v('sow-cust-legal')     || v('cust-name') || v('cust-name-intel') || '[Customer Legal Name]';
   const activityName = v('sow-activity-name') || 'IAP – ' + (v('cust-name')||v('cust-name-intel')||'Customer');
@@ -6369,6 +6374,11 @@ function generateSOW(){
   const signatoryName = v('sow-signatory-name') || '[Customer Signatory]';
   const signatoryTitle = v('sow-signatory-title') || '[Title]';
   const remitAddress = v('sow-remit-address') || '[Remit-to address pending]';
+  // Both TCC contacts, per the standard SOW template -- a single-name
+  // invoice-recipients clause meant an invoice sent only to Jacob with no
+  // copy to Jenna was compliant with this document but not with how TCC
+  // actually processes them.
+  const tccContacts = 'jbarksdale@thechannelcompany.com and jwillette@thechannelcompany.com';
 
   const migStart   = v('mig-start') || v('mig-start-intel') || '[TBD]';
   const migEnd     = v('deal-close') || v('mig-end-intel') || '[TBD]';
@@ -6402,14 +6412,36 @@ function generateSOW(){
   const fundingEst = approvedDne > 0 ? approvedDne : computed;
   const fundingLabel = fundingEst > 0 ? '$' + fundingEst.toLocaleString('en-US',{maximumFractionDigits:0}) + ' USD' : '[To be determined based on Cost Explorer validation]';
 
-  // Payment schedule — fixed per SOW template
-  const popRows = `
-    <tr><td>July 1, 2026</td><td>Aug 17–21, 2026</td><td>Net 30</td></tr>
-    <tr><td>Oct 1, 2026</td><td>Nov 16–20, 2026</td><td>Net 30</td></tr>
-    <tr><td>Jan 1, 2027</td><td>Feb 15–19, 2027</td><td>Net 30</td></tr>
-    <tr><td>April 1, 2027</td><td>May 17–21, 2027</td><td>Net 30</td></tr>
-    <tr><td>July 1, 2027</td><td>Aug 16–20, 2027</td><td>Net 30</td></tr>
-    <tr><td>Oct 1, 2027</td><td>Nov 15–19, 2027</td><td>Net 30</td></tr>`;
+  // Payment schedule — the current standard claim cycle, per the live SOW
+  // template. NOT derived from this deal's own dates: TCC runs claims on a
+  // shared calendar (same Claim Quarter field as the Smartsheet export), not
+  // one schedule per deal. This block previously started at July 2026, which
+  // by the time anyone actually generated a SOW was already in the past --
+  // update this table when the current cycle ends, the same way the source
+  // template it is copied from gets updated.
+  const claimSchedule = [
+    {claim:'Oct 1, 2026',  week:'Nov 16–20, 2026', net:'Net 30'},
+    {claim:'Jan 1, 2027',  week:'Feb 15–19, 2027',  net:'Net 30'},
+    {claim:'April 1, 2027',week:'May 17–21, 2027',  net:'Net 30'},
+    {claim:'July 1, 2027', week:'Aug 16–20, 2027',  net:'Net 30'},
+    {claim:'Oct 1, 2027',  week:'Nov 15–19, 2027',  net:'Net 30'},
+  ];
+  const popRows = claimSchedule.map(r =>
+    `<tr><td>${r.claim}</td><td>${r.week}</td><td>${r.net}</td></tr>`).join('');
+
+  return {custLegal, activityName, infraSummary, signatoryName, signatoryTitle,
+          remitAddress, tccContacts, migStart, migEnd, ipicNum, cadence,
+          claimDate, rateInfo, rate, rateLabel, progType, fundingLabel, claimSchedule, popRows};
+}
+
+function generateSOW(){
+  if(!(currentUser && (currentUser.tier==='tcc' || currentUser.tier==='admin'))){
+    alert('The SOW is generated by TCC once Intel leadership has approved the deal — it\'ll be ready for them at that point.');
+    return;
+  }
+  const {custLegal, activityName, infraSummary, signatoryName, signatoryTitle,
+         remitAddress, tccContacts, migStart, migEnd, ipicNum,
+         claimDate, rateLabel, fundingLabel, popRows} = buildSOWData();
 
   const html = `
 <div class="sow-header">
@@ -6498,7 +6530,7 @@ function generateSOW(){
   <p>Any invoice received without all the correct information will be returned to the issuing party and the payment date will be adjusted accordingly.</p>
 
   <p><strong>Invoice Recipients</strong></p>
-  <p>End Customer must send the invoice to: <strong>jbarksdale@thechannelcompany.com</strong></p>
+  <p>End Customer must send the invoice to the responsible contact below: <strong>${tccContacts}</strong></p>
 
   <p><strong>PoP / PoE (Proof of Performance / Execution) Requirement</strong></p>
   <p>Before any Intel Corporation reimbursement can be accepted, End Customer will be required to provide Proof of Performance (PoP). In case PoP is not compliant with Intel Accelerator Program guidelines, Intel Corporation reserves the right to reject the fund request, and End Customer will be responsible to cover all fees on its own.</p>
@@ -6510,7 +6542,7 @@ function generateSOW(){
   <p>Once approved, TCC Inc will organize, on behalf of Intel Corporation, to pay the agreed upon funding amount via bank transfer.</p>
 
   <p><strong>Acceptance</strong></p>
-  <p>To accept this SoW, please sign it via ContractSafe and notify your contact: jbarksdale@thechannelcompany.com</p>
+  <p>To accept this SoW, please sign it via ContractSafe and notify your contact: ${tccContacts}</p>
 </div>
 
 <div class="sow-section-head">End-Customer Acceptance</div>
@@ -7576,90 +7608,91 @@ function loadDraft(){
 }
 
 /* ── WORD GENERATION (RTF, no library) ───────────── */
+// The document a customer actually receives. Built from the exact same
+// buildSOWData() the on-screen version uses -- same customer/activity/dates/
+// funding figure, same claim schedule, same two TCC contacts, same terms --
+// formatted as RTF so it opens directly in Word. If the on-screen SOW and
+// this download ever show different numbers again, that is a bug in
+// buildSOWData(), not in either renderer, and fixing it there fixes both.
 function downloadSOWWord(){
-  var d = getCurrentDealData();
-  var fleets = d.fleets||[];
-  // Same deal-level Modernize cap as everywhere else — the SOW is the
-  // customer-facing commitment, so above all this document must never state
-  // a total the program rules do not support.
-  function cappedTotal(field){
-    var mig=0, mod=0;
-    for(var i=0;i<fleets.length;i++){
-      var val=fleets[i][field]||0;
-      if(fleets[i].type==='mod') mod+=val; else mig+=val;
-    }
-    return mig + Math.min(mod, 250000);
-  }
-  var totWNE = cappedTotal('nteCap');
-  var totPay = cappedTotal('rebate');
-  var team = d.team||[];
-  var today = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+  const sow = buildSOWData();
   function e(s){ return String(s||'').replace(/\\/g,'\\\\').replace(/[{}]/g,''); }
-  function fm(n){ return '$'+Math.round(n||0).toLocaleString('en-US'); }
 
-  var teamLines = '';
-  for(var t=0;t<team.length;t++){
-    var role = team[t].role==='intel-seller'?'Intel Seller':team[t].role==='aws-account'?'Account Team':'Intel Specialist';
-    teamLines += '{'+e(role)+': '+e(team[t].name)+' \u00b7 '+e(team[t].email)+'\\par}\n';
-  }
-  var fleetLines = '';
-  var fl = fleets.filter(function(f){return f.listARR;});
-  for(var i=0;i<fl.length;i++){
-    var f=fl[i];
-    fleetLines += '{'+(i+1)+'. '+e(f.instance||'')+'  |  '+(f.type==='mod'?'Optimize':'Migrate')+'  |  List: '+fm(f.listARR)+'  |  Rate: '+(f.type==='mod'?'1%':'4.5%')+'  |  Not to Exceed: '+fm(f.nteCap)+'  |  Est. Benefit: '+fm(f.rebate)+'\\par}\n';
-  }
+  const scheduleLines = sow.claimSchedule.map(r =>
+    '{'+e(r.claim)+' \u2014 Processing Week '+e(r.week)+' \u2014 '+e(r.net)+'\\par}\n').join('');
 
-  var rtf = '{\\rtf1\\ansi\\deff0\n'
+  const rtf = '{\\rtf1\\ansi\\deff0\n'
     + '{\\fonttbl{\\f0 Arial;}}\n'
     + '{\\colortbl;\\red0\\green104\\blue181;\\red26\\green110\\blue52;}\n'
     + '\\paperw12240\\paperh15840\\margl1080\\margr1080\\margt1080\\margb1080\n'
     + '\\f0\\fs20\n'
     + '{\\b\\fs36\\qc STATEMENT OF WORK\\par}\n'
-    + '{\\fs22\\qc\\cf1 Intel Accelerate Program \u00b7 The Channel Company\\par}\n'
-    + '{\\b\\fs24\\qc Customer: '+e(d.custName||'[Customer]')+'\\par}\n'
-    + '{\\fs18\\qc Date: '+today+'   |   IPIC: '+e(d.ipicNum||'Pending')+'   |   ACE: '+e(d.aceID||'Pending')+'\\par}\n'
+    + '{\\fs18\\qc IPIC Activity #: '+e(sow.ipicNum)+'\\par}\n'
     + '\\par\\pard\\brdrb\\brdrs\\brdrw10\\par\n'
-    + '{\\b\\cf1 1. PARTIES\\par}\n'
-    + teamLines
-    + '{Disbursing Entity: The Channel Company \u00b7 Jacob Barksdale \u00b7 jbarksdale@thechannelcompany.com\\par}\n'
-    + '{Benefit Recipient: '+e(d.custName||'[Customer]')+'\\par}\n'
+    + '{This SoW is issued and hereby made as part of the Agreement noted below between '
+      + '\\b '+e(sow.custLegal)+'\\b0 , hereinafter End Customer, and \\b Intel Corporation c/o The Channel Company Inc.\\b0\\par}\n'
     + '\\par\n'
-    + '{\\b\\cf1 2. PROGRAM OVERVIEW\\par}\n'
-    + '{ACE ID: '+e(d.aceID||'Pending')+'   |   IPIC: '+e(d.ipicNum||'Pending')+'   |   Campaign: '+e(d.campaignCode||'N/A')+'\\par}\n'
-    + '{Migration Start: '+e(d.migStart||'TBD')+'   |   End: '+e(d.closeDate||'TBD')+'   |   Max: 12 months\\par}\n'
-    + '{Region: '+e(d.region||'')+'   |   Country: '+e(d.country||'')+'   |   AWS Region: '+e(d.awsRegion||'')+'\\par}\n'
-    + '{Workload: '+e(d.workload||'')+'\\par}\n'
+    + '{\\b\\cf1 ACTIVITY NAME\\par}\n'
+    + '{\\b '+e(sow.activityName)+'\\b0\\par}\n'
     + '\\par\n'
-    + '{\\b\\cf1 3. INSTANCE SCOPE\\par}\n'
-    + fleetLines
-    + '{\\b TOTAL  |  Do Not Exceed: '+fm(totWNE)+'  |  Est. Benefit: \\cf2 '+fm(totPay)+'\\cf0\\par}\n'
+    + '{\\b\\cf1 ACTIVITY SUMMARY\\par}\n'
+    + '{Start Date: '+e(sow.migStart)+'   |   End Date: '+e(sow.migEnd)+'   |   Rate: '+e(sow.rateLabel)+'\\par}\n'
+    + '{Final Claim Date: '+e(sow.claimDate)+' (30 days after end date)\\par}\n'
+    + '{Funding Amount Not to Exceed: \\b '+e(sow.fundingLabel)+'\\b0\\par}\n'
+    + '{Description: '+e(sow.infraSummary)+'\\par}\n'
     + '\\par\n'
-    + '{\\b\\cf1 4. PAYMENT - MILESTONE BASED\\par}\n'
-    + '{Payment is milestone-based, tied to migration roadmap sign-off and Cost Explorer confirmation. Total benefit: '+fm(totPay)+'.\\par}\n'
-    + '{Maximum duration: 12 months\\par}\n'
+    + '{\\b\\cf1 PROOF OF PERFORMANCE\\par}\n'
+    + '{Project Completion / Consumption is required to receive payment. End Customer must provide Cost Explorer information with instance type within the agreed start and end dates. All reimbursements are paid off discounted AWS costs, not list price.\\par}\n'
+    + '{Note: End Customer has until the Final Claim Date listed above to provide all final POP. Anything submitted after that date will not be paid. There are no extensions or exceptions.\\par}\n'
     + '\\par\n'
-    + '{\\b\\cf1 5. PAYMENT CALENDAR\\par}\n'
-    + '{July 1, 2026 - Processing Week Aug 17-21, 2026 - Net 30\\par}\n'
-    + '{Oct 1, 2026 - Processing Week Nov 16-20, 2026 - Net 30\\par}\n'
-    + '{Jan 1, 2027 - Processing Week Feb 15-19, 2027 - Net 30\\par}\n'
-    + '{April 1, 2027 - Processing Week May 17-21, 2027 - Net 30\\par}\n'
-    + '{July 1, 2027 - Processing Week Aug 16-20, 2027 - Net 30\\par}\n'
-    + '{Oct 1, 2027 - Processing Week Nov 15-19, 2027 - Net 30\\par}\n'
+    + '{\\b\\cf1 CALENDAR OF CLAIM AND PAYMENT SCHEDULE\\par}\n'
+    + scheduleLines
     + '\\par\n'
-    + '{\\b\\cf1 6. TERMS\\par}\n'
-    + '{This SOW is subject to Intel IAP Program terms and The Channel Company disbursement terms. Benefits are non-transferable. Maximum duration: 12 months. CONFIDENTIAL.\\par}\n'
+    + '{\\b\\cf1 REIMBURSEMENT AGREEMENT\\par}\n'
+    + '{Upon completion of the activity, and approval of PoP by Intel Corporation, End Customer will invoice Intel Corporation c/o The Channel Company Inc. an approved portion of the cost, which is not to exceed \\b '+e(sow.fundingLabel)+'\\b0 . The Channel Company Inc. will then reimburse End Customer, c/o Intel Corporation.\\par}\n'
+    + '\\par\n'
+    + '{\\b\\cf1 TERMS & CONDITIONS\\par}\n'
+    + '{\\b Invoice Contents\\b0\\par}\n'
+    + '{To prevent invoice rejection or delays in payment, all invoices must include the following information:\\par}\n'
+    + '{\\bullet  The invoice(s) must be addressed to: Intel Corporation c/o The Channel Company Inc, 117 Kendrick Street, Suite 300, Needham, MA 02494\\par}\n'
+    + '{\\bullet  Activity name: '+e(sow.activityName)+'\\par}\n'
+    + '{\\bullet  Invoice number\\par}\n'
+    + '{\\bullet  Invoice date\\par}\n'
+    + '{\\bullet  Remit-to address: '+e(sow.remitAddress)+'\\par}\n'
+    + '{\\bullet  IAP reference number: '+e(sow.ipicNum)+' (provided upon approval of PoP)\\par}\n'
+    + '{Any invoice received without all the correct information will be returned to the issuing party and the payment date will be adjusted accordingly.\\par}\n'
+    + '\\par\n'
+    + '{\\b Invoice Recipients\\b0\\par}\n'
+    + '{End Customer must send the invoice to the responsible contact below: '+e(sow.tccContacts)+'\\par}\n'
+    + '\\par\n'
+    + '{\\b PoP / PoE (Proof of Performance / Execution) Requirement\\b0\\par}\n'
+    + '{Before any Intel Corporation reimbursement can be accepted, End Customer will be required to provide Proof of Performance (PoP). In case PoP is not compliant with Intel Accelerator Program guidelines, Intel Corporation reserves the right to reject the fund request, and End Customer will be responsible to cover all fees on its own.\\par}\n'
+    + '\\par\n'
+    + '{\\b Termination\\b0\\par}\n'
+    + '{In case the named activity in this statement of work (SoW) does not take place, for any reason, Intel Corporation will neither proceed with reimbursement, nor keep available funds for another fund request. Each activity fund request should have its own SoW and approval.\\par}\n'
+    + '\\par\n'
+    + '{\\b Payment Method\\b0\\par}\n'
+    + '{Once approved, TCC Inc will organize, on behalf of Intel Corporation, to pay the agreed upon funding amount via bank transfer.\\par}\n'
+    + '\\par\n'
+    + '{\\b Acceptance\\b0\\par}\n'
+    + '{To accept this SoW, please sign it via ContractSafe and notify your contact: '+e(sow.tccContacts)+'\\par}\n'
     + '\\par\\par\n'
-    + '{\\b SUBMITTING SPECIALIST\\tab\\tab\\tab BENEFIT RECIPIENT\\par}\n'
-    + '{'+e((team[0]||{}).name||'')+'\\tab\\tab\\tab '+e(d.custName||'')+'\\par}\n'
+    + '{\\b END-CUSTOMER ACCEPTANCE\\par}\n'
+    + '{Name: '+e(sow.signatoryName)+'\\tab\\tab Job Title: '+e(sow.signatoryTitle)+'\\par}\n'
+    + '{Date and Signature: _______________________\\par}\n'
+    + '\\par\n'
+    + '{\\b AWS INC C/O TCC INC ACCEPTANCE\\par}\n'
+    + '{Contact Name: _______________________\\tab\\tab Job Title: _______________________\\par}\n'
+    + '{Date and Signature: _______________________\\par}\n'
     + '\\par\\par\n'
-    + '{Signature & Date: _______________________\\tab Signature & Date: _______________________\\par}\n'
+    + '{\\fs16\\qc\\cf1 Intel \u00d7 AWS \u00b7 Intel Accelerate Program \u00b7 Confidential\\par}\n'
     + '}';
 
-  var blob = new Blob([rtf], {type:'application/rtf'});
-  var url = URL.createObjectURL(blob);
-  var a = document.createElement('a');
+  const blob = new Blob([rtf], {type:'application/rtf'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
   a.href = url;
-  a.download = 'IAP_SOW_'+(d.custName||'deal').replace(/[^a-z0-9]/gi,'_')+'.rtf';
+  a.download = 'IAP_SOW_'+(sow.custLegal||'deal').replace(/[^a-z0-9]/gi,'_')+'.rtf';
   a.click();
   URL.revokeObjectURL(url);
 }
