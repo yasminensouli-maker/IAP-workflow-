@@ -1482,7 +1482,7 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
       <button id="global-back-btn" onclick="goBack()" style="display:none;align-items:center;gap:4px;background:transparent;color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:5px;padding:6px 12px;font-size:.75rem;cursor:pointer;font-family:Arial,sans-serif;margin-right:12px">← Back</button>
       <div class="app-header-logo" onclick="goStep(1)" style="cursor:pointer" title="Back to Start Your Deal Journey">INTEL × AWS</div>
       <div class="app-header-title" onclick="goStep(1)" style="cursor:pointer" title="Back to Start Your Deal Journey">Deal Desk</div>
-      <span id="build-stamp" title="Which build you are looking at. If this does not match what you just deployed, you are on a cached page." style="font-size:.62rem;color:rgba(255,255,255,.55);margin-left:9px;letter-spacing:.03em;white-space:nowrap">BUILD 2026-08-14 18:00 UTC</span>
+      <span id="build-stamp" title="Which build you are looking at. If this does not match what you just deployed, you are on a cached page." style="font-size:.62rem;color:rgba(255,255,255,.55);margin-left:9px;letter-spacing:.03em;white-space:nowrap">BUILD 2026-08-28 07:10 UTC</span>
     </div>
     <div class="app-header-right">
       <span id="draft-indicator" style="font-size:.72rem;color:var(--ink3);margin-right:10px"></span><span class="user-pill" id="user-pill">—</span>
@@ -1557,9 +1557,10 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
         <div class="sidebar-label">Approval Flow</div>
         <div class="tenets">
           <div class="tenet-item"><strong>1 · Submit</strong>Deal submitted through this tool with Cost Explorer baseline.</div>
-          <div class="tenet-item"><strong>2 · AWS Approval</strong>Yasmine Nsouli, Jeanine Reidel, and Chris Chlee (SA) review and validate.</div>
-          <div class="tenet-item"><strong>3 · Intel Leadership</strong>Akanksha Bilani approves funding.</div>
-          <div class="tenet-item"><strong>4 · TCC / IPIC</strong>TCC inputs into IPIC and generates the SOW.</div>
+          <div class="tenet-item"><strong>2 · Pre-approval</strong>Yasmine Nsouli, Chris Chlee, or Jeanine Reidel. Any one of them clears it.</div>
+          <div class="tenet-item"><strong>3 · AWS Approval</strong>Bryan or Dinc. Any one of them clears it.</div>
+          <div class="tenet-item"><strong>4 · Intel Approval</strong>Brendon Roosken with the Intel owner for the deal's region: Deep Grewal (NAMER), Fabio Pesiguelo (LATAM), Diego Bailon Humpert (EMEA), Jason Tan (APJ).</div>
+          <div class="tenet-item"><strong>5 · TCC / IPIC</strong>Jacob Barksdale inputs into IPIC and generates the SOW. TCC does not approve funding.</div>
         </div>
       </div>
       <div class="sidebar-section">
@@ -6001,7 +6002,7 @@ async function answerIntelQuestion(msg){
     return "Only i-suffix Intel Gen 8 families qualify: m8i, c8i, r8i, x8i, across EC2, RDS, ElastiCache, and OpenSearch. Non-Intel families are excluded from every calculation.";
   }
   if(/approv|flow|process|who approves|steps/i.test(q)){
-    return "Submit → AWS Approval (Yasmine, Jeanine, Chris Chlee validates Simple Monthly) → Intel Leadership (Akanksha, Brendon, or Deep) → TCC generates the SOW and disburses.";
+    return "Submit → Pre-approval (Yasmine, Chris Chlee, or Jeanine — any one) → AWS Approval (Bryan or Dinc — any one) → Intel Approval (Brendon, or the Intel owner for the region: Deep for NAMER, Fabio for LATAM, Diego for EMEA, Jason for APJ) → TCC (Jacob) generates the SOW and disburses. Each gate needs one approver, not all of them. TCC does not approve funding.";
   }
   if(/win wire|fast track|draw/i.test(q)){
     return "Win Wire stays internal unless separately nominated as a customer case study. Saying yes fast-tracks the deal and enters the customer and submitter into a prize draw once submitted.";
@@ -6175,9 +6176,10 @@ function downloadProgramOnePager(){
     <table>
       <tr><th>Stage</th><th>Who</th><th>What Happens</th></tr>
       <tr><td>1 · Submit</td><td>AWS/Intel/Partner submitter</td><td>Deal info, ARR breakdown, and consent submitted</td></tr>
-      <tr><td>2 · AWS Approval</td><td>Yasmine Nsouli, Jeanine Reidel, Chris Chlee (SA)</td><td>Review deal; Chris validates Simple Monthly figures</td></tr>
-      <tr><td>3 · Intel Leadership</td><td>Akanksha Bilani</td><td>Approves the funding amount</td></tr>
-      <tr><td>4 · TCC / IPIC</td><td>Jacob Barksdale</td><td>Logs into IPIC, generates the SOW, manages disbursement</td></tr>
+      <tr><td>2 · Pre-approval</td><td>Yasmine Nsouli, Chris Chlee, Jeanine Reidel — any one</td><td>Review deal; Chris validates Simple Monthly figures</td></tr>
+      <tr><td>3 · AWS Approval</td><td>Bryan, Dinc — any one</td><td>AWS sign-off on the deal and the funding ask</td></tr>
+      <tr><td>4 · Intel Approval</td><td>Brendon Roosken, or the Intel owner for the region — Deep Grewal (NAMER), Fabio Pesiguelo (LATAM), Diego Bailon Humpert (EMEA), Jason Tan (APJ)</td><td>Approves the funding amount. Brendon can approve any region.</td></tr>
+      <tr><td>5 · TCC / IPIC</td><td>Jacob Barksdale</td><td>Logs into IPIC, generates the SOW, manages disbursement. Does not approve funding.</td></tr>
     </table>
 
     <h2>Proof of Performance (POP)</h2>
@@ -6303,9 +6305,10 @@ function downloadWorkflowGuide(){
     <table>
       <tr><th>Step</th><th>Who</th></tr>
       <tr><td>1 · Submit</td><td>Partner or AWS Rep, through this tool</td></tr>
-      <tr><td>2 · AWS Approval</td><td>Yasmine Nsouli, Jeanine Reidel, Chris Chlee (SA)</td></tr>
-      <tr><td>3 · Intel Leadership</td><td>Akanksha Bilani — final funding approval</td></tr>
-      <tr><td>4 · TCC</td><td>Generates the SOW, disburses payment</td></tr>
+      <tr><td>2 · Pre-approval</td><td>Yasmine Nsouli, Chris Chlee, Jeanine Reidel — any one</td></tr>
+      <tr><td>3 · AWS Approval</td><td>Bryan, Dinc — any one</td></tr>
+      <tr><td>4 · Intel Approval</td><td>Brendon Roosken, or the region owner: Deep (NAMER), Fabio (LATAM), Diego (EMEA), Jason (APJ) — final funding approval</td></tr>
+      <tr><td>5 · TCC</td><td>Jacob Barksdale generates the SOW, disburses payment</td></tr>
     </table>
 
     <h2>Guardrails</h2>
@@ -6319,9 +6322,14 @@ function downloadWorkflowGuide(){
 
     <h2>Contacts</h2>
     <div class="card">
-      AWS Approval: Yasmine Nsouli / Jeanine Reidel (reidelj@amazon.com) / Chris Chlee (SA)<br>
-      Intel Leadership: Akanksha Bilani<br>
-      TCC: Jacob Barksdale (jbarksdale@thechannelcompany.com)
+      Pre-approval: Yasmine Nsouli / Chris Chlee (SA) / Jeanine Reidel (reidelj@amazon.com)<br>
+      AWS Approval: Bryan (bryanofw@amazon.com) / Dinc (dinc@amazon.com)<br>
+      Intel Approval: Brendon Roosken (brendon.roosken@intel.com)<br>
+      &nbsp;&nbsp;NAMER: Deep Grewal (deep.grewal@intel.com)<br>
+      &nbsp;&nbsp;LATAM: Fabio Pesiguelo (f.pesiguelo@intel.com)<br>
+      &nbsp;&nbsp;EMEA: Diego Bailon Humpert (diego.bailon.humpert@intel.com)<br>
+      &nbsp;&nbsp;APJ: Jason Tan (jason.ct.tan@intel.com)<br>
+      TCC (SOW creation, not an approver): Jacob Barksdale (jbarksdale@thechannelcompany.com)
     </div>
   `;
   openPrintableWindow('IAP Workflow Guide', html);
