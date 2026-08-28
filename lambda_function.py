@@ -29,6 +29,10 @@ FROM_EMAIL = os.environ.get('FROM_EMAIL', 'yasmine@cloudzero.ca')
 # inbox vanishes silently, which in an approval chain means losing an
 # "approved, go ahead". This routes replies somewhere a human reads.
 REPLY_TO_EMAIL = os.environ.get('REPLY_TO_EMAIL', '').strip()
+# Who gets the "someone just signed in" alert. Separate from FROM_EMAIL on
+# purpose -- FROM_EMAIL is where mail is SENT FROM (now a no-mailbox sending
+# address on the verified domain) and must never double as a recipient.
+LOGIN_NOTIFY_EMAIL = os.environ.get('LOGIN_NOTIFY_EMAIL', 'yasmine@cloudzero.ca').strip()
 APP_URL = os.environ.get('APP_URL', 'https://main.dgxv59n7ru973.amplifyapp.com')
 
 RATE_MIGRATE = float(os.environ.get('RATE_MIGRATE', '0.045'))      # Migrate / Modernize
@@ -46,6 +50,10 @@ SESSION_TTL_SECONDS = int(os.environ.get('SESSION_TTL_SECONDS', str(12 * 3600)))
 LOCKOUT_MAX_FAILS = 5           # failed logins per email before temporary lockout
 LOCKOUT_WINDOW_SECONDS = 900    # 15 minutes
 REMINDER_KEY = os.environ.get('REMINDER_KEY', '')  # shared secret for the EventBridge reminder call
+# Daily per-approver digest. Set DIGEST_ENABLED=0 to turn it off without a
+# code change (useful while SES is still in sandbox and mail to @intel.com
+# addresses is being rejected — see send_email).
+DIGEST_ENABLED = os.environ.get('DIGEST_ENABLED', '1') not in ('0', 'false', 'False', '')
 
 # Intel pricing service — the key and endpoint now live in env vars only,
 # never in source. If INTEL_PRICING_KEY is unset, the price route returns a
@@ -62,11 +70,129 @@ REVIEWER_EMAILS = [e.strip() for e in os.environ.get(
 CHRIS_EMAIL = os.environ.get('CHRIS_EMAIL', 'clchrisz@amazon.com').strip()
 if CHRIS_EMAIL and CHRIS_EMAIL not in REVIEWER_EMAILS:
     REVIEWER_EMAILS.append(CHRIS_EMAIL)
+# Appended the same way as CHRIS_EMAIL rather than added to the REVIEWER_EMAILS
+# default string: if a REVIEWER_EMAILS env var is already set on the Lambda it
+# overrides that default entirely, so editing the default would add him in
+# source and change nothing in production.
+BRYAN_EMAIL = os.environ.get('BRYAN_EMAIL', 'bryanofw@amazon.com').strip()
+if BRYAN_EMAIL and BRYAN_EMAIL not in REVIEWER_EMAILS:
+    REVIEWER_EMAILS.append(BRYAN_EMAIL)
+DINC_EMAIL = os.environ.get('DINC_EMAIL', 'dinc@amazon.com').strip()
+if DINC_EMAIL and DINC_EMAIL not in REVIEWER_EMAILS:
+    REVIEWER_EMAILS.append(DINC_EMAIL)
 INTEL_EMAILS = [e.strip() for e in os.environ.get(
-    'INTEL_EMAILS', 'akanksha.r.bilani@intel.com,brendon.roosken@intel.com,deep.grewal@intel.com').split(',') if e.strip()]
+    'INTEL_EMAILS', 'brendon.roosken@intel.com,deep.grewal@intel.com').split(',') if e.strip()]
 TCC_EMAIL = os.environ.get('TCC_EMAIL', 'jacobx.barksdale@intel.com').strip()
 ELIGIBLE_FAMILIES = [f.strip() for f in os.environ.get(
     'ELIGIBLE_FAMILIES', 'm8i,c8i,r8i,x8i').split(',') if f.strip()]
+
+# ── GEO ROUTING ──
+# Everyone on CORE_NOTIFY sees every deal. The geo owner is added on top,
+# keyed off the GTM Region field the seller already fills in (fh-region), so
+# no new field is needed. Matching is by prefix on the option text the form
+# actually stores ("Americas - NAMER", "EMEA - MEA", "APJ - Japan", ...).
+CORE_NOTIFY = [e.strip() for e in os.environ.get(
+    'CORE_NOTIFY',
+    'yasmine@cloudzero.ca,reidelj@amazon.com,brendon.roosken@intel.com,clchrisz@amazon.com'
+).split(',') if e.strip()]
+
+GEO_OWNERS = {
+    'Americas - NAMER': [e.strip() for e in os.environ.get(
+        'GEO_NAMER', 'brendon.roosken@intel.com,deep.grewal@intel.com').split(',') if e.strip()],
+    'Americas - LATAM': [e.strip() for e in os.environ.get(
+        'GEO_LATAM', 'f.pesiguelo@intel.com').split(',') if e.strip()],
+    'EMEA': [e.strip() for e in os.environ.get(
+        'GEO_EMEA', 'diego.bailon.humpert@intel.com').split(',') if e.strip()],
+    'APJ': [e.strip() for e in os.environ.get(
+        'GEO_APJ', 'jason.ct.tan@intel.com').split(',') if e.strip()],
+}
+
+# ── APPROVAL CHAIN ──
+# Four gates. At each one, ANY single named approver can advance the deal —
+# it does not wait for the others. Everyone on the notification list is
+# copied at every stage regardless; what changes stage to stage is only who
+# sees the approve button.
+PREAPPROVAL_EMAILS = [e.strip() for e in os.environ.get(
+    'PREAPPROVAL_EMAILS', 'yasmine@cloudzero.ca,clchrisz@amazon.com,reidelj@amazon.com'
+).split(',') if e.strip()]
+AWS_APPROVER_EMAILS = [e.strip() for e in os.environ.get(
+    'AWS_APPROVER_EMAILS', 'bryanofw@amazon.com,dinc@amazon.com').split(',') if e.strip()]
+INTEL_LEAD_EMAILS = [e.strip() for e in os.environ.get(
+    'INTEL_LEAD_EMAILS', 'brendon.roosken@intel.com').split(',') if e.strip()]
+# Can clear ANY gate, including one they are not the named approver for.
+# Kept deliberately short — an override list that grows stops being an
+# override and becomes the real approval model.
+OVERRIDE_APPROVERS = [e.strip() for e in os.environ.get(
+    'OVERRIDE_APPROVERS', 'brendon.roosken@intel.com,yasmine@cloudzero.ca').split(',') if e.strip()]
+
+# status -> (human label for the gate, status it becomes once cleared)
+APPROVAL_CHAIN = [
+    ('Submitted',      'Pre-approval',   'Pre-Approved'),
+    ('Pre-Approved',   'AWS approval',   'AWS Approved'),
+    ('AWS Approved',   'Intel approval', 'Intel Approved'),
+    ('Intel Approved', 'SOW creation',   'SOW Issued'),
+]
+CHAIN_BY_STATUS = {s: (label, nxt) for s, label, nxt in APPROVAL_CHAIN}
+
+def stage_approvers(deal, status):
+    """Who may clear the gate this deal is currently sitting at. The Intel
+    gate is Brendon plus the geo owner for this deal's region, so an APJ deal
+    can be cleared by Jason without waiting on Brendon."""
+    if status == 'Submitted':
+        return list(PREAPPROVAL_EMAILS)
+    if status == 'Pre-Approved':
+        return list(AWS_APPROVER_EMAILS)
+    if status == 'AWS Approved':
+        return list(dict.fromkeys(INTEL_LEAD_EMAILS + geo_owner_emails(deal)))
+    if status == 'Intel Approved':
+        # Jacob is not an approver. This gate is him issuing the SOW.
+        return [TCC_EMAIL]
+    return []
+
+def can_approve(deal, email, status):
+    who = str(email or '').strip().lower()
+    if not who:
+        return False
+    if who in [e.lower() for e in OVERRIDE_APPROVERS]:
+        return True
+    return who in [e.lower() for e in stage_approvers(deal, status)]
+
+def geo_owner_emails(deal):
+    region = str(deal.get('region', '') or '').strip()
+    for prefix, emails in GEO_OWNERS.items():
+        if region.startswith(prefix):
+            return list(emails)
+    return []
+
+def geo_recipients(deal):
+    """Core list plus the owner for this deal's GTM Region, plus whoever
+    entered the deal. An unrecognised or blank region falls back to core only
+    — never to an empty list, because a deal that notifies nobody looks
+    exactly like a deal nobody has gotten to yet."""
+    region = str(deal.get('region', '') or '').strip()
+    owners = []
+    for prefix, emails in GEO_OWNERS.items():
+        if region.startswith(prefix):
+            owners = emails
+            break
+    # The submitter's address is stamped server-side from the session at
+    # submit time. The deal team array is only a fallback: nothing in the
+    # form requires an email there, so relying on it alone silently drops
+    # the submitter off their own deal's notifications.
+    submitter = str(deal.get('submitterEmail', '') or '').strip()
+    if not submitter:
+        for t in (deal.get('team') or []):
+            if isinstance(t, dict) and t.get('email'):
+                submitter = str(t['email']).strip()
+                break
+    # Everyone sees every stage: the core four, every named approver at every
+    # gate (so Bryan and Dinc watch a deal arrive rather than being surprised
+    # by it), the geo owner, Jacob, and the submitter. Authority is handled
+    # separately in can_approve() — being on this list grants no rights.
+    everyone = (CORE_NOTIFY + PREAPPROVAL_EMAILS + AWS_APPROVER_EMAILS
+                + INTEL_LEAD_EMAILS + owners
+                + ([submitter] if submitter else []) + [TCC_EMAIL])
+    return [e for e in dict.fromkeys(everyone) if e]
 
 # ── ADMIN & APPROVER LOGINS — fixed named list, lives here only, never sent
 # to the browser. Passwords come ONLY from Lambda env vars. No defaults in
@@ -79,10 +205,17 @@ ADMIN_USERS = {
     'yasmine@cloudzero.ca':        {'pass': _admin_pass('ADMIN_PASS_YASMINE'),  'tier':'admin', 'name':'Yasmine',        'label':'CloudZero Admin', 'approver':'core'},
     'reidelj@amazon.com':          {'pass': _admin_pass('ADMIN_PASS_JEANINE'),  'tier':'admin', 'name':'Jeanine Reidel', 'label':'AWS Approval (Admin)', 'approver':'core'},
     'clchrisz@amazon.com':         {'pass': _admin_pass('ADMIN_PASS_CHRIS'),    'tier':'core',  'name':'Chris Chlee',    'label':'AWS Approval (SA)', 'approver':'core'},
-    'akanksha.r.bilani@intel.com': {'pass': _admin_pass('ADMIN_PASS_AKANKSHA'),'tier':'intel_approver','name':'Akanksha Bilani','label':'Intel Leadership','approver':'intel'},
     'brendon.roosken@intel.com':   {'pass': _admin_pass('ADMIN_PASS_BRENDON'), 'tier':'admin','name':'Brendon Roosken','label':'Intel Leadership (Admin)','approver':'intel'},
+    # Geo approvers. They clear the Intel gate for their own theatre, so they
+    # need a real login — being named in GEO_OWNERS grants authority in the
+    # backend but the screen never offered them the button.
+    'diego.bailon.humpert@intel.com': {'pass': _admin_pass('ADMIN_PASS_DIEGO'), 'tier':'intel_approver','name':'Diego Bailon Humpert','label':'Intel Leadership (EMEA)','approver':'intel'},
+    'jason.ct.tan@intel.com':      {'pass': _admin_pass('ADMIN_PASS_JASON'),   'tier':'intel_approver','name':'Jason Tan',    'label':'Intel Leadership (APJ)','approver':'intel'},
+    'f.pesiguelo@intel.com':       {'pass': _admin_pass('ADMIN_PASS_FABIO'),   'tier':'intel_approver','name':'Fabio Pesiguelo','label':'Intel Leadership (LATAM)','approver':'intel'},
     'deep.grewal@intel.com':       {'pass': _admin_pass('ADMIN_PASS_DEEP'),    'tier':'intel_approver','name':'Deep Grewal',    'label':'Intel Leadership','approver':'intel'},
     'jacobx.barksdale@intel.com':  {'pass': _admin_pass('ADMIN_PASS_TCC'),     'tier':'tcc',   'name':'Jacob Barksdale','label':'TCC',             'approver':'tcc'},
+    'bryanofw@amazon.com':         {'pass': _admin_pass('ADMIN_PASS_BRYAN'),   'tier':'admin', 'name':'Bryan',          'label':'AWS Approval (Admin)', 'approver':'core'},
+    'dinc@amazon.com':             {'pass': _admin_pass('ADMIN_PASS_DINC'),    'tier':'admin', 'name':'Dinc',           'label':'AWS Approval (Admin)', 'approver':'core'},
 }
 
 # People who log in through the open @amazon.com / @intel.com domain buttons
@@ -90,18 +223,32 @@ ADMIN_USERS = {
 # checked by email after the shared domain password succeeds.
 DOMAIN_APPROVER_UPGRADES = {
     'brendon.roosken@intel.com':  {'tier':'admin',          'name':'Brendon Roosken','label':'Intel Leadership (Admin)','approver':'intel'},
-    'akanksha.r.bilani@intel.com':{'tier':'intel_approver','name':'Akanksha Bilani','label':'Intel Leadership','approver':'intel'},
     'deep.grewal@intel.com':      {'tier':'intel_approver','name':'Deep Grewal',    'label':'Intel Leadership','approver':'intel'},
+    'diego.bailon.humpert@intel.com':{'tier':'intel_approver','name':'Diego Bailon Humpert','label':'Intel Leadership (EMEA)','approver':'intel'},
+    'jason.ct.tan@intel.com':     {'tier':'intel_approver','name':'Jason Tan',      'label':'Intel Leadership (APJ)','approver':'intel'},
+    'f.pesiguelo@intel.com':      {'tier':'intel_approver','name':'Fabio Pesiguelo','label':'Intel Leadership (LATAM)','approver':'intel'},
     'jacobx.barksdale@intel.com': {'tier':'tcc',            'name':'Jacob Barksdale','label':'TCC',             'approver':'tcc'},
+    # Without this line Bryan could sign in through the @amazon.com domain
+    # button and land on the generic seller tier — able to log in, unable to
+    # approve, with nothing on screen explaining why.
+    'bryanofw@amazon.com':        {'tier':'admin',          'name':'Bryan',          'label':'AWS Approval (Admin)','approver':'core'},
+    'dinc@amazon.com':            {'tier':'admin',          'name':'Dinc',           'label':'AWS Approval (Admin)','approver':'core'},
 }
 
 # PRD Section 7 statuses. Old stage values map forward for existing records.
 STATUS_MAP_OLD_TO_NEW = {
-    'core': 'Under Review',
-    'intel': 'Approved (DNE Set)',
-    'tcc': 'Intel Leadership Approved',
+    'core': 'Submitted',
+    'intel': 'AWS Approved',
+    'tcc': 'Intel Approved',
     'approved': 'SOW Issued',
-    'changes_requested': 'Under Review',
+    'changes_requested': 'Submitted',
+    # Statuses from the three-gate chain, mapped onto the four-gate one.
+    # Without these rows an existing deal sits at a status no gate recognises,
+    # which reads on screen as "no approve button for anyone" — the deal is
+    # not stuck, it is unreachable.
+    'Under Review': 'Submitted',
+    'Approved (DNE Set)': 'AWS Approved',
+    'Intel Leadership Approved': 'Intel Approved',
 }
 
 def now_utc():
@@ -246,6 +393,115 @@ def deal_summary_block(deal):
 
 Review in the app: {APP_URL}"""
 
+# ── DAILY PER-APPROVER DIGEST ──
+# Who owns a deal at each status. The digest is built from this one map so a
+# deal can never appear in two people's queues, or in nobody's. If a new
+# status is added to the workflow, add it here too or deals at that status
+# become invisible to the digest — which looks exactly like "no work pending".
+def digest_owner_emails(status):
+    if status in ('Submitted', 'Under Review'):
+        return list(REVIEWER_EMAILS), 'AWS Approval'
+    if status == 'Approved (DNE Set)':
+        return list(INTEL_EMAILS), 'Intel Leadership'
+    if status == 'Intel Leadership Approved':
+        return [TCC_EMAIL], 'TCC'
+    if status == 'SOW Issued':
+        # Still Jacob's: the SOW is out and Proof of Performance is collected
+        # against it. Not pending approval, but pending someone.
+        return [TCC_EMAIL], 'TCC — SOW issued, POP outstanding'
+    return [], ''
+
+# What has to be present before a deal reaches TCC. Jacob issues the SOW from
+# these fields, so a gap here is a gap he has to chase by email. Kept as a
+# named list rather than inline checks so the list is editable in one place
+# when the program's requirements change.
+SOW_REQUIRED_FIELDS = [
+    ('dealName',      'Deal name'),
+    ('custName',      'Customer name'),
+    ('aceID',         'ACE opportunity ID'),
+    ('actType',       'Track (Migrate or Modernize)'),
+    ('paymentOption', 'Payment option'),
+    ('migStart',      'Migration start date'),
+    ('migTo',         'Target Intel instance family'),
+]
+
+def missing_for_sow(deal):
+    """Field labels a deal is missing before TCC can issue the SOW."""
+    gaps = [label for key, label in SOW_REQUIRED_FIELDS
+            if not str(deal.get(key, '') or '').strip()]
+    if not (float(deal.get('dne', 0) or 0) > 0):
+        gaps.append('Funding amount (DNE) is zero')
+    return gaps
+
+def days_in_stage(deal, now_ts):
+    stamp = deal.get('stageEnteredAt') or deal.get('submittedAt') or ''
+    try:
+        entered = datetime.strptime(stamp, '%Y-%m-%dT%H:%M:%SZ').replace(
+            tzinfo=timezone.utc).timestamp()
+    except Exception:
+        return None
+    return int((now_ts - entered) / 86400)
+
+def scan_all_deals(table):
+    """Full paginated scan. table.scan() alone returns only the first 1MB, so
+    a single-page scan starts silently dropping deals as the table grows —
+    the digest would look complete while omitting the oldest records."""
+    items, kwargs = [], {}
+    while True:
+        resp = table.scan(**kwargs)
+        items.extend(resp.get('Items', []))
+        last = resp.get('LastEvaluatedKey')
+        if not last:
+            return items
+        kwargs['ExclusiveStartKey'] = last
+
+def digest_body(person_email, rows):
+    lines = [f"{len(rows)} deal{'' if len(rows) == 1 else 's'} waiting on you.", '']
+    for r in rows:
+        d, waited = r['deal'], r['days']
+        age = 'today' if waited in (0, None) else f"{waited} day{'' if waited == 1 else 's'}"
+        lines.append(f"{d.get('custName') or d.get('dealName') or 'Unnamed deal'}"
+                     f"  —  ${float(d.get('dne', 0) or 0):,.0f}  —  waiting {age}")
+        lines.append(f"  Stage: {r['stage']}")
+        gaps = r['gaps']
+        if gaps:
+            lines.append(f"  Incomplete: {', '.join(gaps)}")
+        lines.append('')
+    lines.append(f"Sign in to review: {APP_URL}")
+    return '\n'.join(lines)
+
+def send_daily_digest(table):
+    """One email per approver listing only the deals at their stage, oldest
+    first. Sent per-recipient rather than as one group send: in SES sandbox a
+    single unverified address rejects the whole call, so bundling would mean
+    one bad address silences everyone. Nobody with an empty queue gets mail —
+    a daily 'nothing pending' email is what teaches people to filter these
+    into a folder and stop reading them."""
+    now_ts = time.time()
+    queues = {}
+    for d in scan_all_deals(table):
+        if str(d.get('id', '')).startswith(('config#', 'SESSION#', 'FAIL#', 'LOGIN#', 'AUTHCODE#', 'DECISION#')):
+            continue
+        status = d.get('status', '')
+        owners, stage_label = digest_owner_emails(status)
+        if not owners:
+            continue
+        row = {'deal': d, 'stage': stage_label, 'days': days_in_stage(d, now_ts),
+               'gaps': missing_for_sow(d)}
+        for who in owners:
+            if who:
+                queues.setdefault(who, []).append(row)
+
+    results = []
+    for who, rows in queues.items():
+        # Oldest first — the point of the digest is that the thing sitting
+        # longest is the thing read first.
+        rows.sort(key=lambda r: (-(r['days'] if r['days'] is not None else 0)))
+        subject = f"IAP: {len(rows)} deal{'' if len(rows) == 1 else 's'} waiting on you"
+        results.append({'to': who, 'count': len(rows),
+                        'sent': send_email([who], subject, digest_body(who, rows))})
+    return results
+
 # ── SES TRIGGERS (PRD Section 8) ──
 def notify_submitter(deal, curr_status):
     """A short status note to the person who submitted the deal, at every
@@ -288,6 +544,62 @@ This is an automated status note from the IAP Deal Desk.
         print(f"[SUBMITTER EMAIL] failed: {e}")
         return False
 
+def log_decision(table, deal, stage_label, action, decider_email, decider_name, reason):
+    """Every approve and every decline writes one row here, permanently.
+    This is the precedent record -- not a model, a log. It exists so a
+    future deal's funding case can be checked against what actually got
+    approved or declined before, with the reasons attached, instead of
+    starting from nothing every time. Never overwritten, never deleted by
+    the app -- one item per decision, keyed so it can't collide with a
+    deal record or any other prefixed item in this table.
+    """
+    try:
+        table.put_item(Item=json.loads(json.dumps({
+            'id': f'DECISION#{deal.get("id","")}#{int(time.time()*1000)}#{secrets.token_hex(3)}',
+            'dealId': deal.get('id', ''),
+            'custName': deal.get('custName', ''),
+            'at': now_utc(),
+            'stage': stage_label,
+            'action': action,              # 'approved' or 'declined'
+            'by': decider_email,
+            'byName': decider_name,
+            'reason': reason,
+            # Funding-case snapshot at the moment of this decision, so a
+            # later query can ask "what did we approve/decline that cited
+            # Migration ARR Won" without needing the full deal record.
+            'program': deal.get('actType', ''),
+            'eligibleArr': deal.get('intelEligibleArr') or deal.get('targetArr') or deal.get('aceAmount') or 0,
+            'fundingRoi': deal.get('fundingRoi', 0),
+            'strategicFactors': deal.get('strategicFactors', ''),
+            'rippleFactors': deal.get('rippleFactors', ''),
+        }), parse_float=str))
+    except Exception as e:
+        # A logging failure must never block the actual approval/decline --
+        # the deal's own status write already succeeded or is about to.
+        print(f"[DECISION LOG] failed: {e}")
+
+def notify_declined(deal, stage_label, declined_by, reason):
+    """The one email the reject path was missing entirely: without this, a
+    decline changed the deal's status and wrote a comment, but told nobody —
+    not the submitter, not the other approvers. Uses geo_recipients() so the
+    audience is identical to every other stage email: core four, every named
+    approver at every gate, the region's Intel owner, the submitter, and
+    Jacob."""
+    subject = f"IAP Deal Declined at {stage_label}: {deal.get('custName', 'Deal')}"
+    body = f"""{declined_by} declined this deal at {stage_label} and sent it back to the submitter.
+
+Reason: {reason}
+
+{deal_summary_block(deal)}
+
+The submitter can revise and resubmit — it re-enters at Pre-approval.
+{time.strftime('%B %d, %Y')}"""
+    recips = geo_recipients(deal)
+    ok_sent = send_email(recips, subject, body)
+    if ok_sent:
+        log_email(deal, recips, subject)
+    return ok_sent
+
 def notify_submitted(deal):
     subject = f"IAP Deal Submitted: {deal.get('custName', 'New Deal')}"
     body = f"""A new deal has been submitted to the Intel Accelerate Program and is pending internal review.
@@ -296,7 +608,10 @@ def notify_submitted(deal):
 
 Next step: review the deal, run the DNE calculator, and approve to route to Intel leadership.
 {time.strftime('%B %d, %Y')}"""
-    sub_recips = list(dict.fromkeys(REVIEWER_EMAILS + [TCC_EMAIL]))
+    # Geo-routed: core four on every deal, plus the theatre owner, plus the
+    # person who entered it, plus Jacob. Replaces the old flat REVIEWER_EMAILS
+    # blast, which mailed the same four people regardless of where the deal was.
+    sub_recips = geo_recipients(deal)
     ok_sent = send_email(sub_recips, subject, body)
     if ok_sent:
         log_email(deal, sub_recips, subject)
@@ -642,14 +957,62 @@ def lambda_handler(event, context):
                 audit(deal, editor, 'dne', old_item.get('dne'), deal.get('dne'))
 
             # ── Approval-stage transitions require the right approver tier. ──
-            if prev_status != curr_status and curr_status:
-                required = {
-                    'Approved (DNE Set)': ('admin', 'core'),
-                    'Intel Leadership Approved': ('admin', 'intel_approver'),
-                    'SOW Issued': ('admin', 'tcc'),
-                }.get(curr_status)
-                if required and session.get('tier') not in required:
-                    return deny_tier(' / '.join(required))
+            # Authority is now per-person and per-gate, not per-tier. The check
+            # is against the stage the deal is LEAVING: the question is "may
+            # you clear the gate it is sitting at", not "may you touch the
+            # stage it is moving to". Tier checks could not express "any one
+            # of Yasmine, Chris or Jeanine" or "Jason but only for APJ".
+            decision = str(body.get('decision', '') or '').strip().lower()
+            if decision == 'reject':
+                # Sends the deal back to intake, not one step back. The chain
+                # only names a forward next-status per gate, so "the step
+                # before this one" is not a single well-defined place -- and a
+                # rejected deal usually needs the submitter's attention, not
+                # a silent re-queue at whatever stage happens to precede it.
+                gate = CHAIN_BY_STATUS.get(prev_status)
+                gate_label = gate[0] if gate else prev_status
+                if not can_approve(deal, editor, prev_status):
+                    allowed = ', '.join(stage_approvers(deal, prev_status))
+                    return {'statusCode': 403, 'headers': headers, 'body': json.dumps({
+                        'error': f"{gate_label} is cleared by: {allowed}."})}
+                note = str(body.get('comment', '') or '').strip()
+                if not note:
+                    return {'statusCode': 400, 'headers': headers, 'body': json.dumps({
+                        'error': 'A reason is required to decline a deal.'})}
+                deal.setdefault('comments', []).append({
+                    'at': now_utc(), 'by': editor, 'name': session.get('name', editor),
+                    'stage': gate_label, 'action': 'declined', 'text': note,
+                })
+                deal['status'] = curr_status = 'Submitted'
+                deal['stageEnteredAt'] = now_utc()
+                deal['lastRejection'] = {'at': now_utc(), 'by': session.get('name', editor),
+                                          'stage': gate_label, 'reason': note}
+                if not notify_declined(deal, gate_label, session.get('name', editor), note):
+                    deal.setdefault('emailFailures', []).append({'at': now_utc(), 'stage': gate_label,
+                        'note': 'Decline notification failed to send — check SES verification.'})
+                log_decision(table, deal, gate_label, 'declined', editor, session.get('name', editor), note)
+            elif prev_status != curr_status and curr_status:
+                gate = CHAIN_BY_STATUS.get(prev_status)
+                if gate:
+                    gate_label, legal_next = gate
+                    if curr_status != legal_next:
+                        return {'statusCode': 400, 'headers': headers, 'body': json.dumps({
+                            'error': f"A deal at '{prev_status}' can only move to '{legal_next}'."})}
+                    if not can_approve(deal, editor, prev_status):
+                        allowed = ', '.join(stage_approvers(deal, prev_status))
+                        return {'statusCode': 403, 'headers': headers, 'body': json.dumps({
+                            'error': f"{gate_label} is cleared by: {allowed}."})}
+                    # Comment box. Required on a rejection, optional on an
+                    # approval, always attributed and always kept — the record
+                    # of why a deal moved is the thing people ask for later.
+                    note = str(body.get('comment', '') or '').strip()
+                    deal.setdefault('comments', []).append({
+                        'at': now_utc(), 'by': editor,
+                        'name': session.get('name', editor),
+                        'stage': gate_label, 'action': 'approved',
+                        'text': note,
+                    })
+                    log_decision(table, deal, gate_label, 'approved', editor, session.get('name', editor), note)
 
             # Status-transition emails (PRD Section 8)
             # Same fix for notifications: a draft that is later submitted is a
@@ -660,6 +1023,11 @@ def lambda_handler(event, context):
                 deal['status'] = curr_status = 'Submitted'
                 deal['submittedAt'] = now_utc()
                 deal['stageEnteredAt'] = deal['submittedAt']
+                # Stamped from the session, not from a form field: this is the
+                # address every later notification copies, and a seller who
+                # leaves their own email box blank must not fall off the thread.
+                if not deal.get('submitterEmail'):
+                    deal['submitterEmail'] = session.get('email', '')
                 if not notify_submitted(deal):
                     deal.setdefault('emailFailures', []).append({'at': now_utc(), 'stage': 'Submitted', 'note': 'Submit notification failed to send — check SES verification for recipients.'})
                 notify_submitter(deal, 'Submitted')
@@ -687,8 +1055,20 @@ def lambda_handler(event, context):
                 return deny_unauthenticated()
             resp = table.scan()
             items = [d for d in resp.get('Items', [])
-                     if not str(d.get('id', '')).startswith(('config#', 'SESSION#', 'FAIL#', 'LOGIN#', 'AUTHCODE#'))]
+                     if not str(d.get('id', '')).startswith(('config#', 'SESSION#', 'FAIL#', 'LOGIN#', 'AUTHCODE#', 'DECISION#'))]
             return ok(headers, {'deals': items})
+
+        # ── DECISION HISTORY — every approve/decline, ever. Powers the
+        # precedent lookup in the Funding Case panel: "3 similar deals
+        # citing this goal were approved, 1 declined." Paginated scan
+        # because scan_all_deals already exists and this table can grow
+        # past the single-page 1MB limit the same way /deals can. ──
+        if path == '/decisions' and method == 'GET':
+            if not session:
+                return deny_unauthenticated()
+            all_items = scan_all_deals(table)
+            decisions = [d for d in all_items if str(d.get('id', '')).startswith('DECISION#')]
+            return ok(headers, {'decisions': decisions})
 
         # ── LOGIN LOG — admin only ──
         if path == '/auth/login-log' and method == 'GET':
@@ -733,7 +1113,13 @@ def lambda_handler(event, context):
                 return ok(headers, {'error': 'deal not found'})
             item.setdefault('qaLog', []).append({
                 'at': now_utc(), 'type': 'question', 'by': asked_by, 'text': question})
-            notify_question(item, question, asked_by)
+            # Same gap as the login notifier: notify_question() returns False
+            # on an SES failure and nothing checked it, so a question could
+            # sit unread with zero signal to anyone. Logged to the deal now,
+            # same as every other notify_* call site in this file.
+            if not notify_question(item, question, asked_by):
+                item.setdefault('emailFailures', []).append({'at': now_utc(), 'stage': item.get('status', ''),
+                    'note': 'Question notification to reviewers failed to send — check SES verification.'})
             table.put_item(Item=json.loads(json.dumps(item), parse_float=str))
             return ok(headers, {'logged': True})
 
@@ -785,11 +1171,32 @@ def lambda_handler(event, context):
             is_scheduler = REMINDER_KEY and reminder_hdr == REMINDER_KEY
             if not is_scheduler and not (session and session.get('tier') == 'admin'):
                 return deny_unauthenticated()
+            # Daily per-approver digest. Guarded by a date marker so a double
+            # EventBridge fire, a retry, or an admin hitting this route by hand
+            # cannot mail everyone twice in one day. Pass ?force=1 to override
+            # when testing.
+            digest = []
+            force_digest = str((event.get('queryStringParameters') or {}).get('force', '')) in ('1', 'true')
+            if DIGEST_ENABLED:
+                today_str = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+                marker = {}
+                try:
+                    marker = table.get_item(Key={'id': 'config#digest'}).get('Item') or {}
+                except Exception:
+                    marker = {}
+                if force_digest or marker.get('lastSentOn') != today_str:
+                    digest = send_daily_digest(table)
+                    try:
+                        table.put_item(Item={'id': 'config#digest', 'lastSentOn': today_str,
+                                             'recipients': len(digest), 'at': now_utc()})
+                    except Exception as e:
+                        print(f"Digest marker write failed: {str(e)}")
+
             sent = []
             resp = table.scan()
             now_ts = time.time()
             for d in resp.get('Items', []):
-                if str(d.get('id', '')).startswith('config#'):
+                if str(d.get('id', '')).startswith(('config#', 'DECISION#')):
                     continue
                 status = d.get('status', '')
                 # Stuck in Under Review > threshold (business days approximated as calendar x 1.4)
@@ -822,7 +1229,7 @@ def lambda_handler(event, context):
                                 sent.append(d.get('id'))
                     except Exception:
                         pass
-            return ok(headers, {'remindersSent': sent})
+            return ok(headers, {'remindersSent': sent, 'digest': digest})
 
         # ── CONFIG (kept from v1) ──
         if path == '/config' and method == 'POST':
@@ -892,8 +1299,26 @@ def lambda_handler(event, context):
                 return ok(headers, json.loads(intel_resp.read().decode()))
 
         def notify_login(email, tier, label, via):
-            send_email([FROM_EMAIL], f'IAP Deal Desk sign-in — {email}',
-                       f'{email} signed in just now.\n\nTier: {tier} ({label})\nMethod: {via}\nTime (UTC): {now_utc()}')
+            # Was sent to FROM_EMAIL, which is the SENDING address, not a
+            # recipient. That was invisible while FROM_EMAIL happened to equal
+            # Yasmine's own inbox; the moment it was changed to
+            # noreply@iapflow.com (to fix Intel's spam filters rejecting mail
+            # from the unauthenticated cloudzero.ca domain), every login
+            # notification started addressing itself to a mailbox that does
+            # not exist, and nobody saw an error because send_email() to a
+            # valid-format address does not fail. Notified party is now its
+            # own setting, independent of whichever address mail is sent FROM.
+            notify_to = LOGIN_NOTIFY_EMAIL or REPLY_TO_EMAIL or FROM_EMAIL
+            # Was a bare fire-and-forget call, unlike every other notify_*
+            # function in this file. send_email() swallows SES errors and
+            # returns False on failure -- a caller that doesn't check that
+            # return value gets total silence: not an exception, not a log
+            # line, nothing. Login almost always succeeds even when the
+            # notification email doesn't, so nobody would ever have seen this.
+            if not send_email([notify_to], f'IAP Deal Desk sign-in — {email}',
+                       f'{email} signed in just now.\n\nTier: {tier} ({label})\nMethod: {via}\nTime (UTC): {now_utc()}'):
+                print(f"[LOGIN NOTIFY FAILED] could not email {notify_to} about sign-in by {email} "
+                      f"-- check SES sandbox status and whether {notify_to} is a verified identity in ca-central-1.")
             # Also store as a queryable record — the email tells you in the
             # moment, this is what lets you look back and count/list later.
             try:
@@ -906,8 +1331,9 @@ def lambda_handler(event, context):
                 print(f"[LOGIN LOG ERROR] failed to store login record: {e}")
 
         # ── AUTH: ADMIN & APPROVER LOGIN (fixed named list, server-side only) ──
-        # These are the people who don't rotate: CloudZero (Yasmine, Hisham),
-        # AWS Approval (Jeanine), Intel Leadership (Akanksha, Brendon, Deep), TCC (Jacob).
+        # These are the people who don't rotate: pre-approval (Yasmine, Chris,
+        # Jeanine), AWS approval (Bryan, Dinc), Intel approval (Brendon plus the
+        # regional owners Deep, Fabio, Diego, Jason), and TCC (Jacob).
         # Passwords live here, in the backend, never shipped to the browser.
         # Override any password via Lambda env vars without touching code.
         if path == '/auth/admin-login' and method == 'POST':
