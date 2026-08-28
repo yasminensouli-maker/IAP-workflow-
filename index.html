@@ -1467,7 +1467,7 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
       <span class="tier-badge tier-admin">Admin</span> Full access — approval, pipeline &amp; budget
     </div>
 
-    <div style="text-align:center;margin-top:18px;font-size:.68rem;color:var(--ink3)">Produced by Groupe CloudZero Inc. · Build 89</div>
+    <div style="text-align:center;margin-top:18px;font-size:.68rem;color:var(--ink3)">Produced by Groupe CloudZero Inc. · Build 90</div>
   </div>
 </div>
 
@@ -1482,7 +1482,7 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
       <button id="global-back-btn" onclick="goBack()" style="display:none;align-items:center;gap:4px;background:transparent;color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:5px;padding:6px 12px;font-size:.75rem;cursor:pointer;font-family:Arial,sans-serif;margin-right:12px">← Back</button>
       <div class="app-header-logo" onclick="goStep(1)" style="cursor:pointer" title="Back to Start Your Deal Journey">INTEL × AWS</div>
       <div class="app-header-title" onclick="goStep(1)" style="cursor:pointer" title="Back to Start Your Deal Journey">Deal Desk</div>
-      <span id="build-stamp" title="Which build you are looking at. If this does not match what you just deployed, you are on a cached page." style="font-size:.62rem;color:rgba(255,255,255,.55);margin-left:9px;letter-spacing:.03em;white-space:nowrap">BUILD 2026-08-28 07:10 UTC</span>
+      <span id="build-stamp" title="Which build you are looking at. If this does not match what you just deployed, you are on a cached page." style="font-size:.62rem;color:rgba(255,255,255,.55);margin-left:9px;letter-spacing:.03em;white-space:nowrap">BUILD 2026-08-28 10:08 UTC</span>
     </div>
     <div class="app-header-right">
       <span id="draft-indicator" style="font-size:.72rem;color:var(--ink3);margin-right:10px"></span><span class="user-pill" id="user-pill">—</span>
@@ -2680,6 +2680,12 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
                 <input type="number" id="rise-netconn" placeholder="Sum across all phases" min="0" step="10"
                   oninput="calcRiseBOM()">
               </div>
+              <div class="f-group">
+                <label>Non-Intel compute, annual ($) <span style="font-size:.7rem;color:#0A1628">— AMD / Graviton lines</span></label>
+                <input type="number" id="rise-nonintel" placeholder="0 if the BOM is all Intel" min="0" step="10"
+                  oninput="calcRiseBOM()">
+                <span class="hint">IAP funds Intel-based EC2 only. Any m6a/m7a/c7a/r7a or Graviton line in the BOM comes out here. Sum their annualised ARR across every phase.</span>
+              </div>
             </div>
             <div class="form-grid" style="grid-template-columns:1fr 1fr 1fr;margin-top:10px">
               <div class="f-group">
@@ -2695,9 +2701,9 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
                 </select>
               </div>
               <div class="f-group">
-                <label>Compute-Only ARR</label>
+                <label>Intel-Eligible ARR</label>
                 <div id="rise-compute-arr" style="font-size:1.1rem;font-weight:700;color:var(--ink);padding:8px 0">$0</div>
-                <span class="hint">AWS Avg ARR minus EBS + Network Connectivity</span>
+                <span class="hint">AWS Avg ARR minus EBS Snapshot, Network Connectivity and any non-Intel compute. This is the figure the deal is saved with.</span>
               </div>
             </div>
             <div id="rise-bom-breakdown" style="display:none;margin-top:10px;padding:10px 14px;background:#fff;border-radius:6px;border:1px solid #0068B5;font-size:.74rem;line-height:1.8;color:#0A1628">
@@ -3508,7 +3514,16 @@ function showStartChecklist(){
       '<div style="font-size:.7rem;color:#616161;margin-top:10px">You can reopen this any time from the sidebar.</div>' +
     '</div>';
   m.style.display='flex';
-  const first = m.querySelector('button'); if(first) first.focus();
+  /* The panel is taller than the viewport and its first button ("Start anyway")
+     sits at the bottom of it. A plain focus() makes the browser scroll that
+     button into view, so the checklist opened scrolled to the end and the user
+     never saw the red "only you can answer this" block at the top. Keep the
+     focus for Escape and keyboard use, take away its scrolling side effect,
+     and pin the panel to the top on every open. */
+  const panel = m.firstElementChild;
+  if(panel) panel.scrollTop = 0;
+  const first = m.querySelector('button');
+  if(first) first.focus({preventScroll:true});
 }
 
 function closeStartChecklist(){
@@ -4783,13 +4798,21 @@ function calcRiseBOM(){
     return;
   }
 
+  // Non-Intel compute (AMD, Graviton) is not IAP-eligible. Fleet Builder handles
+  // this by simply not entering those rows; the RISE tab starts from a single
+  // blended ARR figure, so it needs its own explicit deduction. Before this field
+  // existed the only way to get a correct number here was to reduce the AWS Avg
+  // ARR by hand, which left the stated base disagreeing with the BOM.
+  const nonIntel = parseFloat(document.getElementById('rise-nonintel').value)||0;
+
   const computeOnlyARR = Math.max(avgARR - ebs - netConn, 0);
-  computeArrEl.textContent = fmt(computeOnlyARR);
+  const eligibleARR = Math.max(computeOnlyARR - nonIntel, 0);
+  computeArrEl.textContent = fmt(eligibleARR);
 
   // Same rate/cap logic as every other calculator in this app — Migrate 4.5%,
   // Modernize 1% capped $250k — so this stays consistent if the rate ever changes.
   const rateInfo = getRateInfo();
-  let annualIAP = computeOnlyARR * rateInfo.rate;
+  let annualIAP = eligibleARR * rateInfo.rate;
   let capApplied = false;
   if(rateInfo.cap && annualIAP > rateInfo.cap){
     annualIAP = rateInfo.cap;
@@ -4798,14 +4821,35 @@ function calcRiseBOM(){
   const totalIAP = annualIAP * termYears;
   const stackedTotal = riseFundingTotal + totalIAP;
 
-  window._computedRiseBOM = {avgARR, ebs, netConn, computeOnlyARR, annualIAP, totalIAP, riseFundingTotal, stackedTotal, termYears};
+  window._computedRiseBOM = {avgARR, ebs, netConn, nonIntel, computeOnlyARR, eligibleARR, annualIAP, totalIAP, riseFundingTotal, stackedTotal, termYears};
+
+  /* The deal record reads Intel-Eligible ARR, not this panel. Until this write
+     existed the RISE tab showed a correct funding figure on screen while the
+     saved deal carried a DNE of $0 — no error, just a zero, which reads as
+     "no funding calculated" rather than as a bug. Fleet Builder has always
+     written back through updateTotals(); this is the same contract for the
+     RISE path. A figure the user typed over by hand is left alone. */
+  const dest = document.getElementById('intel-eligible-arr');
+  if(dest && eligibleARR > 0){
+    const ownedByRise = (window._arrSource || '').indexOf('SAP RISE BOM') === 0;
+    if(!dest.value || ownedByRise){
+      dest.value = Math.round(eligibleARR);
+      window._arrSource = 'SAP RISE BOM' + (nonIntel > 0 ? ', net of non-Intel compute' : '');
+      window._arrSourceAt = new Date().toISOString();
+      const badge = document.getElementById('arr-source-badge');
+      if(badge){ badge.style.display = 'block'; badge.textContent = 'Derived from: ' + window._arrSource; }
+    }
+  }
 
   breakdownEl.innerHTML =
-    '<strong>Compute-only ARR:</strong><br>' +
+    '<strong>Intel-eligible ARR:</strong><br>' +
     'AWS Avg ARR: ' + fmt(avgARR) + ' &nbsp;−&nbsp; EBS Snapshot: ' + fmt(ebs) + ' &nbsp;−&nbsp; Network Connectivity: ' + fmt(netConn) +
     ' = <strong>Compute-only ARR: ' + fmt(computeOnlyARR) + '</strong><br>' +
-    'IAP rate: ' + rateInfo.label + ' &nbsp;×&nbsp; ' + fmt(computeOnlyARR) + ' = <strong>' + fmt(annualIAP) + '/year</strong>' +
-    (capApplied ? ' <span style="color:#92400e">(capped at $250,000)</span>' : '') + '<br>' +
+    (nonIntel > 0
+      ? 'Less non-Intel compute (AMD / Graviton): ' + fmt(nonIntel) + ' = <strong>Intel-eligible ARR: ' + fmt(eligibleARR) + '</strong><br>'
+      : '<span style="color:#0A1628;font-size:.68rem">No non-Intel compute entered, so the whole compute base is treated as Intel-eligible.</span><br>') +
+    'IAP rate: ' + rateInfo.label + ' &nbsp;×&nbsp; ' + fmt(eligibleARR) + ' = <strong>' + fmt(annualIAP) + '/year</strong>' +
+    (capApplied ? ' <span style="color:#92400e">(capped at ' + fmt(rateInfo.cap) + ')</span>' : '') + '<br>' +
     'Over ' + termYears + ' year' + (termYears>1?'s':'') + ': <strong>' + fmt(totalIAP) + '</strong><br>' +
     (riseFundingTotal>0 ? 'Stacked with RISE Funding (' + fmt(riseFundingTotal) + '): <strong style="color:var(--green)">' + fmt(stackedTotal) + ' combined</strong><br>' : '') +
     '<span style="color:#0A1628;font-size:.68rem">This is the IAP layer only. RISE Funding, if entered, is the AWS calculator\'s own figure, already committed, not derived here.</span>';
@@ -6074,7 +6118,9 @@ async function sendIntelChat(){
 }
 function showFillGuide(){
   let o = document.getElementById('fill-guide-overlay');
-  if(o){ o.style.display='flex'; return; }
+  // Reopening reuses the same element, so without this the guide came back
+  // wherever it was left scrolled the last time it was closed.
+  if(o){ o.style.display='flex'; const p=o.firstElementChild; if(p) p.scrollTop=0; return; }
   o = document.createElement('div');
   o.id = 'fill-guide-overlay';
   o.style.cssText = 'position:fixed;inset:0;background:rgba(10,22,40,.85);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;font-family:Arial,sans-serif';
@@ -7260,7 +7306,13 @@ async function renderPipeline(){
           <div class="budget-stat"><span class="bdot committed"></span>Committed<b>${fmt(committed)}</b></div>
           <div class="budget-stat"><span class="bdot pending"></span>Pending<b>${fmt(pending)}</b></div>
           <div class="budget-stat"><span class="bdot remaining"></span>Remaining<b style="color:${remaining<0?'var(--red)':'var(--green)'}">${fmt(remaining)}</b></div>
-        </div>`;
+        </div>` +
+        (window._budgetSyncFailed
+          ? `<div style="margin-top:8px;padding:7px 10px;border-left:3px solid #d97706;background:#fffbeb;border-radius:0 6px 6px 0;font-size:.72rem;color:#92400e">
+               Could not reach the server for the budget pool, so these figures come from this browser only and may not match what another admin sees.
+               ${window._budgetSyncNote ? 'Reason: ' + escHtml(String(window._budgetSyncNote)) : ''}
+             </div>`
+          : '');
     } else {
       budgetEl.style.display='none';
       budgetEl.innerHTML='';
@@ -7476,13 +7528,29 @@ function getBudgetPool(){
   const v=localStorage.getItem('iap-budget-pool');
   return v?parseFloat(v):10000000;
 }
+/* The budget pool is cached in this browser's localStorage and corrected from
+   the server on load. When that correction failed it failed silently, so two
+   admins on two machines could each be looking at a different Remaining figure
+   with nothing on screen saying so. The failure is now recorded and shown next
+   to the pool, because a stale budget number that looks authoritative is worse
+   than one that admits it is stale. */
 async function syncBudgetFromCloud(){
-  if(!API_URL) return;
+  window._budgetSyncFailed = false;
+  if(!API_URL){ window._budgetSyncFailed = true; window._budgetSyncNote = 'No API configured'; return; }
   try{
     const r=await api('/config?key=budgetPool');
+    if(!r.ok) throw new Error('HTTP '+r.status);
     const data=await r.json();
-    if(data.value) localStorage.setItem('iap-budget-pool', data.value);
-  }catch(e){}
+    // A deliberately-set zero is a real value; only undefined/null means "unset".
+    if(data.value !== undefined && data.value !== null){
+      localStorage.setItem('iap-budget-pool', data.value);
+      window._budgetSyncAt = new Date().toISOString();
+    }
+  }catch(e){
+    window._budgetSyncFailed = true;
+    window._budgetSyncNote = (e && e.message) || String(e);
+    console.warn('Budget pool sync failed, showing this browser\'s cached figure:', e);
+  }
 }
 function editBudgetPool(){
   const cur=getBudgetPool();
@@ -7684,7 +7752,13 @@ function getCurrentDealData(){
     arrSourceAt: window._arrSourceAt || null,
     migTo: v('target-instance-intel') || v('mig-to') ||
            [...new Set((fleets||[]).map(f=>f.instance).filter(Boolean))].join(', ') ||
-           (document.getElementById('f1-inst')||{}).value || '',
+           /* Last resort: read the first fleet row's field directly, in case the
+              fleets array exists but its instance was not written back. The id
+              is taken from the fleet itself — this used to be hardcoded to
+              'f1-inst', an element that only exists when the first fleet
+              happens to be numbered 1, and it silently returned nothing
+              otherwise. */
+           ((fleets && fleets.length && (document.getElementById('f'+fleets[0].id+'-inst')||{}).value) || ''),
     targetArr: fleets.reduce((s,f)=>s+(f.listARR||0),0) || (parseFloat(v('arr-ec2'))||0)+(parseFloat(v('arr-rds'))||0)+(parseFloat(v('arr-elasticache'))||0)+(parseFloat(v('arr-opensearch'))||0),
     dne: (function(){
       // On-screen ESTIMATE only. The authoritative DNE is recomputed by the
@@ -7709,15 +7783,6 @@ function getCurrentDealData(){
     // hardcoding 'core' silently sent it back to the start of the chain.
     approvalStage: (window._loadedDeal && window._loadedDeal.id === window._loadedDealId && window._loadedDeal.approvalStage) || 'core',
   };
-}
-
-function saveDraft(){
-  // Kept for the legacy local-only path; saveDraftToServer is what the
-  // buttons now call. Local storage alone does not survive a different
-  // machine, a cleared browser, or another person needing to see the deal.
-  const data=getCurrentDealData();
-  localStorage.setItem('iap-draft',JSON.stringify(data));
-  alert('Draft saved.');
 }
 
 async function saveDraftToServer(){
@@ -8015,25 +8080,6 @@ async function exportWinWires(){
   XLSX.writeFile(wb,'IAP-Win-Wires-'+new Date().toISOString().slice(0,10)+'.xlsx');
 }
 
-function dealChecklist(data){
-  // Critical items are called out; user may still override and submit
-  const critical=[], missing=[];
-  if(!data.dealName) critical.push('Deal name');
-  if(!data.custName) critical.push('Customer name');
-  if(!data.aceID) critical.push('ACE Opportunity ID — deals must be registered on ACE');
-  if(!(data.aceAmount>0)) critical.push('ACE ARR — look it up in AWS Pricing Calculator, then enter it');
-  if(!data.actType) missing.push('Deal type');
-  if(!data.paymentOption) missing.push('Payment option');
-  if(!data.migStart) missing.push('Migration start date');
-  if(!data.migTo) missing.push('8th Gen migration target');
-  // One-year hard program limit
-  if(data.migStart && data.closeDate){
-    const days=(new Date(data.closeDate)-new Date(data.migStart))/86400000;
-    if(days>366) critical.push('Migration window exceeds one year — the program maximum is 12 months');
-  }
-  return {critical, missing};
-}
-
 function showSubmitSummary(){
   const data=getCurrentDealData();
   // Same gates the readiness score uses. One bar, not two.
@@ -8066,8 +8112,14 @@ function showSubmitSummary(){
     document.body.appendChild(m);
   }
   m.style.display='flex';
-  document.getElementById('submit-modal-box').innerHTML=html;
-  const first=m.querySelector('button'); if(first) first.focus();
+  const box=document.getElementById('submit-modal-box');
+  box.innerHTML=html;
+  // Same trap as the start checklist: focusing the first button scrolled this
+  // long summary to its end, so the deal opened on the buttons rather than on
+  // the figures the reviewer is meant to read before submitting.
+  box.scrollTop=0;
+  if(box.parentElement) box.parentElement.scrollTop=0;
+  const first=m.querySelector('button'); if(first) first.focus({preventScroll:true});
 }
 function closeSubmitModal(){ const m=document.getElementById('submit-modal'); if(m) m.style.display='none'; }
 
@@ -8454,10 +8506,19 @@ function fundingGates(d){
   if(arr>0 && !window._arrSource)
     R('Intel Leadership','The ARR has no recorded derivation','It was typed in rather than produced by one of the calculator paths. Expect to be asked to show the working.');
 
-  if(isMod && arr>0){
-    const raw = arr*0.01;
-    if(raw>250000)
-      R('Intel Leadership','Modernize ask is above the $250K cap','1% of '+fmtUSD(Math.round(arr))+' is '+fmtUSD(Math.round(raw))+'. Funding is capped at $250,000, so '+fmtUSD(Math.round(raw-250000))+' of the ask will not be paid.');
+  /* Rate and cap come from computeRate() rather than being written out again
+     here. This block used to hardcode 1% and $250,000, which meant the rate
+     table had two owners and a Migrate deal over the $1,000,000 cap raised no
+     warning at all. Both tracks are checked now, against whichever cap applies. */
+  if(arr>0 && prog){
+    const ri = computeRate(prog);
+    const raw = arr * ri.rate;
+    if(ri.cap && raw > ri.cap){
+      R('Intel Leadership',
+        (isMod?'Modernize':'Migrate')+' ask is above the '+fmtUSD(ri.cap)+' cap',
+        (ri.rate*100).toFixed(ri.rate*100 % 1 ? 1 : 0)+'% of '+fmtUSD(Math.round(arr))+' is '+fmtUSD(Math.round(raw))+
+        '. Funding is capped at '+fmtUSD(ri.cap)+', so '+fmtUSD(Math.round(raw-ri.cap))+' of the ask will not be paid.');
+    }
   }
 
   if(d.discountVerified==='assumed')
