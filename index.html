@@ -6600,12 +6600,72 @@ function copySOWText(){
 }
 
 /* ── PIPELINE DASHBOARD ──────────────────────────────────────── */
+// Mirrors the backend's APPROVAL_CHAIN / CHAIN_BY_STATUS / stage_approvers /
+// can_approve in lambda_function.py. This is a DISPLAY copy only — it decides
+// what the queue shows, not what is allowed. The server enforces authority
+// independently on every save, so a stale or tampered copy of this table in
+// the browser can make the Approve button show up wrongly, never approve
+// wrongly. Keep the two in sync by hand when the chain or the named
+// approvers change; there is no code sharing between Python and this file.
+const APPROVAL_CHAIN_JS = [
+  {status:'Submitted',      label:'Pre-approval',   next:'Pre-Approved'},
+  {status:'Pre-Approved',   label:'AWS approval',   next:'AWS Approved'},
+  {status:'AWS Approved',   label:'Intel approval', next:'Intel Approved'},
+  {status:'Intel Approved', label:'SOW creation',   next:'SOW Issued'},
+];
+const PREAPPROVAL_EMAILS_JS = ['yasmine@cloudzero.ca','clchrisz@amazon.com','reidelj@amazon.com'];
+const AWS_APPROVER_EMAILS_JS = ['bryanofw@amazon.com','dinc@amazon.com'];
+const INTEL_LEAD_EMAILS_JS = ['brendon.roosken@intel.com'];
+const OVERRIDE_APPROVERS_JS = ['brendon.roosken@intel.com','yasmine@cloudzero.ca'];
+const GEO_OWNERS_JS = {
+  'Americas - NAMER': ['brendon.roosken@intel.com','deep.grewal@intel.com'],
+  'Americas - LATAM': ['f.pesiguelo@intel.com'],
+  'EMEA': ['diego.bailon.humpert@intel.com'],
+  'APJ': ['jason.ct.tan@intel.com'],
+};
+// Old three-stage records (approvalStage: core/intel/tcc/approved) still sit
+// in the table from before today's rewrite. Read them the same way the
+// backend's STATUS_MAP_OLD_TO_NEW does, so a deal nobody has touched since
+// does not vanish from every queue.
+function dealStatus(deal){
+  if(deal.status) return deal.status;
+  const s = deal.approvalStage||'core';
+  return {core:'Submitted', intel:'AWS Approved', tcc:'Intel Approved', approved:'SOW Issued',
+          changes_requested:'Submitted'}[s] || 'Submitted';
+}
+function stageApproversJS(deal, status){
+  if(status==='Submitted') return PREAPPROVAL_EMAILS_JS;
+  if(status==='Pre-Approved') return AWS_APPROVER_EMAILS_JS;
+  if(status==='AWS Approved'){
+    const region = String(deal.region||'');
+    for(const prefix in GEO_OWNERS_JS) if(region.startsWith(prefix))
+      return [...new Set([...INTEL_LEAD_EMAILS_JS, ...GEO_OWNERS_JS[prefix]])];
+    return INTEL_LEAD_EMAILS_JS;
+  }
+  if(status==='Intel Approved') return [TCC_EMAIL_JS];
+  return [];
+}
+const TCC_EMAIL_JS = 'jacobx.barksdale@intel.com';
+function canApproveJS(deal, email, status){
+  const who = String(email||'').toLowerCase();
+  if(!who) return false;
+  if(OVERRIDE_APPROVERS_JS.includes(who)) return true;
+  return stageApproversJS(deal, status).map(e=>e.toLowerCase()).includes(who);
+}
+function chainGate(status){ return APPROVAL_CHAIN_JS.find(g=>g.status===status); }
+
 function getApprovalLabel(stage){
-  if(stage==='core') return '<span class="approval-stage stage-core">AWS Approval</span>';
-  if(stage==='intel') return '<span class="approval-stage stage-intel">Approved (DNE Set) — Awaiting Intel</span>';
-  if(stage==='tcc') return '<span class="approval-stage stage-tcc">Intel Leadership Approved — SOW Pending</span>';
-  if(stage==='approved') return '<span class="approval-stage stage-approved">SOW Issued</span>';
-  return stage;
+  // Back-compat: some callers still pass the old three-value stage.
+  const status = ({core:'Submitted', intel:'AWS Approved', tcc:'Intel Approved', approved:'SOW Issued'})[stage] || stage;
+  const map = {
+    'Submitted':      ['stage-core','Pre-approval'],
+    'Pre-Approved':   ['stage-core','AWS Approval'],
+    'AWS Approved':   ['stage-intel','Intel Approval'],
+    'Intel Approved': ['stage-tcc','SOW Pending — TCC'],
+    'SOW Issued':     ['stage-approved','SOW Issued'],
+  };
+  const m = map[status];
+  return m ? `<span class="approval-stage ${m[0]}">${m[1]}</span>` : status;
 }
 
 function daysInStage(deal){
@@ -6716,19 +6776,24 @@ async function renderApprovalQueue(){
     if(container0) container0.innerHTML = '<div style="padding:32px;text-align:center;color:var(--ink3);font-size:.82rem">Sign in to see the approval queue.</div>';
     return;
   }
-  // An admin is an approver everywhere. The filter below used to compare
-  // currentUser.approver against 'admin', but approver only ever holds
-  // 'core' | 'intel' | 'tcc' -- so that branch could never be true and an
-  // admin saw only their own tier. Tier is what carries 'admin'.
+  // An admin is on OVERRIDE_APPROVERS on the backend, so an admin can clear
+  // ANY gate on ANY deal -- the queue now reflects that directly instead of
+  // pretending admins only sit at one tier. Everyone else sees exactly the
+  // deals sitting at a gate they are personally named on, across ALL FOUR
+  // gates at once (a deal person can be, say, both an AWS approver and an
+  // Intel geo owner and should see both queues, not just one).
   const isAdmin = currentUser.tier === 'admin';
-  const myTier = currentUser.approver || (isAdmin ? 'core' : null);
+  const myEmail = (currentUser.email||'').toLowerCase();
+  const isNamedApprover = OVERRIDE_APPROVERS_JS.includes(myEmail)
+    || PREAPPROVAL_EMAILS_JS.includes(myEmail) || AWS_APPROVER_EMAILS_JS.includes(myEmail)
+    || INTEL_LEAD_EMAILS_JS.includes(myEmail)
+    || Object.values(GEO_OWNERS_JS).some(list=>list.includes(myEmail))
+    || myEmail === TCC_EMAIL_JS;
 
-  // Returning silently here left a blank panel with no explanation, which is
-  // what an approver whose session lost its approver field actually saw.
-  if(!myTier && !isAdmin){
+  if(!isAdmin && !isNamedApprover){
     if(container0) container0.innerHTML =
       '<div style="padding:28px;text-align:center;color:var(--ink3);font-size:.82rem;line-height:1.7">'
-      + 'Your account is signed in but carries no approver role, so there is nothing to show here.<br>'
+      + 'Your account is signed in but is not a named approver at any stage, so there is nothing to show here.<br>'
       + 'Signed in as <strong>' + (currentUser.email||'unknown') + '</strong>'
       + (currentUser.tier ? ' (' + currentUser.tier + ')' : '') + '.<br>'
       + 'Sign out and back in; if it persists, contact yasmine@cloudzero.ca.</div>';
@@ -6737,9 +6802,11 @@ async function renderApprovalQueue(){
 
   const allDeals = await loadPipelineDealsFromCloud();
   const deals = allDeals.filter(d=>{
-    const stage = d.approvalStage||'core';
-    // Admins follow every deal through every stage; approvers see their own.
-    return isAdmin ? stage !== 'approved' : stage === myTier;
+    const status = dealStatus(d);
+    if(status === 'SOW Issued') return false; // fully through the chain
+    // Admin/override sees every open deal, at every stage, always.
+    if(isAdmin || OVERRIDE_APPROVERS_JS.includes(myEmail)) return true;
+    return canApproveJS(d, myEmail, status);
   });
 
   const container = document.getElementById('approval-queue-content');
@@ -6747,15 +6814,16 @@ async function renderApprovalQueue(){
   const title = document.getElementById('approval-title');
 
   badge.textContent = currentUser.label+' · Approval Queue';
-  title.textContent = isAdmin ? 'Approval Queue — all stages'
-    : (myTier==='core'?'AWS Approval Review':myTier==='intel'?'Intel Leadership Approval':'TCC — Ready for SOW');
+  title.textContent = (isAdmin || OVERRIDE_APPROVERS_JS.includes(myEmail))
+    ? 'Approval Queue — all stages, on behalf of any approver'
+    : 'Approval Queue — deals waiting on you';
 
-  // For an admin "pending" means anything not yet fully approved, so the
-  // queue follows a deal from submission to SOW rather than going blank the
-  // moment it leaves their own stage.
-  const pending = isAdmin ? deals.filter(d=>(d.approvalStage||'core')!=='approved')
-                          : deals.filter(d=>(d.approvalStage||'core')===myTier);
-  const done = isAdmin ? [] : deals.filter(d=>(d.approvalStage||'core')!==myTier);
+  // `deals` above is already exactly "what this viewer can act on right now"
+  // -- admin/override sees every open deal, everyone else only the gates
+  // they are named on -- so there is no separate "done" bucket to compute
+  // any more; everything in `deals` is pending someone's decision.
+  const pending = deals;
+  const done = [];
 
   if(deals.length===0){
     container.innerHTML='<div style="padding:32px;text-align:center;color:var(--ink3);font-family:Arial,sans-serif;font-size:.82rem;line-height:1.7">No deals pending your approval right now.<br><span style="font-size:.72rem">Signed in as '+(currentUser.email||'')+' · '+(currentUser.label||currentUser.tier||'')+'</span></div>';
@@ -6770,14 +6838,28 @@ async function renderApprovalQueue(){
       const totPay=(deal.fleets||[]).reduce((s,f)=>s+(parseFloat(f.rebate)||0),0);
       const daysIn = daysInStage(deal);
       const daysColor = daysIn>10 ? '#dc2626' : daysIn>5 ? '#d97706' : 'var(--ink3)';
+      const status = dealStatus(deal);
+      const gate = chainGate(status);
+      const namedApprovers = stageApproversJS(deal, status);
+      const iCanApprove = isAdmin || canApproveJS(deal, myEmail, status);
       const emailWarning = (deal.emailFailures&&deal.emailFailures.length)
         ? `<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:6px;padding:8px 10px;margin-bottom:10px;font-size:.72rem;color:#991b1b">⚠ Notification email failed to send at this stage — check SES verification for the recipient. This deal may not have been flagged to the reviewer.</div>`
         : '';
+      const iAmPreOrAWS = isAdmin || PREAPPROVAL_EMAILS_JS.includes(myEmail) || AWS_APPROVER_EMAILS_JS.includes(myEmail);
+      const iAmIntelReviewer = isAdmin || INTEL_LEAD_EMAILS_JS.includes(myEmail) || Object.values(GEO_OWNERS_JS).some(l=>l.includes(myEmail));
+      const iAmTCC = isAdmin || myEmail===TCC_EMAIL_JS;
+      const overrideNote = (!isAdmin && OVERRIDE_APPROVERS_JS.includes(myEmail) && !namedApprovers.map(e=>e.toLowerCase()).includes(myEmail))
+        ? `<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:6px;padding:6px 10px;margin-bottom:10px;font-size:.7rem;color:#92400e">Approving here on behalf of ${namedApprovers.join(', ')||'the named approver'} — you are acting as an override, not the named approver for this stage.</div>`
+        : '';
+      const lastRej = deal.lastRejection;
+      const rejectionNote = lastRej
+        ? `<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:6px;padding:8px 10px;margin-bottom:10px;font-size:.72rem;color:#991b1b">Sent back at ${lastRej.stage||''} by ${lastRej.by||''}: "${lastRej.reason||''}"</div>`
+        : '';
       html+=`<div class="approval-card">
-        ${emailWarning}
+        ${emailWarning}${overrideNote}${rejectionNote}
         <div class="approval-card-header">
           <div>
-            <div class="approval-card-title">${deal.custName||'[Customer]'} ${getApprovalLabel(deal.approvalStage||'core')}</div>
+            <div class="approval-card-title">${deal.custName||'[Customer]'} ${getApprovalLabel(status)}</div>
             <div class="approval-card-meta">${deal.actType||'Migration'} · ${deal.segment||''} · ${deal.region||''} · Submitted ${deal.date||''} · <span style="color:${daysColor};font-weight:700">${daysIn} day${daysIn===1?'':'s'} in this stage</span></div>
           </div>
           <div style="text-align:right;font-family:Arial,sans-serif">
@@ -6850,7 +6932,7 @@ async function renderApprovalQueue(){
         })()}
         ${paymentPeriodHTML(deal)}
         ${dneChainHTML(deal)}
-        ${myTier==='core'?`
+        ${(iAmPreOrAWS && (status==='Submitted'||status==='Pre-Approved'))?`
         <div style="background:#f0f5ff;border:1px solid #c7d7f5;border-radius:8px;padding:10px 12px;margin-top:10px">
           <div style="font-size:.7rem;font-weight:700;color:#001f5c;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Set DNE — required before approval</div>
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
@@ -6860,7 +6942,7 @@ async function renderApprovalQueue(){
           </div>
           <div style="font-size:.7rem;color:#555;margin-top:5px">DNE = the ARR you enter × ${(function(){const i=computeRate(deal.actType||'');return i.label;})()}. Enter Eligible ARR (post-discount); the server calculates and stores the number.</div>
         </div>`:''}
-        ${myTier==='intel'?`
+        ${(iAmIntelReviewer && status==='AWS Approved')?`
         <div style="background:#fff8f0;border:1px solid #fed7aa;border-radius:8px;padding:10px 12px;margin-top:10px">
           <div style="font-size:.7rem;font-weight:700;color:#c2410c;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Ask a question — logged and emailed to the review team</div>
           <div style="display:flex;gap:8px;align-items:center">
@@ -6869,7 +6951,8 @@ async function renderApprovalQueue(){
           </div>
         </div>`:''}
         ${(deal.qaLog&&deal.qaLog.length)?`<div style="margin-top:8px;font-size:.72rem;color:var(--ink2)"><strong>Q&amp;A log:</strong> ${deal.qaLog.map(q=>'<div style="margin-top:3px">['+q.at.slice(0,10)+'] '+(q.type==='question'?'Q':'A')+' ('+q.by+'): '+q.text+'</div>').join('')}</div>`:''}
-        ${(myTier==='tcc'&&(deal.approvalStage==='tcc'||deal.approvalStage==='approved'))?`
+        ${(deal.comments&&deal.comments.length)?`<div style="margin-top:8px;font-size:.72rem;color:var(--ink2)"><strong>Approver comments:</strong> ${deal.comments.map(c=>'<div style="margin-top:3px">['+(c.at||'').slice(0,10)+'] '+(c.action==='declined'?'Declined':'Approved')+' at '+(c.stage||'')+' by '+(c.name||c.by||'')+(c.text?': '+c.text:'')+'</div>').join('')}</div>`:''}
+        ${(iAmTCC && status==='Intel Approved')?`
         <div style="margin-top:10px"><button class="btn btn-primary btn-sm" onclick="loadDealById('${deal.id}');setTimeout(()=>goStep(7),300)">Generate SOW for this deal</button></div>`:''}
         ${canEditDeal()?`
         <div style="display:flex;gap:8px;align-items:center;margin-top:10px;font-size:.75rem">
@@ -6879,7 +6962,7 @@ async function renderApprovalQueue(){
           <span style="color:var(--ink3);font-size:.68rem">Logged to the audit trail</span>
         </div>`:''}
         ${(deal.auditLog&&deal.auditLog.length)?`<details style="margin-top:8px;font-size:.7rem;color:var(--ink2)"><summary style="cursor:pointer">Audit trail (${deal.auditLog.length})</summary>${deal.auditLog.slice(-10).map(a=>'<div style="margin-top:3px">['+a.at+'] '+a.by+' changed '+a.field+': '+a.old+' → '+a.new+'</div>').join('')}</details>`:''}
-        ${myTier==='tcc'?`
+        ${(iAmTCC && (status==='Intel Approved'||status==='SOW Issued'))?`
         <div class="pop-check">
           <div class="pop-check-label">POP Available from Customer?</div>
           <div class="pop-check-btns">
@@ -6891,10 +6974,12 @@ async function renderApprovalQueue(){
         </div>`:''}
         ${deal.workload?`<div style="margin-top:10px;font-size:.73rem;color:var(--ink2);font-family:Arial,sans-serif;padding-top:8px;border-top:1px solid var(--border2)">${deal.workload}</div>`:''}
         <div class="approval-actions">
-          <button class="btn btn-success btn-sm" onclick="approveDeal('${deal.id}')">✓ Approve — Move to ${(function(){const st=deal.approvalStage||'core';return st==='core'?'Intel':st==='intel'?'TCC':'Fully Approved';})()}</button>
-          <button class="btn btn-secondary btn-sm" onclick="requestChanges('${deal.id}')">↩ Request Changes</button>
+          ${(iCanApprove && gate)?`<button class="btn btn-success btn-sm" onclick="doApprove('${deal.id}')">✓ Approve — Move to ${gate.label==='SOW creation'?'TCC (SOW)':gate.next}</button>
+          <button class="btn btn-danger btn-sm" onclick="doDecline('${deal.id}')" style="background:#fef2f2;color:#991b1b;border:1px solid #fecaca">✗ Decline</button>`
+          :`<span style="font-size:.72rem;color:var(--ink3);align-self:center">Cleared by: ${namedApprovers.join(', ')||'—'}${(!isAdmin&&!OVERRIDE_APPROVERS_JS.includes(myEmail))?'':' (you may act on this as an admin/override)'}</span>`}
           <button class="btn btn-secondary btn-sm" onclick="loadDealById('${deal.id}');goStep(1)">👁 View Full Deal</button>
           <button class="btn btn-secondary btn-sm" onclick="queueAttachPrompt('${deal.id}')">📎 Attach BOM</button>
+          ${(isAdmin||iAmTCC)?`<button class="btn btn-secondary btn-sm" onclick="removeDealFromQueue('${deal.id}','${(deal.custName||'this deal').replace(/'/g,"\\'")}')" style="color:#991b1b">🗑 Remove</button>`:''}
           <input type="file" id="queue-attach-${deal.id}" style="display:none"
                  accept=".pdf,.xlsx,.xls,.csv,.docx,.pptx,.png,.jpg,.jpeg"
                  onchange="queueAttachFile('${deal.id}', this)">
@@ -7011,36 +7096,57 @@ async function emailSubmitterForPOP(id, dealObj){
   window.location.href='mailto:'+to+'?subject='+subj+'&body='+body;
 }
 
-async function approveDeal(id){
+// Replaces the old approveDeal(), which spoke the retired core/intel/tcc/
+// approved stage names -- the backend rewrite that added per-person, per-
+// gate authority (any one of Yasmine/Chris/Jeanine, any one of Bryan/Dinc,
+// Brendon or the region's Intel owner, then Jacob for the SOW) only
+// recognizes the new five-status chain, so the old button 400'd on every
+// click regardless of who pressed it. This calls the server, which is the
+// real authority check -- canApproveJS above only decides what the button
+// looks like, never whether the click is allowed.
+async function doApprove(id){
   const deals=await loadPipelineDealsFromCloud();
   const deal=deals.find(d=>d.id===id);
   if(!deal) return;
-  const stage=deal.approvalStage||'core';
-  if(stage==='core' && !(parseFloat(deal.dne)>0)){
+  const status = dealStatus(deal);
+  const gate = chainGate(status);
+  if(!gate){ alert('This deal has already cleared every gate.'); return; }
+  if(gate.status==='Submitted' && !(parseFloat(deal.dne)>0)){
     alert('Set and save the DNE before approving. The DNE routes to Intel leadership with the deal.');
     return;
   }
-  const next=stage==='core'?'intel':stage==='intel'?'tcc':'approved';
-  deal['approvedBy_'+stage]=currentUser.name+' · '+new Date().toLocaleDateString();
-  await apiSaveDeal(deal, stage, next);  // pass prev+next stage so Lambda fires SES
+  const comment = prompt('Optional note for the record (visible to everyone downstream):') || '';
+  deal['approvedBy_'+gate.status]=currentUser.name+' · '+new Date().toLocaleDateString();
+  const r = await apiSaveDeal(deal, status, gate.next, false, undefined, 'approve', comment);
   renderApprovalQueue();
-  alert(`Approved. Deal moved to ${next==='intel'?'Intel Leadership':next==='tcc'?'The Channel Company (TCC)':'Fully Approved'}. Email notifications sent automatically.`);
+  if(r && r.error){ alert('Could not approve: ' + r.error); return; }
+  alert(`Approved. Deal moved to ${gate.next}. Email notifications sent automatically.`);
 }
 
-async function requestChanges(id){
-  const reason=prompt('Describe what needs to change:');
-  if(!reason) return;
+async function doDecline(id){
+  const reason=prompt('Reason for declining — this is required and is shown to the submitter and every approver:');
+  if(!reason || !reason.trim()){ alert('A reason is required to decline.'); return; }
   const deals=await loadPipelineDealsFromCloud();
   const deal=deals.find(d=>d.id===id);
   if(!deal) return;
-  deal.approvalStage='changes_requested';
-  deal.status='Changes Requested';
-  deal.changesRequested=reason;
-  deal.changesRequestedBy=currentUser.name;
-  deal.changesRequestedDate=new Date().toLocaleDateString();
-  await apiSaveDeal(deal);
+  const status = dealStatus(deal);
+  const r = await apiSaveDeal(deal, status, '', false, undefined, 'reject', reason.trim());
   renderApprovalQueue();
-  alert('Changes requested. The submitter will see this when they next view the deal.');
+  if(r && r.error){ alert('Could not decline: ' + r.error); return; }
+  alert('Declined and sent back to the submitter with your reason attached.');
+}
+
+// admin or TCC only -- matches the backend's /deals/delete restriction
+// exactly, so the button never shows a false promise to anyone else.
+async function removeDealFromQueue(id, custName){
+  if(!confirm(`Permanently remove the deal for "${custName}"? This cannot be undone.`)) return;
+  try{
+    const r = await api('/deals/delete', {method:'POST', body:JSON.stringify({id})});
+    const result = await r.json();
+    if(!result || result.error){ alert('Could not remove: ' + (result&&result.error||'unknown error')); return; }
+    renderApprovalQueue();
+    alert('Deal removed.');
+  }catch(e){ alert('Could not remove: ' + e.message); }
 }
 
 async function renderPartnerDeals(){
@@ -7370,18 +7476,23 @@ const API_URL = 'https://4y8bpdbupd.execute-api.ca-central-1.amazonaws.com';
 // to the pricing service directly. The Lambda proxy holds the key, in an env
 // var, and requires a signed-in session to use it.)
 
-async function apiSaveDeal(deal, prevStage, nextStage, submitted, dneBasisArr){
+// nextStage, when passed, is now one of the five real status strings
+// ('Pre-Approved', 'AWS Approved', ...) -- not the old core/intel/tcc/approved
+// tokens. The Lambda ignores prevStage entirely; it looks up the deal's
+// actual previous status from the stored record itself, so a stale or
+// spoofed prevStage here can never let a transition through the server
+// would otherwise reject. decision:'reject' plus a comment sends the deal
+// back to Submitted instead of advancing it -- see doDecline().
+async function apiSaveDeal(deal, prevStage, nextStage, submitted, dneBasisArr, decision, comment){
   if(!API_URL) return null;
   try{
-    // Update stage on deal object before sending — PRD status names
-    if(nextStage) deal.approvalStage = nextStage;
-    if(nextStage==='intel') deal.status='Approved (DNE Set)';
-    else if(nextStage==='tcc') deal.status='Intel Leadership Approved';
-    else if(nextStage==='approved') deal.status='SOW Issued';
+    if(nextStage) deal.status = nextStage;
     const payload = {deal};
     if(prevStage) payload.prevStage = prevStage;
     if(submitted) payload.submitted = true;
     if(dneBasisArr!==undefined && dneBasisArr!==null) payload.dneBasisArr = dneBasisArr;
+    if(decision) payload.decision = decision;
+    if(comment) payload.comment = comment;
     // The editor identity comes from the session token server-side; this
     // field is kept only for older Lambda versions during rollout.
     payload.editor = (typeof currentUser!=='undefined' && currentUser) ? currentUser.email : '';
@@ -8375,22 +8486,31 @@ async function loadDealById(id){
 }
 
 function renderChangesRequestedBanner(d){
-  // requestChanges() has always written changesRequested / changesRequestedBy /
-  // changesRequestedDate, and nothing in 7,400 lines ever read them back. The
-  // approver was told "the submitter will see this" and the submitter never did.
+  // requestChanges() used to write changesRequested / changesRequestedBy /
+  // changesRequestedDate client-side, and nothing in 7,400 lines ever read
+  // them back. doDecline() now writes lastRejection server-side instead (the
+  // authoritative record, since the server is what validated the decline was
+  // allowed) -- read that first, and fall back to the old fields only for a
+  // record declined before this build.
   const host = document.getElementById('step1');
   let el = document.getElementById('changes-requested-banner');
-  if(!d || !d.changesRequested){ if(el) el.remove(); return; }
+  const rej = d && d.lastRejection;
+  const legacyReason = d && d.changesRequested;
+  if(!d || !(rej || legacyReason)){ if(el) el.remove(); return; }
   if(!el){
     el = document.createElement('div');
     el.id = 'changes-requested-banner';
     el.style.cssText = 'background:#fffbeb;border:1px solid #fde68a;border-left:4px solid #d97706;border-radius:8px;padding:12px 16px;margin-bottom:16px';
     host.insertBefore(el, host.firstChild);
   }
+  const reasonText = rej ? rej.reason : legacyReason;
+  const byText = rej ? rej.by : d.changesRequestedBy;
+  const whenText = rej ? (rej.at||'').slice(0,10) : d.changesRequestedDate;
+  const stageText = rej && rej.stage ? ' at ' + rej.stage : '';
   el.innerHTML =
-    '<div style="font-size:.74rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#92400e;margin-bottom:4px">Sent back for changes</div>' +
-    '<div style="font-size:.82rem;color:#0A1628;line-height:1.6">' + String(d.changesRequested).replace(/</g,'&lt;') + '</div>' +
-    '<div style="font-size:.72rem;color:#78350f;margin-top:6px">' + (d.changesRequestedBy||'A reviewer') + (d.changesRequestedDate ? ' on ' + d.changesRequestedDate : '') + '</div>';
+    '<div style="font-size:.74rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#92400e;margin-bottom:4px">Sent back for changes' + stageText + '</div>' +
+    '<div style="font-size:.82rem;color:#0A1628;line-height:1.6">' + String(reasonText||'').replace(/</g,'&lt;') + '</div>' +
+    '<div style="font-size:.72rem;color:#78350f;margin-top:6px">' + (byText||'A reviewer') + (whenText ? ' on ' + whenText : '') + '</div>';
 }
 
 /* Only TCC and admins maintain POP. Everyone else sees it read-only —
