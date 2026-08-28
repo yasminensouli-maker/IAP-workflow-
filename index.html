@@ -1927,6 +1927,40 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
         </div>
 
         <div class="section-card">
+          <div class="section-card-title">Funding Case</div>
+          <div class="form-grid">
+            <div class="f-group">
+              <label>ROI Multiple on vCPU Spend</label>
+              <input type="number" id="funding-roi" step="0.1" min="0" placeholder="e.g. 5.2">
+              <span class="hint">5x or above clears on ROI alone. Below 5x, the deal needs at least one AWS strategic goal below to move forward.</span>
+            </div>
+            <div class="f-group span2">
+              <label>Which AWS 2026 strategic goal does this deal advance? (check all that genuinely apply)</label>
+              <span class="hint" style="display:block;margin:-2px 0 6px">From the AWS/Intel 2026 strategic alignment framework. S-Team goals carry more weight than Priority goals in the review below.</span>
+              <div id="strategic-checks" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px">
+                <label style="display:flex;align-items:center;gap:4px;font-size:.75rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer"><input type="checkbox" value="S-Team|Partner Delivered Revenue|Partner-delivered migration/modernization work landing on Intel-powered EC2"> Partner Delivered Revenue <em style="opacity:.6">S-Team</em></label>
+                <label style="display:flex;align-items:center;gap:4px;font-size:.75rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer"><input type="checkbox" value="S-Team|AWS Transform Attach Rate|AWS Transform tooling attaches to this migration/modernization"> AWS Transform Attach Rate <em style="opacity:.6">S-Team</em></label>
+                <label style="display:flex;align-items:center;gap:4px;font-size:.75rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer"><input type="checkbox" value="S-Team|Top 2000 Strategic Threshold Progression|Customer crosses a strategic revenue growth threshold"> Top 2000 Threshold Progression <em style="opacity:.6">S-Team</em></label>
+                <label style="display:flex;align-items:center;gap:4px;font-size:.75rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer"><input type="checkbox" value="S-Team|Greenfield to Engaged Conversions|Net new customer reaching meaningful spend on AWS"> Greenfield to Engaged Conversion <em style="opacity:.6">S-Team</em></label>
+                <label style="display:flex;align-items:center;gap:4px;font-size:.75rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer"><input type="checkbox" value="S-Team|New to Private Pricing (Large TCV)|Large Private Pricing Agreement with significant commitment"> Private Pricing — Large TCV <em style="opacity:.6">S-Team</em></label>
+                <label style="display:flex;align-items:center;gap:4px;font-size:.75rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer"><input type="checkbox" value="Priority|Migration ARR Won|ARR won through workloads migrating on-prem to Intel-powered EC2"> Migration ARR Won <em style="opacity:.6">Priority</em></label>
+                <label style="display:flex;align-items:center;gap:4px;font-size:.75rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer"><input type="checkbox" value="Priority|Modernization|Workload moves from raw EC2 to managed services still running Intel underneath"> Modernization <em style="opacity:.6">Priority</em></label>
+                <label style="display:flex;align-items:center;gap:4px;font-size:.75rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer"><input type="checkbox" value="Priority|Database & Analytics Revenue|Revenue from DB/Analytics services on Intel-optimized instances"> Database & Analytics Revenue <em style="opacity:.6">Priority</em></label>
+                <label style="display:flex;align-items:center;gap:4px;font-size:.75rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer"><input type="checkbox" value="Priority|New to Private Pricing (Broad)|Customer enters a Private Pricing agreement at any tier"> Private Pricing — Broad <em style="opacity:.6">Priority</em></label>
+              </div>
+            </div>
+            <div class="f-group span2">
+              <label>Ripple Effect, 3–5 Years (check all that genuinely apply)</label>
+              <div id="ripple-checks" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px">
+                <label style="display:flex;align-items:center;gap:4px;font-size:.75rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer"><input type="checkbox" value="First fleet of a footprint expected to grow"> First fleet of a growing footprint</label>
+                <label style="display:flex;align-items:center;gap:4px;font-size:.75rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer"><input type="checkbox" value="Sets a pattern other accounts in this industry are likely to follow"> Sets an industry pattern</label>
+                <label style="display:flex;align-items:center;gap:4px;font-size:.75rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer"><input type="checkbox" value="Losing this deal costs us position in this vertical for future deals"> Losing it costs future position</label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-card">
           <div class="section-card-title">Deal Origination</div>
           <div class="form-grid">
             <div class="f-group">
@@ -5555,6 +5589,12 @@ function generateSummary(){
         row('Win Wire', d.winWire ? 'Yes' : 'No'),
       ].join(''))}
 
+      ${section('Funding Case', [
+        row('ROI Multiple on vCPU Spend', d.fundingRoi ? d.fundingRoi + 'x' : ''),
+        row('AWS Strategic Goal(s)', strategicFactorsDisplay(d.strategicFactors)),
+        row('Ripple Effect (3–5 Years)', workloadSelectionDisplay(d.rippleFactors)),
+      ].join(''))}
+
       ${section('Deal Origination', [
         row('How Originated', d.origin),
         row('Origination Notes', d.originNotes),
@@ -7612,6 +7652,9 @@ function getCurrentDealData(){
     // them on a box that does not exist in their view.
     dealName:v('deal-name') || (v('cust-name-intel') ? 'IAP - ' + v('cust-name-intel') : ''),
     winWire:v('win-wire')==='yes',
+    fundingRoi:parseFloat(v('funding-roi'))||0,
+    strategicFactors:getStrategicFactors(),
+    rippleFactors:getRippleFactors(),
     aceAmount:parseFloat(v('ace-amount'))||0,
     intelEligibleArr:parseFloat(v('intel-eligible-arr'))||parseFloat(v('est-arr-intel'))||0,
     actType:v('prd-deal-type')||v('deal-program')||v('activity-type'),
@@ -8208,7 +8251,7 @@ function refreshCRMHeader(){
   set('crm-pay', (d.paymentOption||'').split(' ')[0]);
   set('crm-ace', d.aceID);
   set('crm-ww', d.winWire?'Yes — Fast Track + Draw Entry':'No');
-  set('crm-roi', '');
+  set('crm-roi', d.fundingRoi ? d.fundingRoi+'x' : '—');
   const st=document.getElementById('crm-stage'); if(st) st.textContent=d.status||'Draft';
   renderSmartsheetPreview(d);
 }
@@ -8422,12 +8465,69 @@ function fundingGates(d){
   if(!d.paymentOption) R('TCC','No payment option','TCC cannot schedule the disbursement without one.');
   if(!d.winWire)       R('AWS Approval','Not flagged as a Win Wire','It will not be fast-tracked through review.');
 
+  // Funding case: 5x ROI on vCPU spend clears on its own. Below that, at
+  // least one AWS strategic goal or ripple-effect reason has to be on
+  // record, or there's no case for Intel Leadership to approve against.
+  // S-Team goals count for more than Priority goals -- an S-Team hit alone
+  // downgrades the block to a risk; Priority goals need to be paired with
+  // something else (another Priority goal, or a ripple-effect reason) to
+  // do the same. This mirrors the AWS 2026 strategic framework's own
+  // tiering, it isn't a number invented for this app.
+  const roi = parseFloat(d.fundingRoi) || 0;
+  const stratRaw = String(d.strategicFactors||'').split('\n').filter(Boolean);
+  const stratNames = stratRaw.map(v=>v.split('|')[1]||v);
+  const sTeamCount = stratRaw.filter(v=>v.startsWith('S-Team|')).length;
+  const priorityCount = stratRaw.filter(v=>v.startsWith('Priority|')).length;
+  const rippleList = String(d.rippleFactors||'').split('\n').filter(Boolean);
+  if(roi < 5){
+    const weight = sTeamCount*2 + priorityCount + rippleList.length;
+    if(weight===0){
+      B('Intel Leadership','No funding case recorded','ROI on vCPU spend is below 5x ('+(roi?roi+'x':'not entered')+') and no AWS strategic goal or ripple-effect reason is checked. There is nothing here for Intel Leadership to approve against.');
+    } else if(weight===1 && priorityCount===1 && sTeamCount===0){
+      R('Intel Leadership','Funding case is thin — one Priority-tier goal, no S-Team goal, ROI below 5x','A single Priority goal ('+stratNames[0]+') is carrying this on its own. Expect Intel Leadership to ask what else supports it.');
+    } else {
+      R('Intel Leadership','Funding case rests on strategic/ripple rationale, not ROI','ROI is '+(roi?roi+'x':'not entered')+', below the 5x bar. Approval will hinge on: '+stratNames.concat(rippleList).join('; ')+'.');
+    }
+  }
+
   return {blockers, risks};
 }
 
-function scoreFunding(){
+// Every approve/decline the backend logs (log_decision() in the Lambda) is
+// fetched here once per session and cached -- this is the precedent record
+// scoreFunding() reads from, not a model making its own call. Refetched only
+// when explicitly asked (e.g. after a new decision lands), not on every
+// keystroke, since a full decision history only grows one row per approval.
+async function loadDecisionHistory(force){
+  if(window._decisionHistoryCache && !force) return window._decisionHistoryCache;
+  try{
+    const r = await api('/decisions');
+    if(!r.ok) throw new Error('API returned ' + r.status);
+    const data = await r.json();
+    window._decisionHistoryCache = data.decisions || [];
+  } catch(e){
+    window._decisionHistoryCache = [];
+  }
+  return window._decisionHistoryCache;
+}
+
+// Deterministic precedent match: same program (Migrate/Modernize) and at
+// least one shared strategic-goal name. No scoring, no model -- a plain
+// overlap check, so "3 similar deals, 2 approved" can always be traced back
+// to which 3 deals and why.
+function findSimilarDecisions(history, d){
+  const stratNames = String(d.strategicFactors||'').split('\n').filter(Boolean).map(v=>v.split('|')[1]||v);
+  if(!stratNames.length) return [];
+  return history.filter(dec=>{
+    const decNames = String(dec.strategicFactors||'').split('\n').filter(Boolean).map(v=>v.split('|')[1]||v);
+    return decNames.some(n=>stratNames.includes(n));
+  });
+}
+
+async function scoreFunding(){
   const panel=document.getElementById('funding-score-panel');
   panel.style.display='block';
+  panel.innerHTML = '<div style="font-size:.76rem;color:var(--ink3)">Checking against approval gates…</div>';
   const d = getCurrentDealData();
   const {blockers, risks} = fundingGates(d);
 
@@ -8468,7 +8568,31 @@ function scoreFunding(){
     '</div>'+
     (blockers.length ? '<div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#b91c1c;margin-bottom:5px">Refused at the gate</div>'+blockers.map(x=>item(x,'#dc2626')).join('') : '')+
     (risks.length ? '<div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#92400e;margin:10px 0 5px">Cut or delayed at the gate</div>'+risks.map(x=>item(x,'#d97706')).join('') : '')+
-    (window._arrSource ? '<div style="margin-top:10px;font-size:.7rem;color:var(--ink3)">ARR derivation on record: '+window._arrSource+'</div>' : '');
+    (window._arrSource ? '<div style="margin-top:10px;font-size:.7rem;color:var(--ink3)">ARR derivation on record: '+window._arrSource+'</div>' : '')+
+    '<div id="funding-precedent-slot"></div>';
+
+  // Precedent lookup runs after the gate result is already on screen --
+  // it's supporting context, not something the score should wait on.
+  const history = await loadDecisionHistory();
+  const similar = findSimilarDecisions(history, d);
+  const slot = document.getElementById('funding-precedent-slot');
+  if(slot && similar.length){
+    const approved = similar.filter(x=>x.action==='approved');
+    const declined = similar.filter(x=>x.action==='declined');
+    const example = (x) =>
+      '<div style="padding:6px 10px;border-left:3px solid '+(x.action==='approved'?'#16a34a':'#dc2626')+
+      ';background:'+(x.action==='approved'?'#f0fdf4':'#fef2f2')+';border-radius:0 6px 6px 0;margin-bottom:5px;font-size:.72rem">'+
+      '<strong>'+(x.custName||'Deal')+'</strong> — '+x.action+' at '+x.stage+
+      (x.reason?'<div style="color:#555;margin-top:2px">"'+String(x.reason).replace(/</g,'&lt;')+'"</div>':'')+
+      '</div>';
+    slot.innerHTML =
+      '<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border)">'+
+        '<div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#0A1628;margin-bottom:6px">'+
+          'Similar past decisions — '+approved.length+' approved, '+declined.length+' declined'+
+        '</div>'+
+        similar.slice(0,4).map(example).join('')+
+      '</div>';
+  }
 }
 
 async function loadDealById(id){
@@ -8594,6 +8718,9 @@ function restoreDeal(d){
   setVal('deal-deadline',d.deadline);
   setVal('deal-win-amount',d.winAmount);
   setVal('win-wire',d.winWire ? 'yes' : '');
+  setVal('funding-roi',d.fundingRoi||'');
+  restoreChecks('strategic-checks', d.strategicFactors);
+  restoreChecks('ripple-checks', d.rippleFactors);
   recalcAceFromServices();
   setVal('fh-region',d.region);
   updateCountries();
@@ -8678,6 +8805,40 @@ function workloadSelectionDisplay(val){
 function getWorkloadSelection(){
   const checks = document.querySelectorAll('#workload-checks input[type="checkbox"]:checked');
   return Array.from(checks).map(ch=>ch.value).join('\n') || '';
+}
+
+// Strategic-goal checkbox values are "Tier|GoalName|Description" so the gate
+// logic can weight S-Team above Priority. getStrategicFactors() keeps the
+// raw pipe-delimited value (fundingGates and the decision log need the
+// tier); strategicFactorsDisplay() is the human-readable version for the
+// summary screen, tier included but the description dropped.
+function getStrategicFactors(){
+  const checks = document.querySelectorAll('#strategic-checks input[type="checkbox"]:checked');
+  return Array.from(checks).map(ch=>ch.value).join('\n') || '';
+}
+
+function getRippleFactors(){
+  const checks = document.querySelectorAll('#ripple-checks input[type="checkbox"]:checked');
+  return Array.from(checks).map(ch=>ch.value).join('\n') || '';
+}
+
+function strategicFactorsDisplay(val){
+  return String(val||'').split('\n').filter(Boolean)
+    .map(v=>{ const parts=v.split('|'); return parts.length>=2 ? parts[1]+' ('+parts[0]+')' : v; })
+    .join(', ');
+}
+
+// Re-checks a checkbox group from a saved newline-joined value string. Needed
+// because getWorkloadSelection() has never had a matching restore -- saved on
+// submit, never re-ticked on load. Not fixing that bug here (out of scope),
+// but the two new groups get a real restore path from day one.
+function restoreChecks(containerId, savedValue){
+  const box = document.getElementById(containerId);
+  if(!box) return;
+  const saved = String(savedValue||'').split('\n').filter(Boolean);
+  box.querySelectorAll('input[type="checkbox"]').forEach(cb=>{
+    cb.checked = saved.includes(cb.value);
+  });
 }
 
 function pct(n){return Math.round((n||0)*100)+'%'}
