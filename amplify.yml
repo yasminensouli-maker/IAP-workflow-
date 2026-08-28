@@ -1,0 +1,29 @@
+version: 1
+frontend:
+  phases:
+    preBuild:
+      commands:
+        # Stamp index.html with the real deploy time on every build.
+        #
+        # Why this exists: the stamp in index.html feeds the stale-build
+        # detector, which compares the stamp in the running page against the
+        # stamp on the server and offers a reload when they differ. It was a
+        # hand-typed string, so it sat at "BUILD 2026-08-14 18:00 UTC" through
+        # every deploy after that date. Two identical stamps means the detector
+        # concludes nothing changed and says nothing, and people keep looking
+        # at an old page with no indication anything is wrong.
+        #
+        # Written by the build rather than by a person, it can never be
+        # forgotten and can never be wrong.
+        - STAMP="BUILD $(date -u '+%Y-%m-%d %H:%M') UTC"
+        - sed -i "s|BUILD [0-9][0-9-]* [0-9:]* UTC|$STAMP|g" index.html
+        - echo "Stamped index.html with $STAMP"
+    build:
+      commands:
+        - echo "Static site - no build step"
+  artifacts:
+    baseDirectory: /
+    files:
+      - '**/*'
+  cache:
+    paths: []
