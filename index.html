@@ -1467,7 +1467,7 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
       <span class="tier-badge tier-admin">Admin</span> Full access — approval, pipeline &amp; budget
     </div>
 
-    <div style="text-align:center;margin-top:18px;font-size:.68rem;color:var(--ink3)">Produced by Groupe CloudZero Inc. · Build 91</div>
+    <div style="text-align:center;margin-top:18px;font-size:.68rem;color:var(--ink3)">Produced by Groupe CloudZero Inc. · Build 92</div>
   </div>
 </div>
 
@@ -1482,7 +1482,7 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
       <button id="global-back-btn" onclick="goBack()" style="display:none;align-items:center;gap:4px;background:transparent;color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:5px;padding:6px 12px;font-size:.75rem;cursor:pointer;font-family:Arial,sans-serif;margin-right:12px">← Back</button>
       <div class="app-header-logo" onclick="goStep(1)" style="cursor:pointer" title="Back to Start Your Deal Journey">INTEL × AWS</div>
       <div class="app-header-title" onclick="goStep(1)" style="cursor:pointer" title="Back to Start Your Deal Journey">Deal Desk</div>
-      <span id="build-stamp" title="Which build you are looking at. If this does not match what you just deployed, you are on a cached page." style="font-size:.62rem;color:rgba(255,255,255,.55);margin-left:9px;letter-spacing:.03em;white-space:nowrap">BUILD 2026-08-28 10:27 UTC</span>
+      <span id="build-stamp" title="Which build you are looking at. If this does not match what you just deployed, you are on a cached page." style="font-size:.62rem;color:rgba(255,255,255,.55);margin-left:9px;letter-spacing:.03em;white-space:nowrap">BUILD 2026-08-28 10:55 UTC</span>
     </div>
     <div class="app-header-right">
       <span id="draft-indicator" style="font-size:.72rem;color:var(--ink3);margin-right:10px"></span><span class="user-pill" id="user-pill">—</span>
@@ -1930,8 +1930,16 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
           <div class="section-card-title">Funding Case</div>
           <div class="form-grid">
             <div class="f-group">
-              <label>ROI Multiple on vCPU Spend</label>
-              <input type="number" id="funding-roi" step="0.1" min="0" placeholder="e.g. 5.2">
+              <label>Years the workload stays on Intel</label>
+              <input type="number" id="roi-term-years" step="1" min="1" max="15" value="5"
+                oninput="if(typeof calcIntelRoi==='function')calcIntelRoi()">
+              <span class="hint">Use the contract term where there is one. Intel is paid back one year at a time, so this is the single biggest driver of the multiple below.</span>
+            </div>
+            <div class="f-group">
+              <label>Intel ROI Multiple (calculated)</label>
+              <input type="number" id="funding-roi" step="0.1" min="0" placeholder="fills in automatically"
+                oninput="this.dataset.userEdited=1">
+              <div id="roi-derivation" style="display:none;font-size:.68rem;line-height:1.6;color:#0A1628;background:#f6f9ff;border:1px solid #d3e3fb;border-radius:5px;padding:6px 9px;margin-top:5px"></div>
               <span class="hint">5x or above clears on ROI alone. Below 5x, the deal needs at least one AWS strategic goal below to move forward.</span>
             </div>
             <div class="f-group span2">
@@ -2152,7 +2160,7 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
             <div style="display:flex;gap:12px;margin-top:10px;flex-wrap:wrap">
               <div class="f-group" style="min-width:220px">
                 <label>Intel-Eligible ARR ($) <span class="req">*</span></label>
-                <input type="number" id="intel-eligible-arr" placeholder="0" min="0" oninput="this.dataset.userEdited=1;window._arrSource=null;var b=document.getElementById('arr-source-badge');if(b)b.style.display='none';if(typeof renderArrSuggestions==='function')renderArrSuggestions()">
+                <input type="number" id="intel-eligible-arr" placeholder="0" min="0" oninput="this.dataset.userEdited=1;window._arrSource=null;var b=document.getElementById('arr-source-badge');if(b)b.style.display='none';if(typeof renderArrSuggestions==='function')renderArrSuggestions();if(typeof calcIntelRoi==='function')calcIntelRoi()">
                 <div id="arr-source-badge" style="display:none;font-size:.68rem;font-weight:700;color:#0068B5;background:#eef5ff;border:1px solid #d3e3fb;border-radius:5px;padding:4px 8px;margin-top:5px"></div>
                 <span class="hint">This is the number that drives DNE and the funding math — not total ARR, and not necessarily the same as ACE ARR.</span>
                 <button type="button" onclick="goStep(3)" style="background:none;border:none;color:#0068B5;font-size:.74rem;font-weight:700;cursor:pointer;text-decoration:underline;padding:0;margin-top:5px">Don't type this by hand — get it from the calculator &rarr;</button>
@@ -4231,6 +4239,67 @@ function computeRate(dealType){
 const SILICON_ARR_RATE = 0.035;
 const SILICON_BAND_LOW = 0.02;
 const SILICON_BAND_HIGH = 0.04;
+
+/* ── INTEL ROI ────────────────────────────────────────────────────────────
+   The ROI figure used to be typed in by hand against a label that said
+   "multiple", with no definition attached, so two people could put two
+   different things in the same box and both look right.
+
+   What it actually measures: Intel pays the funding ONCE, and earns silicon
+   revenue EVERY year the workload stays on Intel. So the multiple is
+
+       (eligible ARR x silicon rate x years) / funding
+
+   and since funding is itself a fixed percentage of the same eligible ARR,
+   the ARR cancels out. The multiple is really just
+
+       (silicon rate x years) / funding rate
+
+   which means it is a measure of TIME, not of deal quality. At 3.5% a year
+   against 4.5% paid once, break-even is about 1.3 years and 5x needs about
+   6.5 years. That is worth seeing on screen, because a 5x gate is in practice
+   a minimum-duration gate and it should be read as one. */
+function calcIntelRoi(){
+  const roiEl = document.getElementById('funding-roi');
+  const out   = document.getElementById('roi-derivation');
+  if(!roiEl || !out) return;
+
+  const arr   = parseFloat((document.getElementById('intel-eligible-arr')||{}).value) || 0;
+  const years = parseFloat((document.getElementById('roi-term-years')||{}).value) || 0;
+  const rateInfo = (typeof getRateInfo === 'function') ? getRateInfo() : {rate:0.045, cap:0, label:''};
+
+  if(!(arr > 0) || !(years > 0)){
+    out.style.display = 'none';
+    return;
+  }
+
+  let funding = arr * rateInfo.rate;
+  if(rateInfo.cap && funding > rateInfo.cap) funding = rateInfo.cap;
+
+  const perYear = arr * SILICON_ARR_RATE;
+  const total   = perYear * years;
+  const roi     = funding > 0 ? total / funding : 0;
+  const breakeven = perYear > 0 ? funding / perYear : 0;
+
+  // Only overwrite the field while nobody has typed over it themselves.
+  if(!roiEl.dataset.userEdited){
+    roiEl.value = Math.round(roi * 10) / 10;
+  }
+
+  out.style.display = 'block';
+  out.innerHTML =
+    'Intel earns <strong>' + fmt(perYear) + '/year</strong> at ' + (SILICON_ARR_RATE*100).toFixed(1) +
+      '% of ' + fmt(arr) + ' eligible ARR.<br>' +
+    'Over ' + years + ' year' + (years===1?'':'s') + ' that is <strong>' + fmt(total) + '</strong>, against ' +
+      fmt(funding) + ' funded once at ' + (rateInfo.rate*100).toFixed(1) + '%.<br>' +
+    '<strong>' + (Math.round(roi*10)/10) + 'x</strong>. Break-even at ' +
+      (Math.round(breakeven*10)/10) + ' years' +
+    (roi < 5
+      ? ' <span style="color:#92400e">Below the 5x bar — it needs about ' +
+        Math.ceil(5 * rateInfo.rate / SILICON_ARR_RATE) + ' years on Intel to clear on ROI alone.</span>'
+      : '') +
+    '<br><span style="color:#555">Silicon share is an estimate inside Intel\'s stated 2–4% band, not a contracted figure.</span>';
+}
 const SILICON_PER_VCPU_MIN = 8;
 const SILICON_PER_VCPU_MAX = 16;
 
@@ -4854,6 +4923,7 @@ function calcRiseBOM(){
     (riseFundingTotal>0 ? 'Stacked with RISE Funding (' + fmt(riseFundingTotal) + '): <strong style="color:var(--green)">' + fmt(stackedTotal) + ' combined</strong><br>' : '') +
     '<span style="color:#0A1628;font-size:.68rem">This is the IAP layer only. RISE Funding, if entered, is the AWS calculator\'s own figure, already committed, not derived here.</span>';
   breakdownEl.style.display = 'block';
+  if(typeof calcIntelRoi==='function') calcIntelRoi();
 }
 
 function updateTotals(){
@@ -4887,6 +4957,7 @@ function updateTotals(){
     setDealARR(Math.round(totActual), 'the Fleet Builder' + (fleetDiscountSummary() ? ' (' + fleetDiscountSummary() + ')' : ''));
   }
   renderArrSuggestions();
+  if(typeof calcIntelRoi==='function') calcIntelRoi();
 }
 
 /* ── SALES PLAYS ─────────────────────────────────────────────── */
@@ -5634,7 +5705,8 @@ function generateSummary(){
       ].join(''))}
 
       ${section('Funding Case', [
-        row('ROI Multiple on vCPU Spend', d.fundingRoi ? d.fundingRoi + 'x' : ''),
+        row('Years the workload stays on Intel', d.roiYears ? d.roiYears + ' years' : ''),
+        row('Intel ROI multiple', d.fundingRoi ? d.fundingRoi + 'x' : ''),
         row('AWS Strategic Goal(s)', strategicFactorsDisplay(d.strategicFactors)),
         row('Ripple Effect (3–5 Years)', workloadSelectionDisplay(d.rippleFactors)),
       ].join(''))}
@@ -5682,7 +5754,7 @@ function generateSummary(){
         row('ElastiCache ARR', fmtD(d.arrElastiCache)),
         row('OpenSearch ARR', fmtD(d.arrOpenSearch)),
         row('Total ARR (sum of above)', fmtD(totalARR)),
-        row('Target ARR (from Fleet Builder totals)', fmtD(d.targetArr)),
+        row('Total infrastructure cost (all AWS spend, before Intel eligibility)', fmtD(d.targetArr)),
         row('Customer EDP Discount / Pricing Benefit (%)', d.custEdpDiscount!=null ? d.custEdpDiscount+'%' : ''),
       ].join(''))}
 
@@ -7759,7 +7831,16 @@ function getCurrentDealData(){
               happens to be numbered 1, and it silently returned nothing
               otherwise. */
            ((fleets && fleets.length && (document.getElementById('f'+fleets[0].id+'-inst')||{}).value) || ''),
-    targetArr: fleets.reduce((s,f)=>s+(f.listARR||0),0) || (parseFloat(v('arr-ec2'))||0)+(parseFloat(v('arr-rds'))||0)+(parseFloat(v('arr-elasticache'))||0)+(parseFloat(v('arr-opensearch'))||0),
+    /* Total infrastructure cost — what the customer actually spends on AWS,
+       before any Intel eligibility is applied. A RISE deal has no fleets and no
+       per-service ARR boxes, so this used to save as 0: the deal record carried
+       the Intel-eligible slice and no total at all, and nobody reviewing it
+       could see the size of the underlying workload. The RISE BOM figure is the
+       total for that path. */
+    targetArr: fleets.reduce((s,f)=>s+(f.listARR||0),0)
+      || (parseFloat(v('arr-ec2'))||0)+(parseFloat(v('arr-rds'))||0)+(parseFloat(v('arr-elasticache'))||0)+(parseFloat(v('arr-opensearch'))||0)
+      || ((window._computedRiseBOM && window._computedRiseBOM.avgARR) || 0),
+    roiYears: parseFloat(v('roi-term-years'))||0,
     dne: (function(){
       // On-screen ESTIMATE only. The authoritative DNE is recomputed by the
       // Lambda on save (compute_deal_dne) from the same formula — the server
@@ -8797,7 +8878,9 @@ function restoreDeal(d){
   setVal('deal-deadline',d.deadline);
   setVal('deal-win-amount',d.winAmount);
   setVal('win-wire',d.winWire ? 'yes' : '');
+  setVal('roi-term-years', d.roiYears || 5);
   setVal('funding-roi',d.fundingRoi||'');
+  if(typeof calcIntelRoi==='function') calcIntelRoi();
   restoreChecks('strategic-checks', d.strategicFactors);
   restoreChecks('ripple-checks', d.rippleFactors);
   recalcAceFromServices();
