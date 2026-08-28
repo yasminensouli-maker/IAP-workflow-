@@ -1467,7 +1467,7 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
       <span class="tier-badge tier-admin">Admin</span> Full access — approval, pipeline &amp; budget
     </div>
 
-    <div style="text-align:center;margin-top:18px;font-size:.68rem;color:var(--ink3)">Produced by Groupe CloudZero Inc. · Build 90</div>
+    <div style="text-align:center;margin-top:18px;font-size:.68rem;color:var(--ink3)">Produced by Groupe CloudZero Inc. · Build 91</div>
   </div>
 </div>
 
@@ -1482,7 +1482,7 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
       <button id="global-back-btn" onclick="goBack()" style="display:none;align-items:center;gap:4px;background:transparent;color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:5px;padding:6px 12px;font-size:.75rem;cursor:pointer;font-family:Arial,sans-serif;margin-right:12px">← Back</button>
       <div class="app-header-logo" onclick="goStep(1)" style="cursor:pointer" title="Back to Start Your Deal Journey">INTEL × AWS</div>
       <div class="app-header-title" onclick="goStep(1)" style="cursor:pointer" title="Back to Start Your Deal Journey">Deal Desk</div>
-      <span id="build-stamp" title="Which build you are looking at. If this does not match what you just deployed, you are on a cached page." style="font-size:.62rem;color:rgba(255,255,255,.55);margin-left:9px;letter-spacing:.03em;white-space:nowrap">BUILD 2026-08-28 10:08 UTC</span>
+      <span id="build-stamp" title="Which build you are looking at. If this does not match what you just deployed, you are on a cached page." style="font-size:.62rem;color:rgba(255,255,255,.55);margin-left:9px;letter-spacing:.03em;white-space:nowrap">BUILD 2026-08-28 10:27 UTC</span>
     </div>
     <div class="app-header-right">
       <span id="draft-indicator" style="font-size:.72rem;color:var(--ink3);margin-right:10px"></span><span class="user-pill" id="user-pill">—</span>
@@ -8221,24 +8221,42 @@ async function finalizeSubmit(){
   }
 
   const data=getCurrentDealData();
-  // Only a genuinely NEW deal gets Submitted status and the submission
-  // notification. Re-saving a loaded deal keeps its current stage — the old
-  // behavior reset edited deals back to the start of the approval chain.
+  /* A deal is being SUBMITTED when it has never been saved, or when it is
+     still sitting at Draft. It is being RE-SAVED when it is already moving
+     through the approval chain, and those must keep their stage — resetting an
+     Intel Leadership deal back to the start of the chain was the original bug
+     this guard was added for.
+
+     The guard used to key off window._loadedDealId alone, which meant anyone
+     who pressed Save Draft first could never submit: the id was set, so the
+     status stayed Draft and no approver was emailed, while the screen still
+     said the deal had been submitted and the team notified. Draft is the state
+     the Save Draft button puts every deal into, so that was the normal path,
+     not an edge case. */
+  const curStatus = String(data.status || '').trim().toLowerCase();
   const isNew = !window._loadedDealId;
-  if(isNew){
+  const submitting = isNew || !curStatus || curStatus === 'draft';
+  if(submitting){
     data.status='Submitted';
     data.approvalStage='core';
   }
-  box.innerHTML='<div style="text-align:center;padding:26px 8px;font-size:.85rem;color:#555">Submitting…</div>';
-  const apiResult=await apiSaveDeal(data,'','',isNew);
+  box.innerHTML='<div style="text-align:center;padding:26px 8px;font-size:.85rem;color:#555">'+(submitting?'Submitting…':'Saving your changes…')+'</div>';
+  const apiResult=await apiSaveDeal(data,'','',submitting);
   if(isNew && apiResult && apiResult.saved){ window._loadedDealId = apiResult.id; }
 
   if(apiResult&&apiResult.saved){
     clearDraft();
     box.innerHTML='<div style="text-align:center;padding:18px 8px">'+
       '<div style="width:52px;height:52px;border-radius:50%;background:#f0fdf4;border:2px solid #86efac;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;color:#16a34a">✓</div>'+
-      '<div style="font-weight:700;font-size:1.05rem;color:#0A1628;margin-bottom:6px">Thank you for taking the time.</div>'+
-      '<div style="font-size:.82rem;color:#555;line-height:1.7;max-width:400px;margin:0 auto">Your deal has been submitted to the Intel Accelerate Program. The internal review team has been notified by email and will set the DNE. You can follow progress in the Pipeline.</div>'+
+      /* The message now reports what actually happened. It used to claim the
+         deal had been submitted and the reviewers emailed on every successful
+         save, including saves where neither of those things took place. */
+      '<div style="font-weight:700;font-size:1.05rem;color:#0A1628;margin-bottom:6px">'+(submitting?'Thank you for taking the time.':'Changes saved.')+'</div>'+
+      '<div style="font-size:.82rem;color:#555;line-height:1.7;max-width:400px;margin:0 auto">'+
+        (submitting
+          ? 'Your deal has been submitted to the Intel Accelerate Program. The internal review team has been notified by email and will set the DNE. You can follow progress in the Pipeline.'
+          : 'This deal is already in the approval chain, so its stage was left as it is and no new notification was sent. You can follow progress in the Pipeline.')+
+      '</div>'+
       '<div style="margin-top:16px"><button class="btn btn-primary" onclick="closeSubmitModal();goStep(9)">View Pipeline</button></div></div>';
   }else{
     box.innerHTML='<div style="text-align:center;padding:18px 8px"><div style="font-weight:700;color:#b91c1c;margin-bottom:6px">Submission failed</div><div style="font-size:.8rem;color:#555">Please try again. If it persists, your session may need a refresh.</div><div style="margin-top:14px"><button class="btn btn-secondary" onclick="closeSubmitModal()">Close</button></div></div>';
