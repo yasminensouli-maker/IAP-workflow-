@@ -3203,6 +3203,12 @@ async function api(path, opts){
 }
 
 function completeLogin(u){
+  // The password stayed in the DOM for the whole session, readable by anything
+  // running in the page.
+  ['login-pass','login-aws-pass','login-intel-pass'].forEach(function(fid){
+    var el = document.getElementById(fid);
+    if(el) el.value = '';
+  });
   setTimeout(function(){ try{ honourDeepLink(); }catch(e){} }, 400);
   currentUser = {...u};
   saveSession(currentUser);
@@ -4668,7 +4674,13 @@ function autoARR(id){
     // moment the count changed after pricing. Manual entries still get the
     // multiplier, exactly as before.
     const alreadyRegional = perInstEl && (perInstEl.dataset.livePriced === '1' || perInstEl.dataset.regionPriced === '1');
-    const regionMult = alreadyRegional ? 1 : getFleetRegionMultiplier(id);
+    const regionMult = 1; void alreadyRegional;
+    // A per-instance monthly price is a price for THIS region, whether it came
+    // from the live quote or was typed off a BOM. The multiplier exists only to
+    // convert the built-in us-east-1 lookup table, and autoPriceFleet already
+    // applied it there. Applying it again inflated every hand-priced non-US
+    // fleet: ca-central-1 by 2.9%, sa-east-1 by 35%, us-east-1 by nothing,
+    // which is why it went unnoticed.
     document.getElementById('f'+id+'-list').value=Math.round(count*perMonth*12*regionMult);
   }
   calcFleet(id);
@@ -5449,7 +5461,15 @@ function calcIntelFunding(){
   const result = document.getElementById('intel-funding-result');
   const amount = document.getElementById('intel-funding-amount');
   const note = document.getElementById('intel-funding-note');
-  if(!arr || !prog || !result) return;
+  if(!prog || !result) return;
+  if(!arr || !isFinite(arr) || arr <= 0){
+    // Blanking the field, or typing 0 or text, used to leave the previous
+    // funding figure on screen beside an empty input.
+    result.style.display = 'block';
+    if(amount) amount.textContent = '';
+    if(note) note.textContent = 'Enter eligible ARR to see an estimate.';
+    return;
+  }
   result.style.display = 'block';
   // Same rate table as everywhere else — computeRate() is the one source.
   const info = computeRate(prog==='migrate' ? 'Migrate' : 'Modernize');
@@ -5458,7 +5478,7 @@ function calcIntelFunding(){
   if(capped) est = info.cap;
   amount.textContent = '$' + est.toLocaleString('en-US',{maximumFractionDigits:0});
   note.textContent = (info.rate*100).toFixed(1).replace('.0','') + '% of $' + arr.toLocaleString('en-US',{maximumFractionDigits:0}) +
-    ' eligible ARR' + (capped ? ' (capped at $250K NTE)' : '') + ' — subject to program approval and Cost Explorer validation';
+    ' eligible ARR' + (capped ? ' (capped at $' + info.cap.toLocaleString('en-US') + ' NTE)' : '') + ' — subject to program approval and Cost Explorer validation';
 }
 
 function calcClaimDateIntel(){
