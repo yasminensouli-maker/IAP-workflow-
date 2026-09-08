@@ -1726,7 +1726,6 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
                     <option value="c8i">c8i / c8i-flex — Compute Optimized · 60% faster NGINX · ideal for HPC, EDA, SLM inference, web/API fleets</option>
                     <option value="r8i">r8i / r8i-flex — Memory Optimized · up to 384 vCPUs / 3TB RAM · 2.5× memory bandwidth · Oracle, SAP HANA, analytics</option>
                     <option value="x8i">x8i — Extra Large Memory · SAP RISE, large in-memory databases, mission-critical ERP</option>
-                    <option value="u7i">u7i — Ultra Large Memory · largest memory footprint on AWS · bare metal available</option>
                     <option value="m8id">m8id — General + Local NVMe · 22.8TB local storage · batch processing, logging, media</option>
                     <option value="m8in">m8in — General + 600Gbps Network · real-time analytics, distributed cache, 5G UPF, Telco</option>
                     <option value="m8idn">m8idn — General + NVMe + 600Gbps · highest combined network and storage throughput</option>
@@ -1739,6 +1738,7 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
                     <option value="m7i">m7i / m7i-flex — General Purpose</option>
                     <option value="c7i">c7i / c7i-flex — Compute Optimized</option>
                     <option value="r7i">r7i — Memory Optimized</option>
+                    <option value="u7i">u7i — Ultra Large Memory (4th Gen Intel Xeon Scalable, Sapphire Rapids) · largest memory footprint on AWS · bare metal available</option>
                     <option value="x2idn">x2idn / x2iedn / x2iezn — High Memory</option>
                     <option value="i4i">i4i — Storage Optimized (NVMe)</option>
                     <option value="hpc7i">hpc7i — HPC + EFA networking</option>
@@ -3711,10 +3711,13 @@ const INSTANCE_FAMILIES = [
   {val:'c8id',     label:'c8id — Compute Optimized + local NVMe (Gen 8)'},
   {val:'r8id',     label:'r8id — Memory Optimized + local NVMe (Gen 8)'},
   {val:'c8in',     label:'c8in — Compute Optimized + Network (Gen 8)'},
-  // Storage-optimized Intel Xeon 6
-  {val:'i7i',      label:'i7i — Storage Optimized (Intel Xeon 6)'},
-  {val:'i7ie',     label:'i7ie — Storage Optimized, dense NVMe (Intel Xeon 6)'},
-  {val:'u7i',      label:'u7i — Ultra Large Memory (SAP RISE and similar)'},
+  // Storage-optimized — 5th Gen Intel Xeon Scalable (Emerald Rapids), not Xeon 6
+  {val:'i7i',      label:'i7i — Storage Optimized (5th Gen Intel Xeon Scalable, Emerald Rapids)'},
+  {val:'i7ie',     label:'i7ie — Storage Optimized, dense NVMe (5th Gen Intel Xeon Scalable, Emerald Rapids)'},
+  // Ultra-large memory — 4th Gen Intel Xeon Scalable (Sapphire Rapids). SKU names
+  // don't follow the normal size vocabulary (u7i-6tb.112xlarge, u7in-24tb.224xlarge,
+  // etc.) — don't auto-price these from a .large rate.
+  {val:'u7i',      label:'u7i — Ultra Large Memory (4th Gen Intel Xeon Scalable, Sapphire Rapids)'},
   // Gen 7 — Intel Xeon Scalable 4th Gen
   {val:'m7i',      label:'m7i — General Purpose (Intel Xeon Scalable, Gen 7)'},
   {val:'c7i',      label:'c7i — Compute Optimized (Intel Xeon Scalable, Gen 7)'},
@@ -3743,7 +3746,13 @@ const INSTANCE_FAMILIES = [
 const VCPU_BY_SIZE = {
   'large':2, 'xlarge':4, '2xlarge':8, '4xlarge':16, '8xlarge':32,
   '12xlarge':48, '16xlarge':64, '24xlarge':96, '32xlarge':128, '48xlarge':192,
-  'metal-48xl':192, 'metal':96, 'medium':1, 'small':1
+  '96xlarge':384, 'metal-48xl':192, 'metal-96xl':384, 'medium':1, 'small':1
+  // Generic 'metal' removed — it isn't a real AWS size name, and coverage
+  // differs by family (i7i has metal-24xl and metal-48xl but no 96xlarge or
+  // metal-96xl at all). This table being shared across every family, rather
+  // than family-specific, still lets an unorderable combination through and
+  // prices it anyway — noted here, not fixed, since fixing it means the size
+  // dropdown has to become dynamic per family rather than one static list.
 };
 function vcpusForSize(size){ return VCPU_BY_SIZE[size] || 0; }
 
@@ -3906,8 +3915,12 @@ async function getIntelPricing(id){
 }
 
 function downloadFleetTemplate(){
+  // monthly_price blank means "price it for me" — handleFleetBulkUpload
+  // routes a blank price to autoPriceFleet(). A filled-in price is taken as
+  // the seller's own manual figure and used as typed. Both rows are shown so
+  // the template doesn't imply a price is required.
   const csv = 'instance_family,size,count,region,monthly_price\n' +
-    'm8i,2xlarge,10,us-east-1 (N. Virginia),2100\n' +
+    'm8i,2xlarge,10,us-east-1 (N. Virginia),\n' +
     'x8i,8xlarge,4,eu-central-1 (Frankfurt),9800\n';
   const blob = new Blob([csv], {type:'text/csv'});
   const url = URL.createObjectURL(blob);
@@ -3954,8 +3967,17 @@ function handleFleetBulkUpload(input){
         if(sizeEl && [...sizeEl.options].some(o=>o.value===size)) sizeEl.value = size;
         if(regionEl && [...regionEl.options].some(o=>o.value===region)) regionEl.value = region;
         document.getElementById('f'+id+'-count').value = count;
-        document.getElementById('f'+id+'-perinst').value = monthlyPrice;
-        autoARR(id);
+        // A blank monthly_price means "price it for me" — route to the same
+        // lookup the Fleet Builder's own auto-pricing uses. A price the
+        // seller actually put in the file is a manual figure, not a
+        // suggestion, so it's marked userTyped and never silently overwritten.
+        const bulkPerInstEl = document.getElementById('f'+id+'-perinst');
+        if(monthlyPrice > 0){
+          if(bulkPerInstEl){ bulkPerInstEl.value = monthlyPrice; bulkPerInstEl.dataset.userTyped = '1'; }
+          autoARR(id);
+        } else {
+          autoPriceFleet(id);
+        }
         created++;
       });
       status.textContent = `${created} fleet${created===1?'':'s'} created` + (skipped>0 ? `, ${skipped} row${skipped===1?'':'s'} skipped (missing family or count)` : '') + '.';
@@ -3973,7 +3995,12 @@ function handleFleetBulkUpload(input){
 function addFleet(){
   fleetCount++;
   const id = fleetCount;
-  fleets.push({id, type:'nn', instance:'', discount:'od', listARR:0, customDisc:0, region:''});
+  // Migration and Modernization must be submitted as separate deals (see
+  // setFleetType) — so a new fleet joins whichever track the deal is already
+  // on, rather than defaulting to 'nn' and silently creating a mixed deal
+  // the moment it's added.
+  const dealType = fleets.length ? fleets[0].type : 'nn';
+  fleets.push({id, type:dealType, instance:'', discount:'od', listARR:0, customDisc:0, region:''});
 
   const container = document.getElementById('fleet-container');
   const div = document.createElement('div');
@@ -3990,8 +4017,8 @@ function addFleet(){
       <div class="fleet-row-title">Fleet ${id}</div>
       <div style="display:flex;align-items:center;gap:8px">
         <div class="fleet-type-toggle">
-          <button class="type-btn active-nn" id="btn-nn-${id}" onclick="setFleetType(${id},'nn')">Migrate 4.5%</button>
-          <button class="type-btn" id="btn-mod-${id}" onclick="setFleetType(${id},'mod')">Modernize 1%</button>
+          <button class="type-btn${dealType==='nn'?' active-nn':''}" id="btn-nn-${id}" onclick="setFleetType(${id},'nn')">Migrate 4.5%</button>
+          <button class="type-btn${dealType==='mod'?' active-mod':''}" id="btn-mod-${id}" onclick="setFleetType(${id},'mod')">Modernize 1%</button>
         </div>
         ${id>1?`<button class="btn btn-danger btn-sm" onclick="removeFleet(${id})">Remove</button>`:''}
       </div>
@@ -4018,7 +4045,8 @@ function addFleet(){
           <option value="32xlarge">32xlarge</option>
           <option value="48xlarge">48xlarge</option>
           <option value="96xlarge">96xlarge</option>
-          <option value="metal">metal</option>
+          <option value="metal-48xl">metal-48xl</option>
+          <option value="metal-96xl">metal-96xl</option>
         </select>
         <span class="hint" style="font-size:.7rem">Top 12 covering small to largest — not every family offers every size</span>
       </div>
@@ -4067,7 +4095,7 @@ function addFleet(){
       <input type="number" id="f${id}-customdisc" placeholder="e.g. 25"
         min="0" max="80" oninput="calcFleet(${id})">
     </div>
-    <div id="f${id}-migration-wrap" style="display:none;margin-top:8px">
+    <div id="f${id}-migration-wrap" style="display:${dealType==='mod'?'block':'none'};margin-top:8px">
       <div class="form-grid" style="grid-template-columns:1fr 1fr">
         <div class="f-group">
           <label>Current instance (start typing — 593 pre-vetted upgrades)</label>
@@ -4114,7 +4142,17 @@ function removeFleet(id){
 
 function setFleetType(id, type){
   const fleet=fleets.find(f=>f.id===id);
-  if(fleet) fleet.type=type;
+  if(!fleet) return;
+  // The program requires Migration and Modernization to be submitted as
+  // separate deals. Block mixing them in the Fleet Builder itself, rather
+  // than catching it later at submit — this is a new deal, so there's no
+  // existing saved record to worry about breaking.
+  const conflicting = fleets.some(f=>f.id!==id && f.type!==type);
+  if(conflicting){
+    alert('This deal already has a ' + (type==='mod'?'Migrate':'Modernize') + ' fleet. Migration and Modernization must be submitted as separate deals — remove the other fleet(s) first, or start a new deal for this track.');
+    return;
+  }
+  fleet.type=type;
   document.getElementById('btn-nn-'+id).className='type-btn'+(type==='nn'?' active-nn':'');
   document.getElementById('btn-mod-'+id).className='type-btn'+(type==='mod'?' active-mod':'');
   // From → To fields visible on Optimize (existing workloads)
@@ -4653,7 +4691,13 @@ function autoPriceFleet(id){
   if(family && size && region){
     const monthly = lookupMonthlyPrice(family, size, region);
     if(monthly > 0 && perInstEl){
-      perInstEl.value = Math.round(monthly);
+      // Display only, to two decimals. The ARR chain in autoARR() reads the
+      // stored hourly rate below, never this field — multiplying a rounded
+      // monthly figure by 12 doesn't hit the real annualized number. 10 x
+      // m8i.2xlarge at $0.4416/hr is $38,684.16/yr; round to $322.37/mo (or
+      // worse, $322) first and multiply by 12 and it comes out different.
+      perInstEl.value = monthly.toFixed(2);
+      perInstEl.dataset.hourly = String(monthly / HOURS_PER_MONTH);
       // lookupMonthlyPrice already applied the region multiplier. Flag it so
       // autoARR does not apply it a second time -- that was pricing every
       // non-US fleet 9-28% high.
@@ -4681,7 +4725,20 @@ function autoARR(id){
     // applied it there. Applying it again inflated every hand-priced non-US
     // fleet: ca-central-1 by 2.9%, sa-east-1 by 35%, us-east-1 by nothing,
     // which is why it went unnoticed.
-    document.getElementById('f'+id+'-list').value=Math.round(count*perMonth*12*regionMult);
+    const hourly = perInstEl && perInstEl.dataset.hourly ? parseFloat(perInstEl.dataset.hourly) : 0;
+    let annual;
+    if(hourly > 0){
+      // Auto-priced path: annualize straight from the unrounded hourly rate
+      // (8760 hrs/yr). perMonth is the displayed, rounded-to-cents figure —
+      // reading it back here instead of the hourly rate is exactly the
+      // rounding-then-multiplying bug this replaces (see autoPriceFleet).
+      annual = count * hourly * 8760;
+    } else {
+      // Manual-entry path: the typed monthly figure IS the number the seller
+      // gave us, so it stays a straight x12.
+      annual = count * perMonth * 12 * regionMult;
+    }
+    document.getElementById('f'+id+'-list').value=Math.round(annual);
   }
   calcFleet(id);
 }
@@ -4690,7 +4747,7 @@ function clearLivePriceFlag(id){
   // Typing a manual monthly price replaces the live quote — the region
   // multiplier applies again and the source attribution no longer holds.
   const perInstEl=document.getElementById('f'+id+'-perinst');
-  if(perInstEl){ delete perInstEl.dataset.livePriced; delete perInstEl.dataset.regionPriced; }
+  if(perInstEl){ delete perInstEl.dataset.livePriced; delete perInstEl.dataset.regionPriced; delete perInstEl.dataset.hourly; }
   const fleetObj=fleets.find(f=>f.id===id);
   if(fleetObj){ fleetObj.livePriced=false; fleetObj.priceSource='Manual entry'; fleetObj.priceAt=''; }
   const resultHint=document.getElementById('f'+id+'-intel-result');
@@ -4719,17 +4776,23 @@ function calcFleet(id){
   if(discSel==='custom'){
     discRate=(parseFloat(document.getElementById('f'+id+'-customdisc').value)||0)/100;
   }
+  // The Custom Discount field is free text. Nothing stopped a negative value
+  // from being typed, which would push actualARR above listVal and payout
+  // above the cap it's meant to sit under. Clamp to a real discount range.
+  if(discRate < 0) discRate = 0;
+  if(discRate >= 1) discRate = 0.999999;
 
   const actualARR = listVal * (1 - discRate);
-  // Per-fleet rates: Migrate 4.5% | Modernize 1% NTE $250k
+  // Per-fleet rates and program caps: Migrate 4.5% NTE $1,000,000 | Modernize 1% NTE $250,000
   const rebateRate = fleet.type==='mod' ? 0.01 : 0.045;
+  const perFleetCap = fleet.type==='mod' ? 250000 : 1000000;
   // DNE responds purely to the Blended Pricing selection above — no separate
   // fixed haircut stacked on top. actualARR already reflects whatever discount
   // was picked. Pricing is On-Demand list only now, so this is list price
   // unless a real, stated customer pricing benefit was entered.
   let rebate = actualARR * rebateRate;
   let nteCap = listVal * rebateRate; // Not to Exceed — ceiling from full list price, no discount applied
-  if(fleet.type==='mod' && nteCap > 250000) nteCap = 250000;
+  if(nteCap > perFleetCap) nteCap = perFleetCap;
   fleet.nteCap = nteCap;
   if(rebate > nteCap) rebate = nteCap;
 
@@ -4841,14 +4904,16 @@ function calcRiseBOM(){
 function updateTotals(){
   const totList=fleets.reduce((s,f)=>s+(f.listARR||0),0);
   const totActual=fleets.reduce((s,f)=>s+(f.actualARR||0),0);
-  // The $250K Modernize cap is a PER-DEAL limit. Each fleet row shows its own
-  // capped at $1,000,000 share, but the deal total clamps the summed Modernize portion —
-  // otherwise a three-region Modernize deal could display up to $750K, a
-  // number the program rules do not support. Migrate fleets are capped at $1,000,000.
-  const migRebate=fleets.filter(f=>f.type!=='mod').reduce((s,f)=>s+(f.rebate||0),0);
+  // Both program caps are PER-DEAL limits, not per-fleet. Each fleet row is
+  // already capped at its own track's ceiling (see calcFleet), but a deal
+  // with several fleets on the same track must also be capped at the deal
+  // level — otherwise a three-region Migrate deal could display up to
+  // $3,000,000 and a three-region Modernize deal up to $750,000, neither of
+  // which the program rules support.
+  const migRebate=Math.min(fleets.filter(f=>f.type!=='mod').reduce((s,f)=>s+(f.rebate||0),0), 1000000);
   const modRebate=Math.min(fleets.filter(f=>f.type==='mod').reduce((s,f)=>s+(f.rebate||0),0), 250000);
   const totRebate=migRebate+modRebate;
-  const migNTE=fleets.filter(f=>f.type!=='mod').reduce((s,f)=>s+(f.nteCap||0),0);
+  const migNTE=Math.min(fleets.filter(f=>f.type!=='mod').reduce((s,f)=>s+(f.nteCap||0),0), 1000000);
   const modNTE=Math.min(fleets.filter(f=>f.type==='mod').reduce((s,f)=>s+(f.nteCap||0),0), 250000);
   const totNTE=migNTE+modNTE;
   const effDisc=totList>0?(totList-totActual)/totList:0;
@@ -6298,6 +6363,7 @@ function printInternalSummary(){
       <div class="tag">Intel × AWS Deal Desk — Internal</div>
       <h1 style="color:#fff;margin-top:4px">${d.custName || 'Deal Summary'}</h1>
       <div style="color:rgba(255,255,255,.7);font-size:.85rem">Full internal record — not for customer distribution</div>
+      <div style="color:rgba(255,255,255,.55);font-size:.72rem;margin-top:4px">Fleet Builder pricing not confirmed by a live Intel quote or a manual entry is a directional estimate from embedded AWS list pricing. Confirm against the AWS Pricing Calculator or the customer's BOM before this figure is treated as final.</div>
     </div>
     ${document.getElementById('summary-content').innerHTML}
   `;
@@ -6361,7 +6427,7 @@ function downloadCustomerSafeSummary(){
     <h2>What This Is</h2>
     <div class="card">${valueStory}</div>
     <h2>Estimated Program Funding</h2>
-    <div class="card"><strong style="font-size:1.1rem">${fmtD(d.dne)}</strong> — ceiling amount, not a guaranteed payout, subject to Proof of Performance and milestone confirmation.</div>
+    <div class="card"><strong style="font-size:1.1rem">${fmtD(d.dne)}</strong> — ceiling amount, not a guaranteed payout, subject to Proof of Performance and milestone confirmation. This is a directional estimate until sized against the AWS Pricing Calculator or the customer's own BOM.</div>
     <h2>The Path</h2>
     <table>
       <tr><th>Milestone</th><th>Date</th></tr>
@@ -6645,6 +6711,7 @@ function generateSOW(){
     </tr>
   </tbody>
 </table>
+<p class="sow-p" style="font-size:.72rem;color:var(--ink2)">The Funding Amount Not to Exceed above is directional until confirmed against the AWS Pricing Calculator or the customer's own BOM; final payment is against actual Cost Explorer spend, not this estimate.</p>
 
 <div class="sow-section-head">Proof of Performance</div>
 <div class="sow-p">
