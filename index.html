@@ -1325,6 +1325,60 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
   box-shadow:0 0 0 3px rgba(0,104,181,.35)!important;
 }
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+/* ── BUILD 97: INTAKE REDESIGN ───────────────────────────────
+   Keeps the app's 14px base. Labels move to sentence case and a
+   size people can read without squinting; nothing else is resized. */
+label{font-size:.8rem;font-weight:600;text-transform:none;letter-spacing:0;color:var(--ink2)}
+.hint{font-size:.75rem}
+input::placeholder,textarea::placeholder{color:#a3a3a3;opacity:1}
+
+/* Intake v2 */
+#intake-v2{max-width:920px}
+.v2-card{position:sticky;top:0;z-index:20;background:var(--white);border:1px solid var(--border);border-radius:8px;padding:10px 16px;margin-bottom:12px;box-shadow:var(--shadow)}
+.v2-card-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px 16px}
+.v2-card-item .k{font-size:.72rem;color:var(--ink3)}
+.v2-card-item .val{font-size:.85rem;font-weight:600;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.v2-card-item .val.empty{color:#a3a3a3;font-weight:400}
+.v2-sec{scroll-margin-top:120px;background:var(--white);border:1px solid var(--border);border-radius:8px;margin-bottom:8px}
+.v2-sec-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;cursor:pointer}
+.v2-sec-title{font-size:.95rem;font-weight:600;color:var(--ink)}
+.v2-sec-sum{font-size:.8rem;color:var(--ink3);flex:1;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.v2-sec-state{font-size:.72rem;font-weight:600;border-radius:10px;padding:2px 9px;white-space:nowrap}
+.v2-sec-state.done{background:var(--green-light);color:var(--green)}
+.v2-sec-state.todo{background:#f0f0ee;color:var(--ink3)}
+.v2-sec-body{padding:2px 16px 16px;display:none}
+.v2-sec.open .v2-sec-body{display:block}
+.v2-sec.open{border-color:var(--intel)}
+.v2-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 16px}
+.v2-grid .full{grid-column:1/-1}
+.v2-f{display:flex;flex-direction:column;gap:4px}
+.v2-radio{display:flex;gap:8px;flex-wrap:wrap}
+.v2-radio label{display:flex;align-items:center;gap:7px;border:1px solid var(--border);border-radius:6px;padding:7px 12px;cursor:pointer;font-weight:400;font-size:.83rem;color:var(--ink);background:var(--white)}
+.v2-radio label.sel{border-color:var(--intel);background:var(--intel-light)}
+.v2-radio input{width:15px;height:15px}
+.v2-type label{flex:1;min-width:220px;flex-direction:column;align-items:flex-start;gap:2px}
+.v2-type .rate{font-size:.83rem;color:var(--intel);font-weight:600}
+.v2-type .cap{font-size:.75rem;color:var(--ink3)}
+.v2-person{display:grid;grid-template-columns:1.6fr 1.2fr 1fr auto;gap:10px;align-items:end;margin-bottom:8px}
+.v2-person .poc{font-size:.75rem;color:var(--intel);font-weight:600}
+.v2-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.v2-err{display:none;background:var(--red-light);color:#8a1f13;border-radius:6px;padding:8px 12px;margin-top:10px;font-size:.8rem}
+.v2-note{background:#f7f7f5;border-radius:6px;padding:8px 12px;font-size:.8rem;color:var(--ink2)}
+.v2-money{font-size:1.15rem;font-weight:600;color:var(--ink)}
+.v2-table{width:100%;border-collapse:collapse;font-size:.8rem}
+.v2-table th,.v2-table td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--border2)}
+.v2-table th{font-weight:600;color:var(--ink2)}
+.v2-def{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;border:1px solid var(--border);color:var(--ink3);font-size:.65rem;font-weight:600;cursor:pointer;margin-left:5px;background:var(--white);padding:0;vertical-align:middle}
+.v2-def:hover,.v2-def:focus-visible{border-color:var(--intel);color:var(--intel)}
+.v2-def-pop{display:none;background:#f7f7f5;border:1px solid var(--border2);color:var(--ink2);border-radius:6px;padding:7px 10px;font-size:.78rem;margin-top:5px;font-weight:400;line-height:1.5}
+.v2-files{font-size:.8rem;color:var(--ink2);margin-top:6px}
+@media (max-width:760px){
+  .v2-card-grid{grid-template-columns:1fr 1fr}
+  .v2-grid{grid-template-columns:1fr}
+  .v2-person{grid-template-columns:1fr}
+  .v2-sec-sum{display:none}
+}
 </style>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
@@ -1467,7 +1521,7 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
       <span class="tier-badge tier-admin">Admin</span> Full access — approval, pipeline &amp; budget
     </div>
 
-    <div style="text-align:center;margin-top:18px;font-size:.68rem;color:var(--ink3)">Produced by Groupe CloudZero Inc. · Build 96</div>
+    <div style="text-align:center;margin-top:18px;font-size:.68rem;color:var(--ink3)">Produced by Groupe CloudZero Inc. · Build 97</div>
   </div>
 </div>
 
@@ -1480,13 +1534,13 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
   <header class="app-header">
     <div class="app-header-left">
       <button id="global-back-btn" onclick="goBack()" style="display:none;align-items:center;gap:4px;background:transparent;color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:5px;padding:6px 12px;font-size:.75rem;cursor:pointer;font-family:Arial,sans-serif;margin-right:12px">← Back</button>
-      <div class="app-header-logo" onclick="goStep(1)" style="cursor:pointer" title="Back to Start Your Deal Journey">INTEL × AWS</div>
-      <div class="app-header-title" onclick="goStep(1)" style="cursor:pointer" title="Back to Start Your Deal Journey">Deal Desk</div>
+      <div class="app-header-logo" onclick="goStep(1)" style="cursor:pointer" title="Back to New deal">INTEL × AWS</div>
+      <div class="app-header-title" onclick="goStep(1)" style="cursor:pointer" title="Back to New deal">Deal Desk</div>
       <span id="build-stamp" title="Which build you are looking at. If this does not match what you just deployed, you are on a cached page." style="font-size:.62rem;color:rgba(255,255,255,.55);margin-left:9px;letter-spacing:.03em;white-space:nowrap">BUILD 2026-08-28 15:21 UTC</span>
     </div>
     <div class="app-header-right">
       <span id="draft-indicator" style="font-size:.72rem;color:var(--ink3);margin-right:10px"></span><span class="user-pill" id="user-pill">—</span>
-      <button onclick="showFillGuide()" style="background:transparent;color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.2);border-radius:5px;padding:5px 10px;font-size:.68rem;cursor:pointer;font-family:Arial,sans-serif;margin-right:8px">How to Fill This Out</button>
+      <button onclick="showFillGuide()" style="background:transparent;color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.2);border-radius:5px;padding:5px 10px;font-size:.68rem;cursor:pointer;font-family:Arial,sans-serif;margin-right:8px">How IAP works</button>
       <button class="btn-logout" onclick="doLogout()">Sign Out</button>
     </div>
   </header>
@@ -1496,29 +1550,26 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
     <!-- SIDEBAR -->
     <nav class="sidebar">
       <button onclick="goStep(3);setTimeout(()=>{setBaselineMethod(3);const el=document.getElementById('baseline-method-3');if(el)el.scrollIntoView({behavior:'smooth',block:'start'});},80)" style="display:block;width:100%;text-align:left;background:linear-gradient(135deg,#0068B5,#0A1628);border:none;border-radius:10px;padding:12px 14px;margin-bottom:14px;cursor:pointer;color:#fff">
-        <div style="font-size:.85rem;font-weight:800">🧞 Ask Intel Anything</div>
-        <div style="font-size:.7rem;color:rgba(255,255,255,.75);margin-top:2px">Live pricing, rates, availability — just ask</div>
+        <div style="font-size:.95rem;font-weight:800">Ask Intel Anything</div>
+        <div style="font-size:.8rem;color:rgba(255,255,255,.8);margin-top:2px">Rates, instance pricing, and program rules</div>
       </button>
 
       <div class="sidebar-section" style="background:linear-gradient(135deg,rgba(0,104,181,.12),rgba(255,153,0,.06));border:1px solid rgba(0,104,181,.35);border-radius:10px;padding:10px 8px;margin-bottom:16px">
-        <div class="sidebar-label" style="color:#4da3e8;font-weight:800;letter-spacing:.12em">Resources — Tools &amp; Help</div>
-        <button class="nav-item" id="nav3" onclick="goStep(3)">
+        <div class="sidebar-label" style="color:#4da3e8;font-weight:800;letter-spacing:.12em">Resources</div>
+        <button class="nav-item" id="nav3" onclick="goStep(3)" style="display:none">
           <span class="step-num" id="snum3">⊞</span>Deal Journey — BOM to ARR
         </button>
-        <button class="nav-item" onclick="downloadWorkflowGuide()">
-          <span class="step-num">⇩</span>Instructions — Download Guide
-        </button>
         <button class="nav-item" onclick="showFillGuide()">
-          <span class="step-num">?</span>How to Fill This Out
+          <span class="step-num">?</span>How IAP works
         </button>
+        <a href="/aws-powered-by-intel-customer.pdf" target="_blank" rel="noopener" class="nav-item" style="text-decoration:none">
+          <span class="step-num">⇩</span>Why Xeon 6 (PDF)
+        </a>
         <button class="nav-item" onclick="startNewDeal()" style="color:#0068B5;font-weight:700">
           <span class="step-num">+</span>Start a new deal
         </button>
-        <button class="nav-item" onclick="showStartChecklist()">
-          <span class="step-num">&#10003;</span>Before you start — checklist
-        </button>
-        <a href="https://app.smartsheet.com/sheets/VXvWp573C8hG4q6xw3HjmMw2pcCrrFCP5Gc7MQV1" target="_blank" rel="noopener" class="nav-item" style="text-decoration:none;display:block">
-          <span class="step-num">⧉</span>Open Smartsheet Tracker ↗
+        <a id="side-smartsheet" href="https://app.smartsheet.com/sheets/VXvWp573C8hG4q6xw3HjmMw2pcCrrFCP5Gc7MQV1" target="_blank" rel="noopener" class="nav-item" style="text-decoration:none">
+          <span class="step-num">⧉</span>Smartsheet tracker
         </a>
       </div>
 
@@ -1556,29 +1607,29 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
       <div class="sidebar-section">
         <div class="sidebar-label">Approval Flow</div>
         <div class="tenets">
-          <div class="tenet-item"><strong>1 · Submit</strong>Deal submitted through this tool with Cost Explorer baseline.</div>
-          <div class="tenet-item"><strong>2 · Pre-approval</strong>Yasmine Nsouli, Chris Chlee, or Jeanine Reidel. Any one of them clears it.</div>
-          <div class="tenet-item"><strong>3 · AWS Approval</strong>Bryan or Dinc. Any one of them clears it.</div>
-          <div class="tenet-item"><strong>4 · Intel Approval</strong>Brendon Roosken with the Intel owner for the deal's region: Deep Grewal (NAMER), Fabio Pesiguelo (LATAM), Diego Bailon Humpert (EMEA), Jason Tan (APJ).</div>
-          <div class="tenet-item"><strong>5 · TCC / IPIC</strong>Jacob Barksdale inputs into IPIC and generates the SOW. TCC does not approve funding.</div>
+          <div class="tenet-item"><strong>1 · Submit</strong>The seller submits the deal on the IAP app.</div>
+          <div class="tenet-item"><strong>2 · Program team review</strong>The program team checks the deal is complete.</div>
+          <div class="tenet-item"><strong>3 · AWS approval</strong>Dinc approves for AWS.</div>
+          <div class="tenet-item"><strong>4 · Intel approval</strong>Brendon Roosken with the Intel owner for the deal's region: Deep Grewal (NAMER), Fabio Pesiguelo (LATAM), Diego Bailon Humpert (EMEA), Jason Tan (APJ).</div>
+          <div class="tenet-item"><strong>5 · TCC and IPIC</strong>Jacob Barksdale enters the deal in IPIC and writes the SOW. TCC does not approve funding.</div>
         </div>
       </div>
       <div class="sidebar-section">
         <div class="sidebar-label">Payment Flow</div>
         <div class="tenets">
-          <div class="tenet-item"><strong>1 · Baseline</strong>Customer provides Cost Explorer at onset — net new or modernization.</div>
-          <div class="tenet-item"><strong>2 · DNE Set</strong>The calculator figure becomes the Do Not Exceed ceiling.</div>
-          <div class="tenet-item"><strong>3 · Roadmap</strong>Migration roadmap created, checklist signed.</div>
-          <div class="tenet-item"><strong>4 · Migrate</strong>Customer executes between start and end dates.</div>
-          <div class="tenet-item"><strong>5 · Final POP</strong>Cost Explorer at ≥75% completion → TCC pays.</div>
+          <div class="tenet-item"><strong>1 · Baseline</strong>The customer shares Cost Explorer at the start. Required for Modernize.</div>
+          <div class="tenet-item"><strong>2 · Approved NTE set</strong>The approved amount becomes the Not to exceed (NTE) figure.</div>
+          <div class="tenet-item"><strong>3 · Migrate</strong>The customer migrates between the start and end dates.</div>
+          <div class="tenet-item"><strong>4 · Proof of performance</strong>Cost Explorer shows the workload running on Intel.</div>
+          <div class="tenet-item"><strong>5 · TCC pays</strong>Quarterly, or one payment at year end once 75% is complete.</div>
         </div>
       </div>
 
       <div class="sidebar-section">
         <div class="sidebar-label">Actions</div>
-        <button class="btn btn-secondary btn-sm" style="width:100%;margin-bottom:6px" onclick="saveDraftToServer()">💾 Save Draft</button>
-        <button class="btn btn-secondary btn-sm" style="width:100%;margin-bottom:6px" onclick="loadDraft()">📂 Load Draft</button>
-        <button class="btn btn-secondary btn-sm" style="width:100%" onclick="clearAll()">🗑 Clear</button>
+        <button class="btn btn-secondary btn-sm" style="width:100%;margin-bottom:6px" onclick="saveDraftToServer()">Save draft</button>
+        <button class="btn btn-secondary btn-sm" style="width:100%;margin-bottom:6px" onclick="loadDraft()">Open a draft</button>
+        <button class="btn btn-secondary btn-sm" style="width:100%" onclick="clearAll()">Clear form</button>
       </div>
     </nav>
 
@@ -1589,9 +1640,195 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
       <div class="step-panel active" id="step1">
         <div class="step-header">
           <div class="step-badge">Step 01 · Deal Desk</div>
-          <div class="step-title">Start Your Deal Journey</div>
+          <div class="step-title">New deal</div>
           <div class="step-desc" id="step1-desc">Fast-track intake for the Intel × AWS co-investment program — the fields below are everything needed to route this opportunity.</div>
         </div>
+
+        <!-- ── INTAKE V2 (build 97) ─────────────────────────────────
+             One form for every role, in the order the ontology runs: who,
+             with which partner, for which customer, what is moving, which
+             opportunity, how it is paid. Every field here writes into the
+             original field ids (now hidden), so save, submit, the summary,
+             the Smartsheet row, and the SOW keep reading what they always
+             read. -->
+        <div id="intake-v2" style="display:none">
+          <div class="v2-card" id="v2-card" aria-live="polite">
+            <div class="v2-card-grid">
+              <div class="v2-card-item"><div class="k">Customer</div><div class="val" id="v2c-cust">Not set</div></div>
+              <div class="v2-card-item"><div class="k">Workload</div><div class="val" id="v2c-wl">Not set</div></div>
+              <div class="v2-card-item"><div class="k">Deal type</div><div class="val" id="v2c-type">Not set</div></div>
+              <div class="v2-card-item"><div class="k">Partner</div><div class="val" id="v2c-partner">None</div></div>
+              <div class="v2-card-item"><div class="k">AWS account PoC</div><div class="val" id="v2c-aws">Not set</div></div>
+              <div class="v2-card-item"><div class="k">Intel account PoC</div><div class="val" id="v2c-intel">Not set</div></div>
+              <div class="v2-card-item"><div class="k">SFDC / ACE record</div><div class="val" id="v2c-ace">Not set</div></div>
+              <div class="v2-card-item"><div class="k">Calculated amount</div><div class="val" id="v2c-amt">Not calculated</div></div>
+            </div>
+          </div>
+
+          <div class="v2-note" style="margin-bottom:12px">You will need the BOM, the SFDC or ACE record number, and the AWS and Intel account contacts. <a href="/aws-powered-by-intel-customer.pdf" target="_blank" rel="noopener" style="color:var(--intel)">Why Xeon 6 (PDF)</a></div>
+
+          <!-- 1. Deal team -->
+          <div class="v2-sec" id="v2s-team" data-step="1">
+            <div class="v2-sec-head" onclick="v2Open('team')"><span class="v2-sec-title">1. Deal team</span><span class="v2-sec-sum" id="v2sum-team"></span><span class="v2-sec-state todo" id="v2st-team">To do</span></div>
+            <div class="v2-sec-body">
+              <datalist id="v2-directory"></datalist>
+              <div class="v2-grid">
+                <div class="v2-f"><label for="v2-sub-name">Submitter name <span class="req">*</span></label><input type="text" id="v2-sub-name" oninput="v2Sync()"></div>
+                <div class="v2-f"><label for="v2-sub-email">Submitter email <span class="req">*</span></label><input type="email" id="v2-sub-email" oninput="v2Sync()"></div>
+                <div class="v2-f"><label for="v2-aws-name">AWS account team PoC name <span class="req">*</span></label><input type="text" id="v2-aws-name" oninput="v2Sync()"></div>
+                <div class="v2-f"><label for="v2-aws-email">AWS account team PoC email <span class="req">*</span></label><input type="email" id="v2-aws-email" list="v2-directory" placeholder="name@amazon.com" oninput="v2PocChanged('aws')" onchange="v2PocChanged('aws',true)"></div>
+                <div class="v2-f"><label for="v2-intel-name">Intel account PoC name <span class="req">*</span></label><input type="text" id="v2-intel-name" oninput="v2Sync()"></div>
+                <div class="v2-f"><label for="v2-intel-email">Intel account PoC email <span class="req">*</span></label><input type="email" id="v2-intel-email" list="v2-directory" placeholder="name@intel.com" oninput="v2PocChanged('intel')" onchange="v2PocChanged('intel',true)"></div>
+              </div>
+              <div class="v2-err" id="v2err-team"></div>
+              <div class="v2-actions"><button type="button" class="btn btn-primary" onclick="v2Next('team')">Continue</button></div>
+            </div>
+          </div>
+
+          <!-- 2. Partner -->
+          <div class="v2-sec" id="v2s-partner">
+            <div class="v2-sec-head" onclick="v2Open('partner')"><span class="v2-sec-title">2. Partner</span><span class="v2-sec-sum" id="v2sum-partner"></span><span class="v2-sec-state todo" id="v2st-partner">To do</span></div>
+            <div class="v2-sec-body">
+              <div class="v2-f"><label>Is a partner involved? <span class="req">*</span></label>
+                <div class="v2-radio" id="v2-partner-inv">
+                  <label><input type="radio" name="v2-pinv" value="yes" onchange="v2Sync()"> Yes</label>
+                  <label><input type="radio" name="v2-pinv" value="no" onchange="v2Sync()"> No</label>
+                  <label><input type="radio" name="v2-pinv" value="notyet" onchange="v2Sync()"> Not yet</label>
+                </div>
+              </div>
+              <div id="v2-partner-more" style="display:none;margin-top:14px">
+                <div class="v2-grid">
+                  <div class="v2-f"><label for="v2-partner-name">Partner name <span class="req">*</span></label><input type="text" id="v2-partner-name" placeholder="Partner company name" oninput="v2Sync()"></div>
+                  <div class="v2-f"><label>Is the partner receiving funding?<button type="button" class="v2-def" onclick="v2Def(this)" aria-label="What this means">?</button><span class="v2-def-pop">Select Yes only if the partner receives the funding. Otherwise the customer receives it.</span></label>
+                    <div class="v2-radio" id="v2-partner-funded">
+                      <label><input type="radio" name="v2-pfund" value="no" onchange="v2Sync()" checked> No</label>
+                      <label><input type="radio" name="v2-pfund" value="yes" onchange="v2Sync()"> Yes</label>
+                    </div>
+                  </div>
+                  <div class="v2-f full" id="v2-partner-contact-wrap" style="display:none"><label for="v2-partner-contact">Partner contact email for the SOW <span class="req">*</span></label><input type="email" id="v2-partner-contact" placeholder="name@partner.com" oninput="v2Sync()"></div>
+                </div>
+              </div>
+              <div class="v2-err" id="v2err-partner"></div>
+              <div class="v2-actions"><button type="button" class="btn btn-primary" onclick="v2Next('partner')">Continue</button></div>
+            </div>
+          </div>
+
+          <!-- 3. Customer -->
+          <div class="v2-sec" id="v2s-customer">
+            <div class="v2-sec-head" onclick="v2Open('customer')"><span class="v2-sec-title">3. Customer</span><span class="v2-sec-sum" id="v2sum-customer"></span><span class="v2-sec-state todo" id="v2st-customer">To do</span></div>
+            <div class="v2-sec-body">
+              <div class="v2-grid">
+                <div class="v2-f full"><label for="v2-cust">Customer name (as shown in SFDC) <span class="req">*</span></label><input type="text" id="v2-cust" list="v2-cust-list" placeholder="Account name in Salesforce" oninput="v2Sync()"><datalist id="v2-cust-list"></datalist></div>
+                <div class="v2-f"><label for="v2-country">Country <span class="req">*</span></label><select id="v2-country" onchange="v2Sync()"></select></div>
+                <div class="v2-f"><label>Region</label><div class="v2-note" id="v2-region-show">Set from country</div></div>
+              </div>
+              <div class="v2-err" id="v2err-customer"></div>
+              <div class="v2-actions"><button type="button" class="btn btn-primary" onclick="v2Next('customer')">Continue</button></div>
+            </div>
+          </div>
+
+          <!-- 4. Deal details -->
+          <div class="v2-sec" id="v2s-details">
+            <div class="v2-sec-head" onclick="v2Open('details')"><span class="v2-sec-title">4. Deal details</span><span class="v2-sec-sum" id="v2sum-details"></span><span class="v2-sec-state todo" id="v2st-details">To do</span></div>
+            <div class="v2-sec-body">
+              <div class="v2-f"><label>Deal type <span class="req">*</span><button type="button" class="v2-def" onclick="v2Def(this)" aria-label="What this means">?</button><span class="v2-def-pop">Migrate: workloads new to AWS, 4.5% of Intel-eligible ARR, capped at $1,000,000. Modernize: existing AWS workloads moving to current Intel, 1%, capped at $250,000.</span></label>
+                <div class="v2-radio v2-type" id="v2-type">
+                  <label><span><input type="radio" name="v2-type" value="migrate" onchange="v2Sync(true)"> Migrate</span><span class="rate">4.5% of Intel-eligible ARR</span><span class="cap">Capped at $1,000,000. Workloads new to AWS.</span></label>
+                  <label><span><input type="radio" name="v2-type" value="modernize" onchange="v2Sync(true)"> Modernize</span><span class="rate">1% of Intel-eligible ARR</span><span class="cap">Capped at $250,000. Existing AWS workloads moving to current Intel.</span></label>
+                </div>
+              </div>
+              <div class="v2-grid" style="margin-top:14px">
+                <div class="v2-f full"><label for="v2-workload">Workload <span class="req">*</span></label>
+                  <select id="v2-workload" onchange="v2Sync()">
+                    <option value="">Select a workload</option>
+                    <option value="SAP">SAP</option>
+                    <option value="VMware">VMware</option>
+                    <option value="Database/Data Platforms">Database and data platforms</option>
+                    <option value="SQL">SQL Server</option>
+                    <option value="GenAI">GenAI</option>
+                    <option value="AI Inference">AI inference</option>
+                    <option value="Accelerated Compute">Accelerated compute</option>
+                    <option value="Mainframe">Mainframe</option>
+                    <option value="Epic Health Records">Epic Health Records</option>
+                    <option value="CB4EDA">CB4EDA</option>
+                    <option value="Other">Other</option>
+                  </select></div>
+                <div class="v2-f"><label for="v2-start" id="v2-start-l">Migration start <span class="req">*</span></label><input type="date" id="v2-start" onchange="v2StartChanged()"></div>
+                <div class="v2-f"><label for="v2-end" id="v2-end-l">Migration end <span class="req">*</span></label><input type="date" id="v2-end" onchange="v2Sync()"><span class="hint">No more than one year after the start.</span></div>
+                <div class="v2-f full"><label for="v2-desc">Description</label><textarea id="v2-desc" placeholder="Filled in automatically. Edit if needed." oninput="this.dataset.edited=1;v2Sync()"></textarea></div>
+              </div>
+              <div class="v2-err" id="v2err-details"></div>
+              <div class="v2-actions"><button type="button" class="btn btn-primary" onclick="v2Next('details')">Continue</button></div>
+            </div>
+          </div>
+
+          <!-- 5. Opportunity record -->
+          <div class="v2-sec" id="v2s-opp">
+            <div class="v2-sec-head" onclick="v2Open('opp')"><span class="v2-sec-title">5. Opportunity record</span><span class="v2-sec-sum" id="v2sum-opp"></span><span class="v2-sec-state todo" id="v2st-opp">To do</span></div>
+            <div class="v2-sec-body">
+              <div class="v2-grid">
+                <div class="v2-f"><label for="v2-rec">SFDC / ACE record number <span class="req">*</span></label><input type="text" id="v2-rec" class="mono" placeholder="O-AB12345678 or 006..." oninput="v2Sync()"><span class="hint">Can be added after submission.</span></div>
+                <div class="v2-f"><label for="v2-oarr">Opportunity ARR ($) <span class="req">*</span><button type="button" class="v2-def" onclick="v2Def(this)" aria-label="What this means">?</button><span class="v2-def-pop">The Salesforce or ACE figure for the whole opportunity. Funding is calculated on Intel-eligible ARR, which is usually smaller.</span></label><input type="number" id="v2-oarr" min="0" placeholder="From Salesforce or ACE" oninput="v2Sync()"></div>
+                <div class="v2-f"><label for="v2-term">Contract term (years) <span class="req">*</span><button type="button" class="v2-def" onclick="v2Def(this)" aria-label="What this means">?</button><span class="v2-def-pop">How long the customer commits to AWS. Not the same as the funding term, which is how many years Intel funds.</span></label><input type="number" id="v2-term" min="1" max="10" step="1" value="1" oninput="v2Sync()"></div>
+                <div class="v2-f" id="v2-tcv-wrap" style="display:none"><label for="v2-tcv">Total contract value ($)</label><input type="number" id="v2-tcv" min="0" placeholder="From the BOM or Salesforce" oninput="v2Sync()"></div>
+                <div class="v2-f full"><label>Attach BOM <span class="req" id="v2-bom-req">*</span></label><div id="v2-bom-slot"></div><span class="hint" id="v2-evidence-hint">Upload the BOM. For SAP RISE, the RISE BOM PDF.</span></div>
+                <div class="v2-f full"><label for="v2-pc-file"><span id="v2-pc-l">Attach Pricing Calculator export, if separate from the BOM</span> <span id="v2-ce-req" class="req" style="display:none">*</span></label><input type="file" id="v2-pc-file" accept=".pdf,.xlsx,.xls,.csv,.png,.jpg,.jpeg" onchange="handleDealAttach(this);setTimeout(v2Sync,800)" style="min-height:0">
+                  <details style="margin-top:6px"><summary style="cursor:pointer;color:#0068B5;font-weight:700;font-size:.9rem">How the customer pulls a Cost Explorer export</summary>
+                    <div class="v2-note" style="margin-top:6px;line-height:1.55">
+                      <strong>EC2, RDS, ElastiCache, and OpenSearch.</strong> In Cost Explorer, click New report. Set the date range to 6 months. Set Dimension to Instance type. Add a Service filter with Amazon Elastic Compute Cloud - Compute, Amazon Relational Database Service, Amazon ElastiCache, and Amazon OpenSearch Service. Add a Usage type group filter with EC2: Running Hours, RDS: Running Hours, ElastiCache: Running Hours, and OpenSearch: Running Hours. Under Advanced options, set Aggregate costs by to Amortized costs. Group by a second dimension, Service. Scroll down and click Download as CSV.<br><br>
+                      <strong>EC2 only.</strong> Open Cost Explorer Saved Reports, then "Monthly EC2 running hours costs and usage". Set 6 months, Dimension Instance type, a service filter on EC2 instances, check Usage type group is EC2: Running Hours, set Amortized costs, then Download as CSV.<br><br>
+                      Usage type group names can differ slightly by account. If one is missing, type its name in the filter box.
+                    </div></details>
+                </div>
+                <div class="v2-f full"><label>Intel instance types <span class="req" id="v2-inst-req">*</span></label>
+                  <div class="v2-radio" id="v2-inst">
+                    <label><input type="checkbox" name="v2-inst" value="m8i" onchange="v2Sync()"> m8i</label>
+                    <label><input type="checkbox" name="v2-inst" value="c8i" onchange="v2Sync()"> c8i</label>
+                    <label><input type="checkbox" name="v2-inst" value="r8i" onchange="v2Sync()"> r8i</label>
+                    <label><input type="checkbox" name="v2-inst" value="x8i" onchange="v2Sync()"> x8i</label>
+                    <label><input type="checkbox" name="v2-inst" value="m7i" onchange="v2Sync()"> m7i</label>
+                    <label><input type="checkbox" name="v2-inst" value="c7i" onchange="v2Sync()"> c7i</label>
+                    <label><input type="checkbox" name="v2-inst" value="r7i" onchange="v2Sync()"> r7i</label>
+                    <label><input type="checkbox" name="v2-inst" value="other" onchange="v2Sync()"> Other</label>
+                  </div>
+                  <input type="text" id="v2-inst-other" placeholder="Other Intel instance types, for example i7i" oninput="v2Sync()" style="display:none;margin-top:6px">
+                  <span class="hint">Filled in from the BOM when it is an AWS Pricing Calculator export.</span>
+                </div>
+                <div class="v2-f full"><label for="v2-elig-in">Intel-eligible ARR, after discounts ($) <span class="req" id="v2-elig-req">*</span><button type="button" class="v2-def" onclick="v2Def(this)" aria-label="What this means">?</button><span class="v2-def-pop">The yearly cost of the Intel instances in this deal, after discounts, as Cost Explorer will show it. Funding is calculated on this figure.</span></label>
+                  <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><input type="number" id="v2-elig-in" min="0" placeholder="From the BOM" oninput="v2EligTyped()" style="max-width:260px"><button type="button" class="btn btn-secondary btn-sm" onclick="goStep(3)">Use the calculator</button></div>
+                  <span class="hint" id="v2-elig-src"></span>
+                </div>
+              </div>
+              <div id="v2-funding" style="margin-top:14px"></div>
+              <div id="v2-multiyear" style="display:none;margin-top:14px">
+                <div class="v2-f"><label>Funding term<button type="button" class="v2-def" onclick="v2Def(this)" aria-label="What this means">?</button><span class="v2-def-pop">How many years of funding are requested. Year 1 is standard. Anything longer needs a business reason and Intel approval.</span></label>
+                  <div class="v2-radio" id="v2-fterm"></div></div>
+                <div class="v2-f" id="v2-reason-wrap" style="display:none;margin-top:12px"><label for="v2-reason">Business reason <span class="req">*</span></label><textarea id="v2-reason" placeholder="Example: planned fleet refresh in Year 2." oninput="v2Sync()"></textarea></div>
+              </div>
+              <div class="v2-err" id="v2err-opp"></div>
+              <div class="v2-actions"><button type="button" class="btn btn-primary" onclick="v2Next('opp')">Continue</button></div>
+            </div>
+          </div>
+
+          <!-- 6. Payment -->
+          <div class="v2-sec" id="v2s-pay">
+            <div class="v2-sec-head" onclick="v2Open('pay')"><span class="v2-sec-title">6. Payment</span><span class="v2-sec-sum" id="v2sum-pay"></span><span class="v2-sec-state todo" id="v2st-pay">To do</span></div>
+            <div class="v2-sec-body">
+              <div class="v2-f"><label>Payment terms <span class="req">*</span></label>
+                <div class="v2-radio" id="v2-payterms">
+                  <label><input type="radio" name="v2-pay" value="Quarterly (15/15/20/50)" onchange="v2Sync()" checked> Quarterly (15/15/20/50)</label>
+                  <label><input type="radio" name="v2-pay" value="Lump Sum (post 75%)" onchange="v2Sync()"> End of year (one payment once 75% complete)</label>
+                </div>
+                <span class="hint">Each payment follows a Cost Explorer export that confirms consumption.</span>
+              </div>
+              <div class="v2-f" style="margin-top:12px"><label>Funding recipient</label><div class="v2-note" id="v2-recipient-show">The customer</div></div>
+              <div class="v2-err" id="v2err-pay"></div>
+              <div class="v2-actions"><button type="button" class="btn btn-primary" onclick="v2Next('pay')">Continue to review</button><button type="button" class="btn btn-secondary" onclick="saveDraftToServer()">Save draft</button></div>
+            </div>
+          </div>
+        </div>
+        <!-- /INTAKE V2 -->
+
 
         <div class="section-card" id="deal-type-card" style="border:2px solid var(--intel)">
           <div class="section-card-title">What kind of deal is this?</div>
@@ -1906,6 +2143,7 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
                 <label style="display:flex;align-items:center;gap:4px;font-size:.75rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer"><input type="checkbox" value="VMware"> VMware</label>
                 <label style="display:flex;align-items:center;gap:4px;font-size:.75rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer"><input type="checkbox" value="SQL"> SQL</label>
                 <label style="display:flex;align-items:center;gap:4px;font-size:.75rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer"><input type="checkbox" value="Epic Health Records"> Epic Health Records</label>
+                <label style="display:flex;align-items:center;gap:4px;font-size:.75rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer"><input type="checkbox" value="CB4EDA"> CB4EDA</label>
                 <label style="display:flex;align-items:center;gap:4px;font-size:.75rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer"><input type="checkbox" value="Other"> Other</label>
               </div>
             </div>
@@ -2126,7 +2364,7 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
                 <label>Intel-Eligible ARR ($) <span class="req">*</span></label>
                 <input type="number" id="intel-eligible-arr" placeholder="0" min="0" oninput="this.dataset.userEdited=1;window._arrSource=null;var b=document.getElementById('arr-source-badge');if(b)b.style.display='none';if(typeof renderArrSuggestions==='function')renderArrSuggestions()">
                 <div id="arr-source-badge" style="display:none;font-size:.68rem;font-weight:700;color:#0068B5;background:#eef5ff;border:1px solid #d3e3fb;border-radius:5px;padding:4px 8px;margin-top:5px"></div>
-                <span class="hint">This is the number that drives DNE and the funding math — not total ARR, and not necessarily the same as ACE ARR.</span>
+                <span class="hint">This is the number that drives NTE and the funding math — not total ARR, and not necessarily the same as ACE ARR.</span>
                 <button type="button" onclick="goStep(3)" style="background:none;border:none;color:#0068B5;font-size:.74rem;font-weight:700;cursor:pointer;text-decoration:underline;padding:0;margin-top:5px">Don't type this by hand — get it from the calculator &rarr;</button>
                 <div style="font-size:.7rem;color:var(--ink2);background:#f6f9ff;border:1px solid #dbe6f7;border-radius:6px;padding:7px 10px;margin-top:6px;line-height:1.5">Keep the full ACE amount above. The Intel-eligible figure here is usually a portion of it — often smaller — and that's expected. Enter the part of this opportunity that runs on eligible Intel instances.</div>
               </div>
@@ -2401,7 +2639,7 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
       <div class="step-panel" id="step3">
         <div class="step-header">
           <div class="step-badge">Step 03</div>
-          <div class="step-title">Start Your Deal Journey</div>
+          <div class="step-title">Calculator</div>
           <div class="step-desc">Start with your BOM — translate it into Intel-powered instances, that's what backs the funding ask.</div>
         </div>
 
@@ -2475,7 +2713,7 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
 
           <!-- Chosen-input strip: replaces the tab row once a path is picked -->
           <!-- Says out loud which track is being priced and at what rate. Without
-               it the totals bar shows a DNE with no indication of whether it came
+               it the totals bar shows a NTE with no indication of whether it came
                from 4.5% capped at $1,000,000 or 1% capped at $250,000. -->
           <div id="calc-track-banner" style="margin-bottom:12px;padding:10px 13px;border-radius:6px;border-left:4px solid #0068B5;background:#f6f9ff"></div>
           <div id="calc-input-strip" style="display:none;margin-bottom:16px;padding:9px 13px;background:#f8fafc;border:1px solid var(--border);border-radius:6px;align-items:center;gap:12px;flex-wrap:wrap">
@@ -2688,7 +2926,7 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
               <button onclick="askIntelPrompt('Price m8i.2xlarge in ca-central-1')" style="background:#fff;border:1px solid var(--border);border-radius:16px;padding:6px 14px;font-size:.72rem;cursor:pointer;font-family:Arial,sans-serif;color:var(--ink2)">Price m8i.2xlarge in ca-central-1</button>
-              <button onclick="askIntelPrompt('What is the customer pricing benefit and how is DNE calculated?')" style="background:#fff;border:1px solid var(--border);border-radius:16px;padding:6px 14px;font-size:.72rem;cursor:pointer;font-family:Arial,sans-serif;color:var(--ink2)">How is DNE actually calculated?</button>
+              <button onclick="askIntelPrompt('What is the customer pricing benefit and how is NTE calculated?')" style="background:#fff;border:1px solid var(--border);border-radius:16px;padding:6px 14px;font-size:.72rem;cursor:pointer;font-family:Arial,sans-serif;color:var(--ink2)">How is NTE actually calculated?</button>
               <button onclick="askIntelPrompt('What is the payment schedule and when does each milestone pay out?')" style="background:#fff;border:1px solid var(--border);border-radius:16px;padding:6px 14px;font-size:.72rem;cursor:pointer;font-family:Arial,sans-serif;color:var(--ink2)">When does each payment milestone hit?</button>
               <button onclick="askIntelPrompt('What counts as Proof of Performance and when is it collected?')" style="background:#fff;border:1px solid var(--border);border-radius:16px;padding:6px 14px;font-size:.72rem;cursor:pointer;font-family:Arial,sans-serif;color:var(--ink2)">What counts as Proof of Performance?</button>
               <button onclick="askIntelPrompt('Which instance families are actually eligible for IAP funding?')" style="background:#fff;border:1px solid var(--border);border-radius:16px;padding:6px 14px;font-size:.72rem;cursor:pointer;font-family:Arial,sans-serif;color:var(--ink2)">Which families actually qualify?</button>
@@ -2748,11 +2986,11 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
             <div class="val" id="tot-actual">$0</div>
           </div>
           <div class="calc-total-item">
-            <label>Total DNE (Do Not Exceed)</label><span class="hint" style="font-size:.6rem">The funding ceiling</span>
+            <label>Ceiling at list price</label><span class="hint">Rate on list price, before discounts. For reference.</span>
             <div class="val" id="tot-nte">$0</div>
           </div>
           <div class="calc-total-item">
-            <label>Est. Payout at POP</label><span class="hint" style="font-size:.6rem">Expected, not guaranteed &mdash; flows into Intel-Eligible ARR on its own, do not copy it across</span>
+            <label>Calculated amount</label><span class="hint">Year 1, on actual spend. Becomes the NTE once approved.</span>
             <div class="val highlight" id="tot-rebate">$0</div>
           </div>
         </div>
@@ -2824,12 +3062,12 @@ input:focus,select:focus,textarea:focus,button:focus-visible,[tabindex]:focus-vi
               <div id="crm-stage" style="background:rgba(255,153,0,.15);border:1px solid rgba(255,153,0,.5);color:#FF9900;border-radius:20px;padding:5px 14px;font-size:.7rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase">Draft</div>
             </div>
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:14px;margin-top:16px">
-              <div><div style="font-size:.7rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.08em">Target ARR</div><div id="crm-arr" style="font-size:.95rem;font-weight:700">—</div></div>
-              <div><div style="font-size:.7rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.08em">DNE</div><div id="crm-dne" style="font-size:.95rem;font-weight:700;color:#FF9900">—</div></div>
+              <div><div style="font-size:.7rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.08em">Opportunity ARR</div><div id="crm-arr" style="font-size:.95rem;font-weight:700">—</div></div>
+              <div><div style="font-size:.7rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.08em">Calculated amount</div><div id="crm-dne" style="font-size:.95rem;font-weight:700;color:#FF9900">—</div></div>
               <div><div style="font-size:.7rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.08em">Deal Type</div><div id="crm-type" style="font-size:.95rem;font-weight:700">—</div></div>
               <div><div style="font-size:.7rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.08em">Payment</div><div id="crm-pay" style="font-size:.95rem;font-weight:700">—</div></div>
-              <div><div style="font-size:.7rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.08em">ACE ID</div><div id="crm-ace" style="font-size:.95rem;font-weight:700">—</div></div>
-              <div><div style="font-size:.7rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.08em">Win Wire</div><div id="crm-ww" style="font-size:.95rem;font-weight:700">—</div></div>
+              <div><div style="font-size:.7rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.08em">SFDC / ACE record</div><div id="crm-ace" style="font-size:.95rem;font-weight:700">—</div></div>
+              <div id="crm-ww-tile" style="display:none"><div style="font-size:.7rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.08em">Win Wire</div><div id="crm-ww" style="font-size:.95rem;font-weight:700">—</div></div>
             </div>
           </div>
           <div style="padding:12px 22px;display:flex;gap:10px;flex-wrap:wrap;border-top:1px solid var(--border)">
@@ -4122,11 +4360,11 @@ function addFleet(){
         <div class="val zero" id="f${id}-r-actual">$0</div>
       </div>
       <div class="fleet-result-item">
-        <label>Do Not Exceed (DNE)</label>
+        <label>Ceiling at list price</label>
         <div class="val zero" id="f${id}-r-nte">$0</div>
       </div>
       <div class="fleet-result-item">
-        <label>Est. Payout at POP</label><span class="hint" style="font-size:.6rem">Expected, not guaranteed</span>
+        <label>Calculated amount</label><span class="hint">Year 1, on actual spend</span>
         <div class="val" id="f${id}-r-rebate">$0</div>
       </div>
     </div>`;
@@ -4341,7 +4579,7 @@ function recalcAceFromServices(){
   const sum=ec2+rds+ec+os;
   let discountPct = parseFloat((document.getElementById('cust-edp-discount')||{}).value) || 0;
   // max="40" on the input is advisory only -- nothing enforced it, and a typo
-  // of 90 produced a negative eligible ARR and a silent $0 DNE.
+  // of 90 produced a negative eligible ARR and a silent $0 NTE.
   if(discountPct < 0) discountPct = 0;
   if(discountPct > 90) discountPct = 90;
   const netExpected = sum * (1 - discountPct/100);
@@ -4363,7 +4601,7 @@ function recalcAceFromServices(){
       : 'Total ARR: '+fmtD(sum)+' (list, pre-discount)';
     totalLine.style.color='var(--ink2)';
   }
-  // Intel-Eligible ARR — the number that actually drives DNE — auto-suggests
+  // Intel-Eligible ARR — the number that actually drives NTE — auto-suggests
   // from the service split x discount, but ONLY if the person hasn't typed
   // their own value in. ACE ARR is untouched here entirely: it's a separate,
   // Salesforce-sourced figure that can legitimately differ from this one.
@@ -4381,7 +4619,7 @@ function recalcAceFromServices(){
 let baselineMethod = 1;
 
 /* Keeps the calculator honest about what it is pricing. Reads the same rate
-   table everything else does, so it can never show one track while the DNE is
+   table everything else does, so it can never show one track while the NTE is
    computed from another. */
 function renderTrackBanner(){
   const el = document.getElementById('calc-track-banner');
@@ -4786,7 +5024,7 @@ function calcFleet(id){
   // Per-fleet rates and program caps: Migrate 4.5% NTE $1,000,000 | Modernize 1% NTE $250,000
   const rebateRate = fleet.type==='mod' ? 0.01 : 0.045;
   const perFleetCap = fleet.type==='mod' ? 250000 : 1000000;
-  // DNE responds purely to the Blended Pricing selection above — no separate
+  // NTE responds purely to the Blended Pricing selection above — no separate
   // fixed haircut stacked on top. actualARR already reflects whatever discount
   // was picked. Pricing is On-Demand list only now, so this is list price
   // unless a real, stated customer pricing benefit was entered.
@@ -4870,7 +5108,7 @@ function calcRiseBOM(){
 
   /* The deal record reads Intel-Eligible ARR, not this panel. Until this write
      existed the RISE tab showed a correct funding figure on screen while the
-     saved deal carried a DNE of $0 — no error, just a zero, which reads as
+     saved deal carried a NTE of $0 — no error, just a zero, which reads as
      "no funding calculated" rather than as a bug. Fleet Builder has always
      written back through updateTotals(); this is the same contract for the
      RISE path. A figure the user typed over by hand is left alone. */
@@ -5622,14 +5860,14 @@ function computeRecommendation(d, dne, rateInfo){
   if(competitive==='yes' && d.winAmount>0){
     if(dne < d.winAmount){
       const gap = d.winAmount - dne;
-      rationale += ` Current DNE of $${Math.round(dne).toLocaleString()} falls short of the $${Math.round(d.winAmount).toLocaleString()} needed to win by $${Math.round(gap).toLocaleString()} — this gap needs a plan before submission, not after.`;
+      rationale += ` Current NTE of $${Math.round(dne).toLocaleString()} falls short of the $${Math.round(d.winAmount).toLocaleString()} needed to win by $${Math.round(gap).toLocaleString()} — this gap needs a plan before submission, not after.`;
     } else {
-      rationale += ` Current DNE of $${Math.round(dne).toLocaleString()} already covers the $${Math.round(d.winAmount).toLocaleString()} needed to win.`;
+      rationale += ` Current NTE of $${Math.round(dne).toLocaleString()} already covers the $${Math.round(d.winAmount).toLocaleString()} needed to win.`;
     }
   }
 
   if(dne > 500000){
-    rationale += ' Note: this DNE is large enough that it likely needs Intel Leadership\'s attention early rather than at the end of a long internal review.';
+    rationale += ' Note: this NTE is large enough that it likely needs Intel Leadership\'s attention early rather than at the end of a long internal review.';
   }
 
   return { competitiveAnswer, competitiveColor, timeSensitiveAnswer, timeSensitiveColor, headline, rationale };
@@ -5649,7 +5887,7 @@ function computeRecommendation(d, dne, rateInfo){
    Against the funding actually approved, which is NOT always the formula
    amount. Exceptions get approved above the rate for competitive reasons,
    and this block has to show those honestly rather than recompute them away.
-   That is why it reads the DNE on the deal instead of multiplying the rate. */
+   That is why it reads the NTE on the deal instead of multiplying the rate. */
 function termEconomicsBlock(d, dne){
   const years = Math.max(0, Math.round(Number(d.termYears) || 0));
   const annualARR = Number(d.intelEligibleArr) || 0;
@@ -5745,7 +5983,7 @@ function generateSummary(){
 
       <div style="background:#f0fdf4;border-radius:6px;padding:12px;border:1px solid #86efac;margin-bottom:12px">
         <div style="font-size:.72rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Headline</div>
-        <div style="font-size:1.3rem;font-weight:800;color:var(--green)">${fmtD(dne)} DNE</div>
+        <div style="font-size:1.3rem;font-weight:800;color:var(--green)">${fmtD(dne)} NTE</div>
         <div style="font-size:.68rem;color:var(--ink3)">Ceiling, not a guaranteed payout. Subject to Proof of Performance. ${rateInfo.label}.</div>
       </div>
 
@@ -5840,7 +6078,7 @@ function generateSummary(){
         row('ACE Stage', d.aceStage),
         row('ACE Notes', d.aceNotes),
         row('ACE ARR (Salesforce figure)', fmtD(d.aceAmount)),
-        row('Intel-Eligible ARR (drives DNE)', fmtD(d.intelEligibleArr)),
+        row('Intel-Eligible ARR (drives NTE)', fmtD(d.intelEligibleArr)),
         row('IPIC #', d.ipicNum),
       ].join(''))}
 
@@ -5865,7 +6103,7 @@ function generateSummary(){
           row('Intel-Eligible ARR', fmtD(r.arr)),
           row('Intel silicon revenue (per year)', r.perYear ? fmtD(r.perYear) : '—'),
           row('Over three years', r.arr ? fmtD(r.threeYear) : '—'),
-          row('IAP funding (DNE, paid once)', fmtD(r.dne)),
+          row('IAP funding (NTE, paid once)', fmtD(r.dne)),
         ];
         if(r.arr > 0 && r.dne > 0){
           rows.push(row('Three-year return on funding',
@@ -6207,10 +6445,10 @@ async function answerIntelQuestion(msg){
     return "The rate depends on Deal Type, not instance family: Migrate is 4.5% of eligible ARR capped at $1,000,000. Modernize is 1%, capped at $250,000. All four families — m8i, c8i, r8i, x8i — qualify equally.";
   }
   if(/discount|blended|edp|pricing benefit/i.test(q)){
-    return "Customer Pricing Benefit defaults to 0% — no discount is assumed unless you enter the customer's actual pricing benefit. DNE = eligible ARR (after whatever discount you set) × rate.";
+    return "The rate applies to actual spend after discounts, never list price. The calculated amount is Intel-eligible ARR (after discounts) times the rate.";
   }
-  if(/payment|schedule|15\/15|quarterly|disburs/i.test(q)){
-    return "Quarterly (15/15/20/50): Q1 pays 15% when the baseline Cost Explorer is submitted, Q2 pays 15% at 25% of target ARR on Gen 8, Q3 pays 20% at 50%, Q4 pays 50% at 75% sustained for a full 30-day billing cycle. Lump Sum and Custom are also available.";
+  if(/payment|schedule|15\/15|quarterly|disburs|end of year|lump/i.test(q)){
+    return "Two payment options. Quarterly: 15%, 15%, 20%, and 50%, each paid when Cost Explorer shows the migration milestone. End of year: one payment once the migration is 75% complete. TCC pays in both cases.";
   }
   if(/pop|proof of performance|cost explorer/i.test(q)){
     return "Proof of Performance is the quarterly Cost Explorer export, filtered to Gen 8 families (m8i, c8i, r8i, x8i), sent directly from the customer to TCC. It's collected after the SOW is signed, not at submission — AWS never handles or forwards this data.";
@@ -6219,16 +6457,22 @@ async function answerIntelQuestion(msg){
     return "Only i-suffix Intel Gen 8 families qualify: m8i, c8i, r8i, x8i, across EC2, RDS, ElastiCache, and OpenSearch. Non-Intel families are excluded from every calculation.";
   }
   if(/approv|flow|process|who approves|steps/i.test(q)){
-    return "Submit → Pre-approval (Yasmine, Chris Chlee, or Jeanine — any one) → AWS Approval (Bryan or Dinc — any one) → Intel Approval (Brendon, or the Intel owner for the region: Deep for NAMER, Fabio for LATAM, Diego for EMEA, Jason for APJ) → TCC (Jacob) generates the SOW. Funding is confirmed against a Cost Explorer export the customer shares directly. Each gate needs one approver, not all of them. TCC does not approve funding.";
+    return "Submit on the IAP app, then program team review, then AWS approval (Dinc), then Intel approval (Brendon with the regional owner: Deep for NAMER, Fabio for LATAM, Diego for EMEA, Jason for APJ). TCC (Jacob) then enters the deal in IPIC and writes the SOW. TCC does not approve funding.";
   }
-  if(/win wire|fast track|draw/i.test(q)){
-    return "Win Wire stays internal unless separately nominated as a customer case study. Saying yes fast-tracks the deal and enters the customer and submitter into a prize draw once submitted.";
+  if(/funding term|multi.?year|year 2|year 3|more than one year|longer term/i.test(q)){
+    return "Year 1 is the standard. A longer funding term needs a short business reason and Intel approval. Intel rarely approves past 3 years, with 5 as the exception. Intel decides on lifetime ROI.";
+  }
+  if(/\bnte\b|not to exceed|cap number|ceiling/i.test(q)){
+    return "The NTE (not to exceed) is the approved amount. It is the most TCC will pay for the deal. The actual payment is confirmed with Cost Explorer at proof of performance and can be lower.";
+  }
+  if(/\broi\b|return|lifetime/i.test(q)){
+    return "ROI is Intel silicon revenue over the life of the workload divided by the funding. Intel silicon revenue is about 3.5% of Intel-eligible ARR per year. The deal form shows it next to the funding term.";
   }
   if(/mix|both|migrate and modern/i.test(q)){
     return "A deal is either Migrate or Modernize, not both. If a customer genuinely needs both — say, migrating some workloads while modernizing others — submit them as two separate deals, one per track.";
   }
 
-  return "That's not one I have a direct answer built for yet. For rates, discount, payment schedule, POP, eligible families, or approval flow, ask about those directly — or check How to Fill This Out in Resources for the full walkthrough.";
+  return "That's not one I have a direct answer built for yet. For rates, discount, payment schedule, POP, eligible families, or approval flow, funding term, NTE, ROI, eligible families, or approvals, ask about those directly, or open How IAP works in Resources.";
 }
 
 async function sendIntelChat(){
@@ -6306,7 +6550,7 @@ function showFillGuide(){
 
       <div style="margin-top:18px">
         <div style="font-size:.7rem;color:#FF9900;text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin-bottom:10px">Setting the Target — AWS Pricing Calculator</div>
-        <div style="font-size:.78rem;color:rgba(255,255,255,.7);line-height:1.7">Open Billing then Budgets and Planning then Pricing Calculator. Create a workload estimate using the target Gen 8 Intel instances: select type, size, instance count, and region for each workload. Note the monthly total, then paste it into the Monthly Spend Post-Migration field. The tool derives Target ARR, DNE, monthly Intel benefit, and expected ROI.</div>
+        <div style="font-size:.78rem;color:rgba(255,255,255,.7);line-height:1.7">Open Billing then Budgets and Planning then Pricing Calculator. Create a workload estimate using the target Gen 8 Intel instances: select type, size, instance count, and region for each workload. Note the monthly total, then paste it into the Monthly Spend Post-Migration field. The tool derives Target ARR, NTE, monthly Intel benefit, and expected ROI.</div>
       </div>
 
       <div style="margin-top:18px">
@@ -6316,7 +6560,7 @@ function showFillGuide(){
 
       <div style="background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.3);border-radius:8px;padding:14px 16px;margin-top:18px">
         <div style="font-size:.7rem;color:#fb923c;text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin-bottom:8px">Guardrails</div>
-        <div style="font-size:.78rem;color:rgba(255,255,255,.7);line-height:1.8">AWS does not share or forward Cost Explorer data to Intel or TCC; the customer sends it directly. Apply the rebate to post-discount ARR, not list price. Count only Intel i-suffix families (m8i, c8i, r8i, x8i); non-Intel families are excluded. The calculator figure is the ceiling (DNE), not a guaranteed payout. Q4 requires at least one full billing cycle at 75 percent or more run-rate, not a single-day spike.</div>
+        <div style="font-size:.78rem;color:rgba(255,255,255,.7);line-height:1.8">AWS does not share or forward Cost Explorer data to Intel or TCC; the customer sends it directly. Apply the rebate to post-discount ARR, not list price. Count only Intel i-suffix families (m8i, c8i, r8i, x8i); non-Intel families are excluded. The calculator figure is the ceiling (NTE), not a guaranteed payout. Q4 requires at least one full billing cycle at 75 percent or more run-rate, not a single-day spike.</div>
       </div>
 
       <div style="margin-bottom:20px">
@@ -6387,7 +6631,7 @@ function downloadProgramOnePager(){
       <tr><td>Migrate</td><td>4.5% of post-discount ARR</td><td>—</td></tr>
       <tr><td>Modernize</td><td>1% of post-discount ARR</td><td>$250,000</td></tr>
     </table>
-    <div class="card" style="margin-top:10px">Rebate applies to <strong>actual spend</strong>, post-discount, never list price. The calculated figure is a Do Not Exceed (DNE) ceiling, not a guaranteed payout — payment is confirmed against a Cost Explorer export the customer shares directly, after Proof of Performance.</div>
+    <div class="card" style="margin-top:10px">Rebate applies to <strong>actual spend</strong>, post-discount, never list price. The calculated figure is a Not to exceed (NTE) ceiling, not a guaranteed payout — payment is confirmed against a Cost Explorer export the customer shares directly, after Proof of Performance.</div>
 
     <h2>Who Pays, Who Doesn't</h2>
     <div class="card"><strong>Intel</strong> funds the program. <strong>TCC (The Channel Company)</strong> processes payment to the partner or customer, confirmed against a <strong>Cost Explorer export the customer shares directly</strong>. <strong>AWS does not participate in payment</strong> and never shares customer cost data on the customer's behalf.</div>
@@ -6395,9 +6639,9 @@ function downloadProgramOnePager(){
     <h2>Approval Path</h2>
     <table>
       <tr><th>Stage</th><th>Who</th><th>What Happens</th></tr>
-      <tr><td>1 · Submit</td><td>AWS/Intel/Partner submitter</td><td>Deal info, ARR breakdown, and consent submitted</td></tr>
-      <tr><td>2 · Pre-approval</td><td>Yasmine Nsouli, Chris Chlee, Jeanine Reidel — any one</td><td>Review deal; Chris validates Simple Monthly figures</td></tr>
-      <tr><td>3 · AWS Approval</td><td>Bryan, Dinc — any one</td><td>AWS sign-off on the deal and the funding ask</td></tr>
+      <tr><td>1 · Submit</td><td>The seller, on the IAP app</td><td>Deal team, partner, customer, deal details, opportunity record, and payment</td></tr>
+      <tr><td>2 · Program team review</td><td>Program team</td><td>Checks the deal is complete</td></tr>
+      <tr><td>3 · AWS approval</td><td>Dinc</td><td>Approves the deal and the calculated amount for AWS</td></tr>
       <tr><td>4 · Intel Approval</td><td>Brendon Roosken, or the Intel owner for the region — Deep Grewal (NAMER), Fabio Pesiguelo (LATAM), Diego Bailon Humpert (EMEA), Jason Tan (APJ)</td><td>Approves the funding amount. Brendon can approve any region.</td></tr>
       <tr><td>5 · TCC / IPIC</td><td>Jacob Barksdale</td><td>Logs into IPIC, generates the SOW, processes payment against the customer's Cost Explorer export. Does not approve funding.</td></tr>
     </table>
@@ -6406,7 +6650,7 @@ function downloadProgramOnePager(){
     <div class="card">Collected each quarter after SOW signing, directly between TCC and the customer or partner: a <strong>Cost Explorer export</strong> filtered to Gen 8 families (m8i, c8i, r8i, x8i), for the billing quarter. AWS never shares customer cost data.</div>
 
     <h2>The SOW Number</h2>
-    <div class="card">The Do Not Exceed figure on the SOW is <strong>Eligible ARR × the program rate</strong> (4.5% Migrate, 1% Modernize capped $250,000), paid out on the agreed schedule (quarterly, milestone, or lump sum) once POP is confirmed.</div>
+    <div class="card">The Not to exceed figure on the SOW is <strong>Eligible ARR × the program rate</strong> (4.5% Migrate, 1% Modernize capped $250,000), paid quarterly or in one payment at year end, once proof of performance is confirmed.</div>
   `;
   openPrintableWindow('IAP Program Details', html);
 }
@@ -6478,7 +6722,7 @@ function downloadWorkflowOnePager(){
     <div class="card">Proof of Performance flows directly between <strong>TCC and the customer or partner</strong> — never through AWS. It is the quarterly <strong>Cost Explorer export</strong>, filtered to Gen 8 families, confirming actual spend against target ARR.</div>
 
     <h2>What the SOW Pays</h2>
-    <div class="card">The Do Not Exceed number is <strong>Eligible ARR × the program rate</strong> (4.5% Migrate, 1% Modernize capped $250,000), paid on the schedule set at submission.</div>
+    <div class="card">The Not to exceed number is <strong>Eligible ARR × the program rate</strong> (4.5% Migrate, 1% Modernize capped $250,000), paid on the schedule set at submission.</div>
   `;
   openPrintableWindow('IAP Workflow Guide', html);
 }
@@ -6515,7 +6759,7 @@ function downloadWorkflowGuide(){
     <div class="card">
       Target ARR = Monthly Pricing Calculator estimate × 12<br>
       Eligible ARR = Target ARR × (1 − Customer Pricing Benefit discount, 0% unless you enter one)<br>
-      DNE = Eligible ARR × rate (4.5% Migrate, or 1% Modernize capped $250,000)
+      NTE = Eligible ARR × rate (4.5% Migrate, or 1% Modernize capped $250,000)
     </div>
 
     <h2>Cost Explorer — Establishing the Baseline</h2>
@@ -6524,9 +6768,9 @@ function downloadWorkflowGuide(){
     <h2>Approval Flow</h2>
     <table>
       <tr><th>Step</th><th>Who</th></tr>
-      <tr><td>1 · Submit</td><td>Partner or AWS Rep, through this tool</td></tr>
-      <tr><td>2 · Pre-approval</td><td>Yasmine Nsouli, Chris Chlee, Jeanine Reidel — any one</td></tr>
-      <tr><td>3 · AWS Approval</td><td>Bryan, Dinc — any one</td></tr>
+      <tr><td>1 · Submit</td><td>The seller, on the IAP app</td></tr>
+      <tr><td>2 · Program team review</td><td>Program team</td></tr>
+      <tr><td>3 · AWS approval</td><td>Dinc</td></tr>
       <tr><td>4 · Intel Approval</td><td>Brendon Roosken, or the region owner: Deep (NAMER), Fabio (LATAM), Diego (EMEA), Jason (APJ) — final funding approval</td></tr>
       <tr><td>5 · TCC</td><td>Jacob Barksdale generates the SOW, processes payment against the customer's Cost Explorer export</td></tr>
     </table>
@@ -6536,14 +6780,14 @@ function downloadWorkflowGuide(){
       AWS never shares Cost Explorer data with Intel or TCC — the customer sends it directly.<br>
       Apply the rebate to post-discount ARR, never list price.<br>
       Only m8i, c8i, r8i, x8i count — all other families are excluded.<br>
-      The DNE figure is a ceiling, not a guaranteed payout — payment is confirmed against a Cost Explorer export the customer shares directly, after Proof of Performance.<br>
+      The NTE figure is a ceiling, not a guaranteed payout — payment is confirmed against a Cost Explorer export the customer shares directly, after Proof of Performance.<br>
       Q4 requires one full billing cycle at 75%+ run-rate, not a single-day spike.
     </div>
 
     <h2>Contacts</h2>
     <div class="card">
-      Pre-approval: Yasmine Nsouli / Chris Chlee (SA) / Jeanine Reidel (reidelj@amazon.com)<br>
-      AWS Approval: Bryan (bryanofw@amazon.com) / Dinc (dinc@amazon.com)<br>
+      Program team review: Yasmine Nsouli (yasmine@cloudzero.ca)<br>
+      AWS approval: Dinc (dinc@amazon.com)<br>
       Intel Approval: Brendon Roosken (brendon.roosken@intel.com)<br>
       &nbsp;&nbsp;NAMER: Deep Grewal (deep.grewal@intel.com)<br>
       &nbsp;&nbsp;LATAM: Fabio Pesiguelo (f.pesiguelo@intel.com)<br>
@@ -6620,8 +6864,8 @@ function buildSOWData(){
   const progType = /^mod/i.test(resolveDealType()) ? 'modernize' : 'migrate';
 
   // The SOW is the document that goes to the customer, so it must print the
-  // DNE that was approved -- not a number recomputed in the browser from
-  // fleet data that restoreDeal does not even repopulate. Approved DNE wins;
+  // NTE that was approved -- not a number recomputed in the browser from
+  // fleet data that restoreDeal does not even repopulate. Approved NTE wins;
   // the fleet calculation is only a fallback for a deal never submitted.
   const approvedDne = parseFloat((window._loadedDeal && window._loadedDeal.dne) || 0) || 0;
   const intelArr = parseFloat(document.getElementById('est-arr-intel')?.value||0);
@@ -7085,7 +7329,7 @@ async function renderApprovalQueue(){
           </div>
           <div style="text-align:right;font-family:Arial,sans-serif">
             <div style="font-size:1.1rem;font-weight:700;color:var(--green)">${fmt(totPay)}</div>
-            <div style="font-size:.72rem;color:var(--ink3)">${deal.dne ? 'Approved DNE ' + fmt(deal.dne) : 'DNE not set'}${totWNE ? ' · list-price ceiling ' + fmt(totWNE) : ''}</div>
+            <div style="font-size:.72rem;color:var(--ink3)">${deal.dne ? 'Approved NTE ' + fmt(deal.dne) : 'NTE not set'}${totWNE ? ' · list-price ceiling ' + fmt(totWNE) : ''}</div>
           </div>
         </div>
         <div class="approval-grid">
@@ -7105,7 +7349,7 @@ async function renderApprovalQueue(){
           <div class="approval-grid-item"><label>Payment Option</label><div class="val">${deal.paymentOption||'—'}</div></div>
           <div class="approval-grid-item"><label>Win Wire</label><div class="val">${deal.winWire?'Yes':'No'}</div></div>
           <div class="approval-grid-item"><label>Smartsheet</label><div class="val" style="font-size:.7rem">${deal.smartsheetSync||'—'}</div></div>
-          <div class="approval-grid-item"><label>DNE</label><div class="val" style="color:var(--intel)">${deal.dne?fmt(deal.dne):'Not set'}</div></div>
+          <div class="approval-grid-item"><label>NTE</label><div class="val" style="color:var(--intel)">${deal.dne?fmt(deal.dne):'Not set'}</div></div>
         </div>
         ${(function(){
           /* What Intel gets back, shown where the decision is actually made.
@@ -7155,13 +7399,13 @@ async function renderApprovalQueue(){
         ${dneChainHTML(deal)}
         ${(iAmPreOrAWS && (status==='Submitted'||status==='Pre-Approved'))?`
         <div style="background:#f0f5ff;border:1px solid #c7d7f5;border-radius:8px;padding:10px 12px;margin-top:10px">
-          <div style="font-size:.7rem;font-weight:700;color:#001f5c;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Set DNE — required before approval</div>
+          <div style="font-size:.7rem;font-weight:700;color:#001f5c;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Set NTE — required before approval</div>
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
             <input type="number" id="dne-arr-${deal.id}" placeholder="Target ARR ($)" value="${deal.targetArr||''}" style="width:170px;padding:6px 8px;border:1px solid #c7d7f5;border-radius:6px;font-size:.78rem">
-            <button class="btn btn-secondary btn-sm" onclick="setDNE('${deal.id}')">Calculate + Save DNE</button>
-            <span id="dne-out-${deal.id}" style="font-size:.78rem;font-weight:700;color:#0068B5">${deal.dne?('DNE: '+fmt(deal.dne)):''}</span>
+            <button class="btn btn-secondary btn-sm" onclick="setDNE('${deal.id}')">Calculate + Save NTE</button>
+            <span id="dne-out-${deal.id}" style="font-size:.78rem;font-weight:700;color:#0068B5">${deal.dne?('NTE: '+fmt(deal.dne)):''}</span>
           </div>
-          <div style="font-size:.7rem;color:#555;margin-top:5px">DNE = the ARR you enter × ${(function(){const i=computeRate(deal.actType||'');return i.label;})()}. Enter Eligible ARR (post-discount); the server calculates and stores the number.</div>
+          <div style="font-size:.7rem;color:#555;margin-top:5px">NTE = the ARR you enter × ${(function(){const i=computeRate(deal.actType||'');return i.label;})()}. Enter Eligible ARR (post-discount); the server calculates and stores the number.</div>
         </div>`:''}
         ${(iAmIntelReviewer && status==='AWS Approved')?`
         <div style="background:#fff8f0;border:1px solid #fed7aa;border-radius:8px;padding:10px 12px;margin-top:10px">
@@ -7333,7 +7577,7 @@ async function doApprove(id){
   const gate = chainGate(status);
   if(!gate){ alert('This deal has already cleared every gate.'); return; }
   if(gate.status==='Submitted' && !(parseFloat(deal.dne)>0)){
-    alert('Set and save the DNE before approving. The DNE routes to Intel leadership with the deal.');
+    alert('Set and save the NTE before approving. The NTE routes to Intel leadership with the deal.');
     return;
   }
   const comment = prompt('Optional note for the record (visible to everyone downstream):') || '';
@@ -7599,7 +7843,7 @@ function dneChainHTML(deal){
   const raw = basis * info.rate;
   const capped = info.cap && raw > info.cap;
   return `<div style="background:#f6f9ff;border:1px solid #dbe6f7;border-radius:8px;padding:8px 12px;margin-top:8px;font-size:.76rem">
-    <strong>How this DNE was calculated:</strong>
+    <strong>How this NTE was calculated:</strong>
     ${basisLabel} ${fmt(basis)} × ${info.label} = ${fmt(Math.round(raw))}${capped?' → capped at $250,000 per deal':''}.
     <span style="color:var(--ink3)">Computed server-side on save; per-fleet detail is in the Fleet Builder section of the deal record.</span>
   </div>`;
@@ -7904,7 +8148,7 @@ function getCurrentDealData(){
       || (parseFloat(v('arr-ec2'))||0)+(parseFloat(v('arr-rds'))||0)+(parseFloat(v('arr-elasticache'))||0)+(parseFloat(v('arr-opensearch'))||0)
       || ((window._computedRiseBOM && window._computedRiseBOM.avgARR) || 0),
     dne: (function(){
-      // On-screen ESTIMATE only. The authoritative DNE is recomputed by the
+      // On-screen ESTIMATE only. The authoritative NTE is recomputed by the
       // Lambda on save (compute_deal_dne) from the same formula — the server
       // never trusts this browser-side number. Intel-Eligible ARR drives it,
       // NOT ACE ARR, which is a separate Salesforce-sourced figure. Falls
@@ -8172,11 +8416,11 @@ async function setDNE(id){
   const deals=await loadPipelineDealsFromCloud();
   const deal=deals.find(d=>d.id===id);
   if(!deal) return;
-  // The Lambda computes and stores the DNE from this ARR basis — the number
+  // The Lambda computes and stores the NTE from this ARR basis — the number
   // shown below is the server's answer, not a browser-side calculation.
   const info=computeRate(deal.actType||'');
-  // The DNE is derived from intelEligibleArr, not targetArr — writing the
-  // basis to targetArr let the stored DNE and the ARR the UI claims it came
+  // The NTE is derived from intelEligibleArr, not targetArr — writing the
+  // basis to targetArr let the stored NTE and the ARR the UI claims it came
   // from drift apart. Set both; the server also enforces this on its side.
   deal.intelEligibleArr=arr;
   deal.targetArr=arr;
@@ -8184,7 +8428,7 @@ async function setDNE(id){
   const result=await apiSaveDeal(deal, '', '', false, arr);
   const out=document.getElementById('dne-out-'+id);
   const savedDne=(result&&result.dne!==undefined)?parseFloat(result.dne):null;
-  if(out) out.textContent = savedDne!==null ? ('DNE: '+fmt(savedDne)+' — saved ('+info.label+')') : 'Save failed — try again.';
+  if(out) out.textContent = savedDne!==null ? ('NTE: '+fmt(savedDne)+' — saved ('+info.label+')') : 'Save failed — try again.';
 }
 
 async function askQuestion(id){
@@ -8230,7 +8474,7 @@ function showSubmitSummary(){
   let html='<div style="font-weight:700;font-size:1rem;margin-bottom:10px;color:#0A1628">Review before you submit</div>';
   html+='<div style="font-size:.8rem;color:#333;line-height:1.7;margin-bottom:12px">'+
     '<strong>'+(data.dealName||'[Deal name pending]')+'</strong> · '+(data.custName||'[Customer pending]')+
-    '<br>Type: '+(data.actType||'—')+' · Payment: '+(data.paymentOption||'—')+' · Target ARR: '+fmt(data.targetArr||0)+' · DNE est.: '+fmt(data.dne||0)+
+    '<br>Type: '+(data.actType||'—')+' · Payment: '+(data.paymentOption||'—')+' · Target ARR: '+fmt(data.targetArr||0)+' · NTE est.: '+fmt(data.dne||0)+
     '<br>Win Wire: '+(data.winWire?'Yes':'No')+' · ACE: '+(data.aceID||'—')+
     (window._arrSource?'<br>ARR derived from: '+window._arrSource:'<br><span style="color:#92400e">ARR has no recorded derivation</span>')+'</div>';
   const line=(x,c)=>'<div style="font-size:.78rem;line-height:1.6;color:'+c+'"><strong>'+x.title+'</strong> — stops at '+x.gate+'<br><span style="font-size:.73rem;color:#555">'+x.why+'</span></div>';
@@ -8397,7 +8641,7 @@ async function finalizeSubmit(){
       '<div style="font-weight:700;font-size:1.05rem;color:#0A1628;margin-bottom:6px">'+(submitting?'Thank you for taking the time.':'Changes saved.')+'</div>'+
       '<div style="font-size:.82rem;color:#555;line-height:1.7;max-width:400px;margin:0 auto">'+
         (submitting
-          ? 'Your deal has been submitted to the Intel Accelerate Program. The internal review team has been notified by email and will set the DNE. You can follow progress in the Pipeline.'
+          ? 'Your deal has been submitted to the Intel Accelerate Program. The internal review team has been notified by email and will set the NTE. You can follow progress in the Pipeline.'
           : 'This deal is already in the approval chain, so its stage was left as it is and no new notification was sent. You can follow progress in the Pipeline.')+
       '</div>'+
       '<div style="margin-top:16px"><button class="btn btn-primary" onclick="closeSubmitModal();goStep(9)">View Pipeline</button></div></div>';
@@ -8420,11 +8664,11 @@ function renderSOWChecklist(){
   // carries vs. what TCC collects post-SOW. "have" is a function of the deal.
   const fields = [
     ['Activity Name', d.dealName, 'submitter'],
-    ['Customer / Partner Name', d.custName || d.partnerName, 'submitter'],
+    ['Customer / Partner Name', (d.partnerFunded && d.partnerName) ? d.partnerName : (d.custName || d.partnerName), 'submitter'],
     ['Activity Type', d.actType, 'submitter'],
     ['ACE Opportunity ID', d.aceID, 'submitter'],
     ['Intel-Eligible ARR', d.intelEligibleArr, 'submitter'],
-    ['Funding amount (DNE)', d.dne, 'set at AWS approval'],
+    ['Funding amount (NTE)', d.dne, 'set at AWS approval'],
     ['Start Date', d.migStart, 'submitter'],
     ['End Date', d.closeDate || d.migTargetDate, 'submitter'],
     ['AWS Region / Alignment', d.awsRegion, 'submitter'],
@@ -8458,11 +8702,11 @@ function refreshCRMHeader(){
   const set=(id,v)=>{const e=document.getElementById(id); if(e) e.textContent=v||'—';};
   set('crm-dealname', d.dealName||'Untitled deal');
   set('crm-cust', (d.custName||'Customer TBD')+(d.partnerName?' · via '+d.partnerName:''));
-  set('crm-arr', d.targetArr?fmt(d.targetArr):'—');
-  set('crm-dne', d.dne?fmt(d.dne):'Set in Resources → Calculators');
+  set('crm-arr', (d.targetArr||d.aceAmount)?fmt(d.targetArr||d.aceAmount):'—');
+  set('crm-dne', d.dne?fmt(d.dne):'Not calculated');
   set('crm-type', d.actType);
-  set('crm-pay', (d.paymentOption||'').split(' ')[0]);
-  set('crm-ace', d.aceID);
+  set('crm-pay', /^Lump/.test(d.paymentOption||'') ? 'End of year' : (d.paymentOption||'').split(' ')[0]);
+  set('crm-ace', d.aceID||d.sfdcID);
   set('crm-ww', d.winWire?'Yes — Fast Track + Draw Entry':'No');
   const st=document.getElementById('crm-stage'); if(st) st.textContent=d.status||'Draft';
   renderSmartsheetPreview(d);
@@ -8506,7 +8750,7 @@ function getSmartsheetRows(d){
     ['End Date',                            d.closeDate || d.migTargetDate],
     ['POP Due Date',                        ''],                         // sheet computes End Date + 30
     ['Claim Quarter',                       ''],                         // TCC assigns at claim time
-    ['Partner or End Customer Name',        d.partnerName || d.custName],
+    ['Partner or End Customer Name',        (d.v2 && d.v2.schema===2 && !d.partnerFunded) ? d.custName : (d.partnerName || d.custName)],
     ['Status',                              statusMap[String(d.status||'').toLowerCase()] || 'Discovery'],
     ['Notes',                               d.notes || ''],
     ['POP Received Date',                   ''],                         // TCC
@@ -8640,7 +8884,7 @@ function fundingGates(d){
   const isMod = /modern/.test(prog);
   // Intel-Eligible ARR is what the rate is actually applied to, so it has
   // to be what the gates read. Reading targetArr first told sellers they
-  // had no eligible ARR on the same screen that showed their DNE.
+  // had no eligible ARR on the same screen that showed their NTE.
   const arr = parseFloat(d.intelEligibleArr || d.targetArr || d.aceAmount || 0) || 0;
   const B=(gate,title,why)=>blockers.push({gate,title,why});
   const R=(gate,title,why)=>risks.push({gate,title,why});
@@ -8801,7 +9045,7 @@ async function loadDealById(id){
   const deal=deals.find(d=>d.id===id);
   if(deal){
     window._loadedDealId=deal.id;
-    // Keep the record itself, not just its id. The SOW needs the approved DNE
+    // Keep the record itself, not just its id. The SOW needs the approved NTE
     // and every save needs the stage the deal is actually at -- both used to be
     // recomputed in the browser and both were wrong.
     window._loadedDeal=deal;
@@ -9247,6 +9491,634 @@ function refreshAccordionStatus(){
     });
   });
 }
+
+/* ══ INTAKE V2 (build 97) ═══════════════════════════════════════════
+   The new intake form follows the IAP ontology: Deal team, Partner,
+   Customer, Deal details, Opportunity record, Payment. It does not
+   replace the original fields. Every value is written into the original
+   field ids, which stay in the page but hidden, so saving, submitting,
+   the summary, the Smartsheet row, the IPIC export, and the SOW all keep
+   reading exactly what they read before. The only new record fields are
+   added by v2Extra() and saved alongside the old ones. */
+
+const V2_SECTIONS = ['team','partner','customer','details','opp','pay'];
+window._v2 = window._v2 || {};
+
+/* People who already have a named login. Seeds the Deal team dropdown so
+   a name fills in company without typing. Anyone added by email is kept
+   in this browser for next time; a server-side directory comes with the
+   backend update. */
+const V2_DIRECTORY_SEED = [
+  {email:'yasmine@cloudzero.ca', name:'Yasmine Nsouli', company:'Program team'},
+  {email:'brendon.roosken@intel.com', name:'Brendon Roosken', company:'Intel'},
+  {email:'deep.grewal@intel.com', name:'Deep Grewal', company:'Intel'},
+  {email:'diego.bailon.humpert@intel.com', name:'Diego Bailon Humpert', company:'Intel'},
+  {email:'jason.ct.tan@intel.com', name:'Jason Tan', company:'Intel'},
+  {email:'f.pesiguelo@intel.com', name:'Fabio Pesiguelo', company:'Intel'},
+  {email:'dinc@amazon.com', name:'Dinc', company:'AWS'}
+];
+
+function v2el(id){ return document.getElementById(id); }
+function v2val(id){ const e=v2el(id); return e ? (e.value||'').trim() : ''; }
+function v2radio(name){ const e=document.querySelector('input[name="'+name+'"]:checked'); return e ? e.value : ''; }
+function v2setRadio(name, value){
+  document.querySelectorAll('input[name="'+name+'"]').forEach(function(r){ r.checked = (r.value === value); });
+  v2markRadios();
+}
+function v2markRadios(){
+  document.querySelectorAll('#intake-v2 .v2-radio label').forEach(function(l){
+    const i = l.querySelector('input'); l.classList.toggle('sel', !!(i && i.checked));
+  });
+}
+function v2money(n){ return '$' + Math.round(n||0).toLocaleString('en-US'); }
+function v2esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+
+function v2CompanyFromEmail(email){
+  const d = (String(email||'').split('@')[1]||'').toLowerCase();
+  if(d.endsWith('intel.com')) return 'Intel';
+  if(d.endsWith('amazon.com') || d.endsWith('aws.com')) return 'AWS';
+  if(d.endsWith('cloudzero.ca')) return 'Program team';
+  return '';
+}
+function v2RoleFromCompany(c){
+  if(c==='Intel') return 'intel-seller';
+  if(c==='AWS') return 'aws-account';
+  if(c==='Partner') return 'partner';
+  return '';
+}
+function v2Directory(){
+  let saved = [];
+  try{ saved = JSON.parse(localStorage.getItem('iap_v2_directory')||'[]'); }catch(e){}
+  const all = V2_DIRECTORY_SEED.concat(saved);
+  const seen = {}; return all.filter(function(p){ const k=(p.email||'').toLowerCase(); if(!k||seen[k]) return false; seen[k]=1; return true; });
+}
+function v2Remember(person){
+  if(!person || !person.email) return;
+  try{
+    const saved = JSON.parse(localStorage.getItem('iap_v2_directory')||'[]').filter(function(p){ return (p.email||'').toLowerCase() !== person.email.toLowerCase(); });
+    saved.unshift({email:person.email, name:person.name, company:person.company});
+    localStorage.setItem('iap_v2_directory', JSON.stringify(saved.slice(0,200)));
+  }catch(e){}
+}
+function v2RememberCustomer(name){
+  if(!name) return;
+  try{
+    const saved = JSON.parse(localStorage.getItem('iap_v2_customers')||'{}');
+    saved[name] = v2val('v2-country');
+    localStorage.setItem('iap_v2_customers', JSON.stringify(saved));
+  }catch(e){}
+}
+function v2FillDatalists(){
+  const dl = v2el('v2-directory');
+  if(dl) dl.innerHTML = v2Directory().map(function(p){ return '<option value="'+v2esc(p.email)+'">'+v2esc(p.name+' ('+p.company+')')+'</option>'; }).join('');
+  const cl = v2el('v2-cust-list');
+  if(cl){
+    let saved = {}; try{ saved = JSON.parse(localStorage.getItem('iap_v2_customers')||'{}'); }catch(e){}
+    cl.innerHTML = Object.keys(saved).sort().map(function(n){ return '<option value="'+v2esc(n)+'">'; }).join('');
+  }
+}
+function v2FillCountries(){
+  const sel = v2el('v2-country'); if(!sel || sel.options.length>1) return;
+  const all = [];
+  Object.keys(COUNTRIES).forEach(function(r){ COUNTRIES[r].forEach(function(c){ all.push(c); }); });
+  all.sort();
+  sel.innerHTML = '<option value="">Select a country</option>' + all.map(function(c){ return '<option>'+v2esc(c)+'</option>'; }).join('');
+}
+function v2RegionFor(country){
+  let found = '';
+  Object.keys(COUNTRIES).forEach(function(r){ if(COUNTRIES[r].indexOf(country) >= 0) found = r; });
+  return found;
+}
+
+/* ── Deal team ── rendered from the original teamMembers rows. */
+/* Deal team. The person signed in is the submitter. The AWS and Intel
+   account PoCs are two fields; the one on the submitter's side starts
+   filled with the submitter. Each PoC is written as a team member, so the
+   Smartsheet row, summary, and SOW read them as before. */
+function v2People(){
+  return teamMembers.map(function(t){
+    const email = v2val('tm'+t.id+'-email');
+    return {id:t.id, email:email, name:(v2val('tm'+t.id+'-first')+' '+v2val('tm'+t.id+'-last')).trim(),
+            company: v2val('tm'+t.id+'-company') || v2CompanyFromEmail(email)};
+  }).filter(function(p){ return p.email || p.name; });
+}
+function v2WriteTm(id, person, subrole){
+  const parts = (person.name||'').trim().split(/\s+/);
+  setVal('tm'+id+'-email', person.email||'');
+  setVal('tm'+id+'-first', parts.shift()||''); setVal('tm'+id+'-last', parts.join(' '));
+  setVal('tm'+id+'-company', person.company==='Program team' ? '' : (person.company||''));
+  setVal('tm'+id+'-role', v2RoleFromCompany(person.company));
+  setVal('tm'+id+'-subrole', subrole);
+}
+// The submitter comes from the sign-in. Both fields stay editable.
+function v2EnsureSubmitter(){
+  if(!currentUser) return;
+  if(!teamMembers.length) addTeamMember();
+  const id = teamMembers[0].id;
+  if(!v2val('v2-sub-email')){
+    setVal('v2-sub-email', v2val('tm'+id+'-email') || currentUser.email || '');
+    setVal('v2-sub-name', (v2val('tm'+id+'-first')+' '+v2val('tm'+id+'-last')).trim() || currentUser.name || '');
+  }
+  const email = v2val('v2-sub-email');
+  v2WriteTm(id, {email:email, name:v2val('v2-sub-name'), company:v2CompanyFromEmail(email)}, 'submitter');
+}
+function v2PrefillPocs(){}
+function v2PocChanged(side, picked){
+  const email = v2val('v2-'+side+'-email');
+  const hit = v2Directory().find(function(p){ return p.email.toLowerCase() === email.toLowerCase(); });
+  if(hit && (picked || !v2val('v2-'+side+'-name'))) setVal('v2-'+side+'-name', hit.name);
+  const name = v2val('v2-'+side+'-name');
+  if(picked && email.indexOf('@')>0 && name) v2Remember({email:email, name:name, company: side==='aws' ? 'AWS' : 'Intel'});
+  v2Sync();
+}
+function v2SyncTeam(){
+  v2EnsureSubmitter();
+  if(!teamMembers.length) return;
+  const subId = teamMembers[0].id;
+  const subEmail = v2val('tm'+subId+'-email').toLowerCase();
+  const want = [];
+  [['aws','AWS','awsPoc'],['intel','Intel','intelPoc']].forEach(function(c){
+    const email = v2val('v2-'+c[0]+'-email'), name = v2val('v2-'+c[0]+'-name');
+    window._v2[c[2]] = email; window._v2[c[2]+'Name'] = name;
+    if(email && email.toLowerCase()!==subEmail && !want.some(function(w){ return w.email.toLowerCase()===email.toLowerCase(); }))
+      want.push({email:email, name:name, company:c[1]});
+  });
+  // Only the rows this form created for PoCs are rebuilt. Anyone else on an
+  // older deal's team stays as saved.
+  let ids = (window._v2.pocIds||[]).filter(function(id){ return teamMembers.some(function(t){ return t.id===id; }); });
+  if(ids.length !== want.length){
+    ids.forEach(function(id){ removeTeamMember(id); });
+    ids = want.map(function(){ addTeamMember(); return teamMembers[teamMembers.length-1].id; });
+  }
+  want.forEach(function(p, i){ v2WriteTm(ids[i], p, 'contributor'); });
+  window._v2.pocIds = ids;
+}
+function v2RenderPeople(){ v2SyncTeam(); }
+
+/* ── Sync: the new form writes into the original fields ── */
+function v2Sync(typeChanged){
+  if(window._v2Syncing) return;
+  window._v2Syncing = true;
+  try{
+    v2markRadios();
+    // Deal team
+    v2SyncTeam();
+    const pcl = v2el('v2-pc-l'); if(pcl) pcl.textContent = v2radio('v2-type')==='modernize' ? 'Attach the customer\'s Cost Explorer export' : 'Attach Pricing Calculator export, if separate from the BOM';
+    ['v2-bom-req','v2-inst-req','v2-elig-req'].forEach(function(id){ const e=v2el(id); if(e) e.style.display = v2radio('v2-type')==='modernize' ? 'none' : ''; });
+    const io = v2el('v2-inst-other'); if(io) io.style.display = v2checks('v2-inst').indexOf('other') >= 0 ? '' : 'none';
+
+    // Partner
+    const inv = v2radio('v2-pinv');
+    const funded = v2radio('v2-pfund') || 'no';
+    window._v2.partnerInvolved = inv;
+    window._v2.partnerFunded = (inv==='yes' && funded==='yes');
+    window._v2.partnerContact = v2val('v2-partner-contact');
+    const more = v2el('v2-partner-more'); if(more) more.style.display = inv==='yes' ? '' : 'none';
+    const cw = v2el('v2-partner-contact-wrap'); if(cw) cw.style.display = window._v2.partnerFunded ? '' : 'none';
+    setVal('partner-name', inv==='yes' ? v2val('v2-partner-name') : '');
+    const rec = v2el('cust-recipient');
+    if(rec) rec.value = window._v2.partnerFunded ? 'Partner (SI or ISV receives benefit)' : 'Customer (end customer receives benefit)';
+
+    // Customer
+    const cust = v2val('v2-cust');
+    setVal('cust-name', cust);
+    const country = v2val('v2-country');
+    const region = country ? v2RegionFor(country) : '';
+    if(v2val('fh-region') !== region){ setVal('fh-region', region); try{ updateCountries(); }catch(e){} }
+    setVal('fh-country', country);
+    const rs = v2el('v2-region-show'); if(rs) rs.textContent = region || 'Set from country';
+
+    // Deal type
+    const type = v2radio('v2-type');
+    if(type && (typeChanged || window._dealType !== type)){ try{ selectDealType(type); }catch(e){} }
+    const isMod = type==='modernize';
+    const sl = v2el('v2-start-l'), el2 = v2el('v2-end-l');
+    if(sl) sl.innerHTML = (isMod?'Modernization':'Migration')+' start <span class="req">*</span>';
+    if(el2) el2.innerHTML = (isMod?'Modernization':'Migration')+' end <span class="req">*</span>';
+    const ceReq = v2el('v2-ce-req'); if(ceReq) ceReq.style.display = isMod ? '' : 'none';
+    const eh = v2el('v2-evidence-hint');
+    if(eh) eh.textContent = isMod ? 'Optional for Modernize. Attach the customer\'s Cost Explorer export below.' : 'An AWS Pricing Calculator export (CSV or Excel) fills in the instance types and Intel-eligible ARR. For SAP RISE, attach the RISE BOM PDF and type the figures.';
+
+    // Workload: one choice, written to the original checkbox group
+    const wl = v2val('v2-workload');
+    document.querySelectorAll('#workload-checks input[type="checkbox"]').forEach(function(c){ c.checked = (c.value === wl); });
+    const wlLabel = wl ? (v2el('v2-workload').selectedOptions[0]||{}).text : '';
+
+    // Dates
+    setVal('mig-start', v2val('v2-start'));
+    setVal('deal-close', v2val('v2-end'));
+
+    // Deal name and description are built, not typed
+    if(cust && wlLabel) setVal('deal-name', cust + ', ' + wlLabel);
+    const desc = v2el('v2-desc');
+    if(desc && !desc.dataset.edited && cust && wlLabel && type){
+      desc.value = (isMod ? 'Modernize ' : 'Migrate ') + wlLabel + ' workloads for ' + cust + ' onto current generation Intel instances on AWS.';
+    }
+    setVal('cust-workload', desc ? desc.value : '');
+
+    // Opportunity record
+    const recNo = v2val('v2-rec');
+    if(/^o-/i.test(recNo)){ setVal('ace-id', recNo.toUpperCase()); }
+    else if(/^006/.test(recNo)){ setVal('sfdc-id', recNo); }
+    else if(recNo){ setVal('ace-id', recNo); }
+    const aceAmt = v2el('ace-amount'); if(aceAmt){ aceAmt.value = v2val('v2-oarr'); aceAmt.dataset.userEdited = 1; }
+    const term = Math.max(1, parseInt(v2val('v2-term'),10) || 1);
+    setVal('deal-term-years', term > 1 ? term : '');
+    window._v2.tcv = parseFloat(v2val('v2-tcv')) || 0;
+    const tw = v2el('v2-tcv-wrap'); if(tw) tw.style.display = term > 1 ? '' : 'none';
+    window._v2.businessReason = v2val('v2-reason');
+
+    // Payment
+    // An older deal saved with Custom keeps it until the seller picks one of the two options.
+    const pay = v2radio('v2-pay') || (v2val('payment-option')==='Custom' ? 'Custom' : 'Quarterly (15/15/20/50)');
+    setVal('payment-option', pay);
+    try{ handlePaymentOptionChange(); }catch(e){}
+    const rsh = v2el('v2-recipient-show');
+    if(rsh) rsh.textContent = window._v2.partnerFunded ? ('The partner, ' + (v2val('v2-partner-name')||'name not set')) : ('The customer' + (cust ? ', ' + cust : ''));
+  } finally { window._v2Syncing = false; }
+  v2RenderFunding();
+  v2RenderCard();
+  V2_SECTIONS.forEach(v2UpdateState);
+}
+
+function v2StartChanged(){
+  const s = v2val('v2-start'), e = v2el('v2-end');
+  if(s && e && !e.value){
+    const d = new Date(s + 'T00:00:00'); d.setFullYear(d.getFullYear()+1); d.setDate(d.getDate()-1);
+    e.value = d.toISOString().slice(0,10);
+  }
+  v2Sync();
+}
+
+/* ── Funding, term options, ROI ──
+   The rate and cap come from computeRate(), the same table the save path
+   and the Lambda use. ROI uses the program's existing Intel return basis
+   (SILICON_ARR_RATE, 3.5% of Intel-eligible ARR per year). */
+function v2checks(name){ return Array.prototype.map.call(document.querySelectorAll('input[name="'+name+'"]:checked'), function(e){ return e.value; }); }
+function v2setChecks(name, vals){ document.querySelectorAll('input[name="'+name+'"]').forEach(function(e){ e.checked = vals.indexOf(e.value) >= 0; }); }
+function v2EligTyped(){
+  const v = parseFloat(v2val('v2-elig-in')) || 0;
+  setVal('intel-eligible-arr', v ? v : '');
+  window._arrSource = v ? 'Entered on the deal form, after discounts' : null;
+  window._arrSourceAt = v ? new Date().toISOString() : null;
+  window._v2BomNote = '';
+  v2Sync();
+}
+/* Reads an AWS Pricing Calculator export (CSV or Excel) attached as the BOM.
+   Finds each line's instance type and monthly cost, adds up the 7th and 8th
+   generation Intel lines, and fills in the instance types and Intel-eligible
+   ARR. A PDF, such as an SAP RISE BOM, is not read; those figures are typed. */
+function v2ReadBom(file){
+  if(!file || !/\.(csv|xlsx|xls)$/i.test(file.name) || typeof XLSX==='undefined') return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    try{
+      const wb = XLSX.read(e.target.result, {type:'binary'});
+      const INST = /\b(?:db\.|cache\.)?([a-z][a-z0-9-]*?\d+[a-z-]*)\.(?:nano|micro|small|medium|large|\d*xlarge|metal[\w-]*)\b/i;
+      let intelMonthly = 0, otherMonthly = 0, lines = 0;
+      const fams = {};
+      wb.SheetNames.forEach(function(name){
+        const rows = XLSX.utils.sheet_to_json(wb.Sheets[name], {header:1, defval:''});
+        // The line-item header has both a Monthly column and a Service or Configuration column;
+        // the summary block above it also says "Monthly cost", so it is skipped.
+        const h = rows.findIndex(function(r){ return r.some(function(c){ return /^monthly/i.test(String(c).trim()); }) && r.some(function(c){ return /^(service|configuration summary|description)$/i.test(String(c).trim()); }); });
+        if(h < 0) return;
+        const mCol = rows[h].findIndex(function(c){ return /^monthly/i.test(String(c).trim()); });
+        rows.slice(h+1).forEach(function(r){
+          const text = r.join(' ');
+          const m = text.match(INST); if(!m) return;
+          const monthly = parseFloat(String(r[mCol]).replace(/[$,\s]/g,'')) || 0;
+          if(!(monthly > 0)) return;
+          lines++;
+          const fam = (m[1].toLowerCase().match(/^[a-z]+[78]i/)||[])[0];
+          if(fam){ intelMonthly += monthly; fams[fam] = true; } else { otherMonthly += monthly; }
+        });
+      });
+      if(!lines){ window._v2BomNote = 'The BOM was attached, but no instance lines could be read from it. Enter the figures here.'; v2Sync(); return; }
+      const known = ['m8i','c8i','r8i','x8i','m7i','c7i','r7i'];
+      const found = Object.keys(fams);
+      const checks = found.filter(function(f){ return known.indexOf(f) >= 0; });
+      const others = found.filter(function(f){ return known.indexOf(f) < 0; });
+      if(others.length) checks.push('other');
+      v2setChecks('v2-inst', checks); setVal('v2-inst-other', others.join(', '));
+      const annual = Math.round(intelMonthly * 12);
+      if(annual > 0){
+        setVal('intel-eligible-arr', annual);
+        window._arrSource = 'BOM, ' + file.name + ', ' + lines + ' instance lines';
+        window._arrSourceAt = new Date().toISOString();
+      }
+      window._v2BomNote = 'Read from the BOM: ' + lines + ' instance lines, ' + v2money(annual) + ' a year on Intel instances'
+        + (otherMonthly > 0 ? ', ' + v2money(otherMonthly*12) + ' a year on other instances, not counted' : '')
+        + '.' + ' If the customer has a discount the estimate does not include, such as an EDP, lower this figure to match.';
+      v2Sync();
+    }catch(err){ console.error('v2ReadBom', err); }
+  };
+  reader.readAsBinaryString(file);
+}
+function v2Figures(){
+  const elig = parseFloat((v2el('intel-eligible-arr')||{}).value) || 0;
+  const type = v2radio('v2-type');
+  const info = computeRate(type==='modernize' ? 'Modernize' : (type==='migrate' ? 'Migrate' : ''));
+  let y1 = elig * info.rate; if(info.cap && y1 > info.cap) y1 = info.cap;
+  const term = Math.max(1, parseInt(v2val('v2-term'),10) || 1);
+  const silicon = elig * (typeof SILICON_ARR_RATE==='number' ? SILICON_ARR_RATE : 0.035);
+  return {elig:elig, info:info, y1:y1, term:term, silicon:silicon, type:type};
+}
+function v2RenderFunding(){
+  const f = v2Figures();
+  const ein = v2el('v2-elig-in'); if(ein && document.activeElement !== ein) ein.value = f.elig > 0 ? Math.round(f.elig) : '';
+  const src = v2el('v2-elig-src'); if(src) src.textContent = window._v2BomNote || (window._arrSource ? ('Source: ' + window._arrSource) : (f.type==='modernize' ? 'For Modernize, the program team calculates this from the Cost Explorer export. Leave it blank if you do not have it.' : 'Enter the figure from the BOM, or use the calculator.'));
+  const box = v2el('v2-funding'); if(!box) return;
+  if(!(f.elig > 0) || !f.type){ box.innerHTML = ''; v2el('v2-multiyear').style.display='none'; window._v2.fundingTerm = 1; return; }
+  const roiLife = f.y1 > 0 ? (f.silicon * f.term) / f.y1 : 0;
+  const roiY1 = f.y1 > 0 ? f.silicon / f.y1 : 0;
+  const capped = f.info.cap && f.elig * f.info.rate > f.info.cap;
+  box.innerHTML = '<div class="v2-note"><div style="font-size:.8rem;color:var(--ink2)">Calculated amount, Year 1<button type="button" class="v2-def" onclick="v2Def(this)" aria-label="What this means">?</button><span class="v2-def-pop">The funding the program rules give this deal. It is not quoted to the customer. Intel approves the final figure, the NTE, which goes in the SOW.</span></div>'
+    + '<div class="v2-money">' + v2money(f.y1) + '</div>'
+    + '<div style="font-size:.8rem;color:var(--ink2)">' + (f.info.rate*100).toFixed(1).replace(/\.0$/,'') + '% of ' + v2money(f.elig) + ' Intel-eligible ARR' + (capped ? ', capped at ' + v2money(f.info.cap) : '') + '</div>'
+    + (f.term > 1 ? '<div style="font-size:.85rem;color:#444;margin-top:6px">ROI on the ' + f.term + '-year contract: <strong>' + roiLife.toFixed(2) + 'x</strong> for Year 1 funding. Year 1 only: ' + roiY1.toFixed(2) + 'x. Silicon basis: 3.5% of Intel-eligible ARR per year.</div>'
+                  : '<div style="font-size:.85rem;color:#444;margin-top:6px">ROI, Year 1: <strong>' + roiY1.toFixed(2) + 'x</strong>. Silicon basis: 3.5% of Intel-eligible ARR per year.</div>')
+    + '</div>';
+  const my = v2el('v2-multiyear');
+  if(f.term > 1){
+    my.style.display = '';
+    const opts = [1,3,5,f.term].filter(function(n,i,a){ return n <= f.term && a.indexOf(n)===i; });
+    const cur = window._v2.fundingTerm && opts.indexOf(window._v2.fundingTerm) >= 0 ? window._v2.fundingTerm : 1;
+    window._v2.fundingTerm = cur;
+    v2el('v2-fterm').innerHTML = opts.map(function(n){
+      const amt = f.y1 * n;
+      const roi = amt > 0 ? (f.silicon * f.term) / amt : 0;
+      const lbl = n===1 ? 'Year 1 (standard)' : (n===f.term ? 'Full term, ' + n + ' years' : 'Years 1 to ' + n);
+      return '<label class="'+(n===cur?'sel':'')+'"><input type="radio" name="v2-fterm" value="'+n+'"'+(n===cur?' checked':'')+' onchange="window._v2.fundingTerm=parseInt(this.value,10);v2Sync()"> '
+        + lbl + ': ' + v2money(amt) + ', ROI ' + roi.toFixed(2) + 'x' + (n>1?', needs Intel approval':'') + '</label>';
+    }).join('') + '<div class="hint" style="width:100%">Later years are assumed flat at the Year 1 amount unless the BOM shows otherwise.</div>';
+    v2el('v2-reason-wrap').style.display = cur > 1 ? '' : 'none';
+  } else {
+    my.style.display = 'none';
+    window._v2.fundingTerm = 1;
+  }
+}
+
+/* ── Deal card ── */
+function v2RenderCard(){
+  const people = v2People();
+  const nameOf = function(email){ const p = people.find(function(x){ return x.email===email; }); return p ? (p.name||p.email) : ''; };
+  const set = function(id, text, empty){ const e=v2el(id); if(!e) return; e.textContent = text || empty; e.classList.toggle('empty', !text); };
+  set('v2c-cust', v2val('v2-cust'), 'Not set');
+  const wl = v2el('v2-workload'); set('v2c-wl', wl && wl.value ? wl.selectedOptions[0].text : '', 'Not set');
+  const t = v2radio('v2-type'); set('v2c-type', t==='migrate' ? 'Migrate, 4.5%' : (t==='modernize' ? 'Modernize, 1%' : ''), 'Not set');
+  set('v2c-partner', window._v2.partnerInvolved==='yes' ? ((v2val('v2-partner-name')||'Named later') + (window._v2.partnerFunded ? ', funded' : ', not funded')) : '', 'None');
+  set('v2c-aws', window._v2.awsPocName || nameOf(window._v2.awsPoc), 'Not set');
+  set('v2c-intel', window._v2.intelPocName || nameOf(window._v2.intelPoc), 'Not set');
+  set('v2c-ace', v2val('v2-rec'), 'Not set');
+  const f = v2Figures(); set('v2c-amt', (f.elig>0 && f.type) ? v2money(f.y1) + ' (Year 1)' : '', 'Not calculated');
+}
+
+/* ── Sections: one open at a time, done ones fold to a line ── */
+function v2Errors(sec){
+  const errs = [];
+  if(sec==='team'){
+    if(!v2val('v2-sub-name')) errs.push('Add the submitter name.');
+    if(v2val('v2-sub-email').indexOf('@') < 1) errs.push('Add the submitter email.');
+    [['aws','AWS account team'],['intel','Intel account']].forEach(function(c){
+      if(!v2val('v2-'+c[0]+'-name')) errs.push('Add the '+c[1]+' PoC name.');
+      if(v2val('v2-'+c[0]+'-email').indexOf('@') < 1) errs.push('Add the '+c[1]+' PoC email.');
+    });
+  }
+  if(sec==='partner'){
+    const inv = v2radio('v2-pinv');
+    if(!inv) errs.push('Say whether a partner is involved.');
+    if(inv==='yes' && !v2val('v2-partner-name')) errs.push('Add the partner name.');
+    if(inv==='yes' && v2radio('v2-pfund')==='yes' && !/@/.test(v2val('v2-partner-contact'))) errs.push('Add the partner contact email for the SOW.');
+  }
+  if(sec==='customer'){
+    if(!v2val('v2-cust')) errs.push('Add the customer legal name.');
+    if(!v2val('v2-country')) errs.push('Choose the country.');
+  }
+  if(sec==='details'){
+    if(!v2radio('v2-type')) errs.push('Choose Migrate or Modernize.');
+    if(!v2val('v2-workload')) errs.push('Choose the workload.');
+    const s = v2val('v2-start'), e = v2val('v2-end');
+    if(!s) errs.push('Add the start date.');
+    if(!e) errs.push('Add the end date.');
+    if(s && e){
+      const sd = new Date(s+'T00:00:00'), ed = new Date(e+'T00:00:00'), max = new Date(sd); max.setFullYear(max.getFullYear()+1);
+      if(ed < sd) errs.push('The end date is before the start date.');
+      else if(ed > max) errs.push('The end date is more than one year after the start.');
+    }
+  }
+  if(sec==='opp'){
+    if(!(parseFloat(v2val('v2-oarr')) > 0)) errs.push('Add the opportunity ARR.');
+    // Migrate: the seller brings the BOM, instance types, and Intel-eligible ARR.
+    // Modernize: the seller brings the Cost Explorer export and the program
+    // team works out the instance mapping and the Intel-eligible ARR.
+    const isMod = v2radio('v2-type')==='modernize';
+    if(isMod){
+      if(!(dealAttachments||[]).some(function(a){ return /\.csv$|cost/i.test(a.filename||''); })) errs.push('Attach the customer\'s Cost Explorer export.');
+    } else {
+      if(!(Array.isArray(dealAttachments) && dealAttachments.length)) errs.push('Attach the BOM.');
+      if(!v2checks('v2-inst').length) errs.push('Choose the Intel instance types.');
+      if(!(v2Figures().elig > 0)) errs.push('Add the Intel-eligible ARR.');
+    }
+    if(v2checks('v2-inst').indexOf('other')>=0 && !v2val('v2-inst-other')) errs.push('Name the other Intel instance types.');
+    if((window._v2.fundingTerm||1) > 1 && !v2val('v2-reason')) errs.push('Add the business reason for funding more than Year 1.');
+  }
+  if(sec==='pay'){
+    if(!v2radio('v2-pay')) errs.push('Choose the payment terms.');
+  }
+  return errs;
+}
+function v2Summary(sec){
+  const people = v2People();
+  if(sec==='team') return [window._v2.awsPocName ? 'AWS: '+window._v2.awsPocName : '', window._v2.intelPocName ? 'Intel: '+window._v2.intelPocName : ''].filter(Boolean).join(', ');
+  if(sec==='partner'){ const inv=window._v2.partnerInvolved; return inv==='yes' ? (v2val('v2-partner-name') + (window._v2.partnerFunded?', funded':', not funded')) : (inv==='no'?'No partner':(inv==='notyet'?'Not yet':'')); }
+  if(sec==='customer') return [v2val('v2-cust'), v2val('v2-country')].filter(Boolean).join(', ');
+  if(sec==='details'){ const wl=v2el('v2-workload'); return [v2radio('v2-type')==='modernize'?'Modernize':(v2radio('v2-type')?'Migrate':''), wl&&wl.value?wl.selectedOptions[0].text:'', v2val('v2-start') && v2val('v2-end') ? v2val('v2-start')+' to '+v2val('v2-end') : ''].filter(Boolean).join(', '); }
+  if(sec==='opp'){ const f=v2Figures(); return [v2val('v2-rec'), f.elig>0&&f.type ? v2money(f.y1)+' Year 1' : '', (window._v2.fundingTerm||1)>1 ? window._v2.fundingTerm+'-year request' : ''].filter(Boolean).join(', '); }
+  if(sec==='pay'){ const r=v2radio('v2-pay'); return r==='Lump Sum (post 75%)' ? 'End of year' : (r ? 'Quarterly' : (v2val('payment-option')==='Custom' ? 'Custom (older deal)' : '')); }
+  return '';
+}
+function v2UpdateState(sec){
+  const st = v2el('v2st-'+sec), sum = v2el('v2sum-'+sec); if(!st) return;
+  const ok = v2Errors(sec).length === 0;
+  st.textContent = ok ? 'Done' : 'To do';
+  st.className = 'v2-sec-state ' + (ok ? 'done' : 'todo');
+  if(sum) sum.textContent = v2Summary(sec);
+}
+function v2Open(sec, noScroll){
+  V2_SECTIONS.forEach(function(s){ const el=v2el('v2s-'+s); if(el) el.classList.toggle('open', s===sec); });
+  // Scroll only when the seller moves between sections, not when the form first opens.
+  const el = v2el('v2s-'+sec); if(el && !noScroll){ try{ el.scrollIntoView({behavior:'smooth', block:'start'}); }catch(e){} }
+}
+function v2Next(sec){
+  v2Sync();
+  const errs = v2Errors(sec);
+  const box = v2el('v2err-'+sec);
+  if(errs.length){ if(box){ box.innerHTML = errs.map(v2esc).join('<br>'); box.style.display='block'; } return; }
+  if(box) box.style.display='none';
+  if(sec==='customer') v2RememberCustomer(v2val('v2-cust'));
+  const i = V2_SECTIONS.indexOf(sec);
+  if(i < V2_SECTIONS.length-1){ v2Open(V2_SECTIONS[i+1]); }
+  else {
+    // Before review, send the seller back to the first section still missing something.
+    const open = V2_SECTIONS.find(function(s){ return v2Errors(s).length; });
+    if(open){ v2Open(open); const ob=v2el('v2err-'+open); if(ob){ ob.innerHTML = v2Errors(open).map(v2esc).join('<br>'); ob.style.display='block'; } return; }
+    V2_SECTIONS.forEach(function(s){ const el=v2el('v2s-'+s); if(el) el.classList.remove('open'); }); goStep(6);
+  }
+}
+function v2Def(btn){ const pop = btn.nextElementSibling; if(pop) pop.style.display = pop.style.display==='block' ? 'none' : 'block'; }
+
+/* ── Load: fill the new form from the original fields (draft or saved deal) ── */
+function v2FromOld(d){
+  d = d || {};
+  const x = d.v2 || {};
+  window._v2 = Object.assign({}, window._v2, {
+    awsPoc: x.awsPoc || d.awsPocEmail || window._v2.awsPoc || '',
+    intelPoc: x.intelPoc || d.intelPocEmail || window._v2.intelPoc || '',
+    fundingTerm: x.fundingTerm || d.fundingTerm || 1,
+    tcv: x.tcv || d.tcv || 0
+  });
+  const pname = v2val('partner-name');
+  const recip = v2val('cust-recipient');
+  const inv = x.partnerInvolved || (pname ? 'yes' : (d.id ? 'no' : ''));
+  v2setRadio('v2-pinv', inv);
+  setVal('v2-partner-name', pname);
+  v2setRadio('v2-pfund', (x.partnerFunded || /^Partner|^Split/.test(recip)) ? 'yes' : 'no');
+  setVal('v2-partner-contact', x.partnerContact || d.partnerContact || '');
+  setVal('v2-cust', v2val('cust-name'));
+  v2FillCountries();
+  setVal('v2-country', v2val('fh-country'));
+  const t = window._dealType || (/^mod/i.test(v2val('prd-deal-type')||v2val('deal-program')) ? 'modernize' : (v2val('prd-deal-type')||v2val('deal-program') ? 'migrate' : ''));
+  v2setRadio('v2-type', t);
+  let wl = '';
+  if(d.workloadSelection){ wl = String(Array.isArray(d.workloadSelection) ? d.workloadSelection[0] : d.workloadSelection).split(',')[0].trim(); }
+  if(!wl){ const c = document.querySelector('#workload-checks input[type="checkbox"]:checked'); if(c) wl = c.value; }
+  setVal('v2-workload', wl);
+  setVal('v2-start', v2val('mig-start'));
+  setVal('v2-end', v2val('deal-close'));
+  const desc = v2el('v2-desc'); if(desc){ desc.value = v2val('cust-workload'); if(desc.value) desc.dataset.edited = 1; else delete desc.dataset.edited; }
+  setVal('v2-rec', v2val('ace-id') || v2val('sfdc-id'));
+  setVal('v2-oarr', v2val('ace-amount'));
+  setVal('v2-term', v2val('deal-term-years') || 1);
+  setVal('v2-tcv', window._v2.tcv || '');
+  setVal('v2-reason', x.businessReason || d.businessReason || '');
+  const pay = v2val('payment-option');
+  v2setRadio('v2-pay', pay==='Custom' ? '' : (pay==='Lump Sum (post 75%)' ? 'Lump Sum (post 75%)' : 'Quarterly (15/15/20/50)'));
+  // Deal team: PoCs from the saved record, or the first AWS and Intel people on an older deal.
+  const ppl = v2People();
+  setVal('v2-sub-name', ppl[0] ? ppl[0].name : ''); setVal('v2-sub-email', ppl[0] ? ppl[0].email : '');
+  v2setChecks('v2-inst', x.instanceTypes || []); setVal('v2-inst-other', x.instanceOther || '');
+  [['aws','AWS','awsPoc'],['intel','Intel','intelPoc']].forEach(function(c){
+    const email = window._v2[c[2]] || (d.id ? ((ppl.slice(1).find(function(p){ return p.company===c[1]; })||{}).email) : '') || '';
+    const who = ppl.find(function(p){ return p.email===email; });
+    setVal('v2-'+c[0]+'-email', email);
+    setVal('v2-'+c[0]+'-name', d[c[2]+'Name'] || (who && who.name) || '');
+  });
+  const pocEmails = [v2val('v2-aws-email'), v2val('v2-intel-email')].filter(Boolean);
+  window._v2.pocIds = ppl.slice(1).filter(function(p){ return pocEmails.indexOf(p.email) >= 0; }).map(function(p){ return p.id; });
+  if(!d.id) v2PrefillPocs();
+  v2Sync();
+}
+function v2Reset(){
+  window._v2 = {fundingTerm:1};
+  ['v2-partner-name','v2-partner-contact','v2-cust','v2-country','v2-workload','v2-start','v2-end','v2-desc','v2-rec','v2-oarr','v2-tcv','v2-reason'].forEach(function(id){ setVal(id,''); });
+  const desc = v2el('v2-desc'); if(desc) delete desc.dataset.edited;
+  setVal('v2-term', 1);
+  v2setRadio('v2-pinv',''); v2setRadio('v2-pfund','no'); v2setRadio('v2-type',''); v2setRadio('v2-pay','Quarterly (15/15/20/50)');
+  ['v2-sub-name','v2-sub-email','v2-aws-email','v2-aws-name','v2-intel-email','v2-intel-name','v2-inst-other','v2-elig-in'].forEach(function(id){ setVal(id,''); });
+  v2setChecks('v2-inst', []); window._v2BomNote = '';
+  // A new deal starts with only the person signed in on the team.
+  teamMembers.slice(1).forEach(function(t){ removeTeamMember(t.id); });
+  if(teamMembers.length && currentUser){ setVal('tm'+teamMembers[0].id+'-email',''); }
+  v2EnsureSubmitter(); v2PrefillPocs();
+  v2RenderPeople(); v2Sync(); v2Open('team', true);
+  try{ window.scrollTo(0,0); }catch(e){}
+}
+
+/* Record fields the new form adds. Saved with the deal; the Lambda stores
+   the whole record, so no backend change is needed to keep them. */
+function v2Extra(){
+  const people = v2People();
+  const nameOf = function(email){ const p = people.find(function(x){ return x.email===email; }); return p ? (p.name||'') : ''; };
+  return {
+    v2: {schema:2, partnerInvolved: window._v2.partnerInvolved||'', partnerFunded: !!window._v2.partnerFunded,
+         partnerContact: window._v2.partnerContact||'', awsPoc: window._v2.awsPoc||'', intelPoc: window._v2.intelPoc||'',
+         instanceTypes: v2checks('v2-inst'), instanceOther: v2val('v2-inst-other'), arrBasis: 'after-discounts',
+         fundingTerm: window._v2.fundingTerm||1, businessReason: window._v2.businessReason||'', tcv: window._v2.tcv||0},
+    awsPocEmail: window._v2.awsPoc||'', intelPocEmail: window._v2.intelPoc||'',
+    awsPocName: window._v2.awsPocName || nameOf(window._v2.awsPoc), intelPocName: window._v2.intelPocName || nameOf(window._v2.intelPoc),
+    fundingTerm: window._v2.fundingTerm||1, businessReason: window._v2.businessReason||'',
+    tcv: window._v2.tcv||0, partnerFunded: !!window._v2.partnerFunded, partnerContact: window._v2.partnerContact||''
+  };
+}
+
+/* ── Wiring ── */
+function v2Init(){
+  const step1 = v2el('step1'), v2 = v2el('intake-v2');
+  if(!step1 || !v2 || (currentUser && currentUser.tier==='partner')) return;
+  // Hide everything the new form replaces. Nothing is removed from the page.
+  Array.prototype.forEach.call(step1.children, function(ch){
+    if(ch.classList.contains('step-header') || ch.id==='intake-v2' || ch.id==='pop-card') return;
+    ch.style.display = 'none';
+  });
+  const iv = v2el('intel-seller-view'); if(iv) iv.style.display='none';
+  const av = v2el('aws-specialist-view'); if(av) av.style.display='none';
+  // Proof of performance belongs after approval, to TCC and admin.
+  const pop = v2el('pop-card');
+  const canPop = currentUser && (currentUser.tier==='admin' || currentUser.tier==='tcc' || currentUser.approver);
+  if(pop) pop.style.display = canPop ? '' : 'none';
+  const ss = v2el('side-smartsheet'); if(ss) ss.style.display = (currentUser && (currentUser.tier==='admin' || currentUser.tier==='tcc')) ? '' : 'none';
+  const hdr = step1.querySelector('.step-title'); if(hdr) hdr.textContent = 'New deal';
+  const hb = step1.querySelector('.step-badge'); if(hb) hb.textContent = 'Intel Acceleration Program';
+  const hd = v2el('step1-desc'); if(hd) hd.textContent = 'Complete each section, then submit for review.';
+  v2.style.display = '';
+  // The BOM upload control moves into the Opportunity record, handlers intact.
+  const slot = v2el('v2-bom-slot');
+  ['deal-attach','deal-attach-status','deal-attach-list'].forEach(function(id){ const e=v2el(id); if(slot && e && e.parentNode!==slot) slot.appendChild(e); });
+  const up = v2el('deal-attach'); if(up && !up.dataset.v2){ up.dataset.v2=1; up.addEventListener('change', function(){ v2ReadBom(up.files && up.files[0]); setTimeout(v2Sync, 1200); }); }
+  const pc = v2el('v2-pc-file'); if(pc && !pc.dataset.v2){ pc.dataset.v2=1; pc.addEventListener('change', function(){ v2ReadBom(pc.files && pc.files[0]); }); }
+  // Keep the card and Opportunity section current when the calculator writes a figure.
+  const elig = v2el('intel-eligible-arr'); if(elig && !elig.dataset.v2){ elig.dataset.v2=1; elig.addEventListener('input', v2Sync); }
+  v2FillDatalists(); v2FillCountries();
+  if(currentUser && teamMembers.length){
+    const id = teamMembers[0].id;
+    if(!v2val('tm'+id+'-company')) setVal('tm'+id+'-company', v2CompanyFromEmail(currentUser.email));
+    if(!v2val('tm'+id+'-role')) setVal('tm'+id+'-role', v2RoleFromCompany(v2CompanyFromEmail(currentUser.email)));
+    setVal('tm'+id+'-subrole','submitter');
+  }
+  v2FromOld(window._loadedDeal || {});
+  if(!V2_SECTIONS.some(function(s){ const el=v2el('v2s-'+s); return el && el.classList.contains('open'); })) v2Open('team', true);
+}
+
+(function v2Wire(){
+  const _completeLogin = completeLogin;
+  completeLogin = function(u){ _completeLogin(u); try{ v2Init(); }catch(e){ console.error('v2Init', e); } };
+  const _gcd = getCurrentDealData;
+  getCurrentDealData = function(){
+    const d = _gcd.apply(this, arguments);
+    try{
+      if(v2el('intake-v2') && v2el('intake-v2').style.display !== 'none'){
+        v2Sync();
+        Object.assign(d, v2Extra());
+        if(d.awsPocName) d.awsRepName = d.awsPocName;
+        if(d.intelPocName) d.intelRepName = d.intelPocName;
+      }
+    }catch(e){ console.error('v2Extra', e); }
+    return d;
+  };
+  const _restore = restoreDeal;
+  restoreDeal = function(d){ _restore(d); try{ if(v2el('intake-v2') && v2el('intake-v2').style.display!=='none') v2FromOld(d); }catch(e){ console.error('v2FromOld', e); } };
+  const _startNew = startNewDeal;
+  // Reset the new form only if the old form was actually cleared. If the
+  // seller cancels the "Start a new deal?" prompt, nothing changes.
+  startNewDeal = function(){ _startNew.apply(this, arguments); try{ if(!v2val('cust-name') && v2el('intake-v2') && v2el('intake-v2').style.display!=='none'){ v2Reset(); goStep(1); } }catch(e){} };
+  // The "Before you start" popup is replaced by one line at the top of the form.
+  maybeShowStartChecklist = function(){};
+  // When the calculator hands a figure back, reflect it on the way back to the form.
+  const _goStep = goStep;
+  goStep = function(n){ _goStep(n); if(n===1){ try{ v2Sync(); }catch(e){} } };
+})();
+
 </script>
 <!-- Mobile bottom navigation -->
 <nav class="mobile-nav" id="mobile-nav">
