@@ -1672,13 +1672,14 @@ input::placeholder,textarea::placeholder{color:#a3a3a3;opacity:1}
             <div class="v2-sec-head" onclick="v2Open('team')"><span class="v2-sec-title">1. Deal team</span><span class="v2-sec-sum" id="v2sum-team"></span><span class="v2-sec-state todo" id="v2st-team">To do</span></div>
             <div class="v2-sec-body">
               <datalist id="v2-directory"></datalist>
+              <div class="v2-note" id="v2-submitter" style="margin-bottom:12px"></div>
+              <input type="hidden" id="v2-sub-name"><input type="hidden" id="v2-sub-email">
               <div class="v2-grid">
-                <div class="v2-f"><label for="v2-sub-name">Submitter name <span class="req">*</span></label><input type="text" id="v2-sub-name" oninput="v2Sync()"></div>
-                <div class="v2-f"><label for="v2-sub-email">Submitter email <span class="req">*</span></label><input type="email" id="v2-sub-email" oninput="v2Sync()"></div>
-                <div class="v2-f"><label for="v2-aws-name">AWS account team PoC name <span class="req">*</span></label><input type="text" id="v2-aws-name" oninput="v2Sync()"></div>
-                <div class="v2-f"><label for="v2-aws-email">AWS account team PoC email <span class="req">*</span></label><input type="email" id="v2-aws-email" list="v2-directory" placeholder="name@amazon.com" oninput="v2PocChanged('aws')" onchange="v2PocChanged('aws',true)"></div>
-                <div class="v2-f"><label for="v2-intel-name">Intel account PoC name <span class="req">*</span></label><input type="text" id="v2-intel-name" oninput="v2Sync()"></div>
-                <div class="v2-f"><label for="v2-intel-email">Intel account PoC email <span class="req">*</span></label><input type="email" id="v2-intel-email" list="v2-directory" placeholder="name@intel.com" oninput="v2PocChanged('intel')" onchange="v2PocChanged('intel',true)"></div>
+                <div class="v2-f"><label for="v2-aws-email">AWS account team PoC <span class="req">*</span></label><input type="email" id="v2-aws-email" list="v2-directory" placeholder="alias@amazon.com" oninput="v2PocChanged('aws')" onchange="v2PocChanged('aws',true)"><span class="hint" id="v2-aws-found"></span></div>
+                <div class="v2-f" id="v2-aws-name-wrap" style="display:none"><label for="v2-aws-name">Their name <span class="req">*</span></label><input type="text" id="v2-aws-name" oninput="v2Sync()"></div>
+                <div class="v2-f full"><label for="v2-intel-sel">Intel account PoC (SDM) <span class="req">*</span></label><select id="v2-intel-sel" onchange="v2IntelPicked()" style="max-width:420px"></select></div>
+                <div class="v2-f" id="v2-intel-other-e" style="display:none"><label for="v2-intel-email">Intel PoC email <span class="req">*</span></label><input type="email" id="v2-intel-email" placeholder="name@intel.com" oninput="v2PocChanged('intel')" onchange="v2PocChanged('intel',true)"></div>
+                <div class="v2-f" id="v2-intel-other-n" style="display:none"><label for="v2-intel-name">Intel PoC name <span class="req">*</span></label><input type="text" id="v2-intel-name" oninput="v2Sync()"></div>
               </div>
               <div class="v2-err" id="v2err-team"></div>
               <div class="v2-actions"><button type="button" class="btn btn-primary" onclick="v2Next('team')">Continue</button></div>
@@ -9623,13 +9624,53 @@ function v2EnsureSubmitter(){
   v2WriteTm(id, {email:email, name:v2val('v2-sub-name'), company:v2CompanyFromEmail(email)}, 'submitter');
 }
 function v2PrefillPocs(){}
+/* Intel SDMs. The Intel account PoC is picked from this list; anyone else
+   is entered under "Someone else". */
+const V2_INTEL_SDMS = [
+  {email:'deep.grewal@intel.com', name:'Deep Grewal', region:'NAMER'},
+  {email:'f.pesiguelo@intel.com', name:'Fabio Pesiguelo', region:'LATAM'},
+  {email:'diego.bailon.humpert@intel.com', name:'Diego Bailon Humpert', region:'EMEA'},
+  {email:'jason.ct.tan@intel.com', name:'Jason Tan', region:'APJ'},
+  {email:'brendon.roosken@intel.com', name:'Brendon Roosken', region:'All regions'}
+];
+function v2FillIntelSel(){
+  const sel = v2el('v2-intel-sel'); if(!sel || sel.options.length) return;
+  sel.innerHTML = '<option value="">Select the Intel SDM</option>'
+    + V2_INTEL_SDMS.map(function(p){ return '<option value="'+v2esc(p.email)+'">'+v2esc(p.name)+', '+v2esc(p.region)+'</option>'; }).join('')
+    + '<option value="other">Someone else</option>';
+}
+function v2IntelShowOther(on){ ['v2-intel-other-e','v2-intel-other-n'].forEach(function(id){ const e=v2el(id); if(e) e.style.display = on ? '' : 'none'; }); }
+function v2IntelPicked(){
+  const v = v2val('v2-intel-sel');
+  const sdm = V2_INTEL_SDMS.find(function(p){ return p.email===v; });
+  if(sdm){ setVal('v2-intel-email', sdm.email); setVal('v2-intel-name', sdm.name); v2IntelShowOther(false); }
+  else if(v==='other'){ if(V2_INTEL_SDMS.some(function(p){ return p.email===v2val('v2-intel-email'); })){ setVal('v2-intel-email',''); setVal('v2-intel-name',''); } v2IntelShowOther(true); }
+  else { setVal('v2-intel-email',''); setVal('v2-intel-name',''); v2IntelShowOther(false); }
+  v2Sync();
+}
+function v2IntelSelFromEmail(){
+  v2FillIntelSel();
+  const e = v2val('v2-intel-email');
+  const sdm = V2_INTEL_SDMS.find(function(p){ return p.email===e; });
+  setVal('v2-intel-sel', sdm ? sdm.email : (e ? 'other' : ''));
+  v2IntelShowOther(!sdm && !!e);
+}
 function v2PocChanged(side, picked){
   const email = v2val('v2-'+side+'-email');
   const hit = v2Directory().find(function(p){ return p.email.toLowerCase() === email.toLowerCase(); });
   if(hit && (picked || !v2val('v2-'+side+'-name'))) setVal('v2-'+side+'-name', hit.name);
+  if(side==='aws') v2AwsNameState(hit);
   const name = v2val('v2-'+side+'-name');
   if(picked && email.indexOf('@')>0 && name) v2Remember({email:email, name:name, company: side==='aws' ? 'AWS' : 'Intel'});
   v2Sync();
+}
+function v2AwsNameState(hit){
+  const email = v2val('v2-aws-email'), wrap = v2el('v2-aws-name-wrap'), found = v2el('v2-aws-found');
+  if(hit === undefined) hit = v2Directory().find(function(p){ return p.email.toLowerCase() === email.toLowerCase(); });
+  const complete = /@[^@]+\.[a-z]{2,}$/i.test(email);
+  const known = !!hit || (!!v2val('v2-aws-name') && wrap && wrap.style.display==='none');
+  if(found) found.textContent = (complete && v2val('v2-aws-name') && known) ? v2val('v2-aws-name') : '';
+  if(wrap) wrap.style.display = (complete && !known) ? '' : 'none';
 }
 function v2SyncTeam(){
   v2EnsureSubmitter();
@@ -9652,6 +9693,8 @@ function v2SyncTeam(){
   }
   want.forEach(function(p, i){ v2WriteTm(ids[i], p, 'contributor'); });
   window._v2.pocIds = ids;
+  const box = v2el('v2-submitter');
+  if(box) box.textContent = 'Submitted by ' + (v2val('v2-sub-name') || v2val('v2-sub-email')) + (v2val('v2-sub-email') ? ' (' + v2val('v2-sub-email') + ')' : '');
 }
 function v2RenderPeople(){ v2SyncTeam(); }
 
@@ -9878,12 +9921,10 @@ function v2RenderCard(){
 function v2Errors(sec){
   const errs = [];
   if(sec==='team'){
-    if(!v2val('v2-sub-name')) errs.push('Add the submitter name.');
-    if(v2val('v2-sub-email').indexOf('@') < 1) errs.push('Add the submitter email.');
-    [['aws','AWS account team'],['intel','Intel account']].forEach(function(c){
-      if(!v2val('v2-'+c[0]+'-name')) errs.push('Add the '+c[1]+' PoC name.');
-      if(v2val('v2-'+c[0]+'-email').indexOf('@') < 1) errs.push('Add the '+c[1]+' PoC email.');
-    });
+    if(v2val('v2-aws-email').indexOf('@') < 1) errs.push('Add the AWS account team PoC email.');
+    else if(!v2val('v2-aws-name')) errs.push('Add the AWS account team PoC name.');
+    if(!v2val('v2-intel-sel')) errs.push('Select the Intel SDM.');
+    else if(v2val('v2-intel-email').indexOf('@') < 1 || !v2val('v2-intel-name')) errs.push('Add the Intel PoC name and email.');
   }
   if(sec==='partner'){
     const inv = v2radio('v2-pinv');
@@ -10014,6 +10055,7 @@ function v2FromOld(d){
     setVal('v2-'+c[0]+'-email', email);
     setVal('v2-'+c[0]+'-name', d[c[2]+'Name'] || (who && who.name) || '');
   });
+  v2IntelSelFromEmail(); v2AwsNameState();
   const pocEmails = [v2val('v2-aws-email'), v2val('v2-intel-email')].filter(Boolean);
   window._v2.pocIds = ppl.slice(1).filter(function(p){ return pocEmails.indexOf(p.email) >= 0; }).map(function(p){ return p.id; });
   if(!d.id) v2PrefillPocs();
@@ -10027,6 +10069,7 @@ function v2Reset(){
   v2setRadio('v2-pinv',''); v2setRadio('v2-pfund','no'); v2setRadio('v2-type',''); v2setRadio('v2-pay','Quarterly (15/15/20/50)');
   ['v2-sub-name','v2-sub-email','v2-aws-email','v2-aws-name','v2-intel-email','v2-intel-name','v2-inst-other','v2-elig-in'].forEach(function(id){ setVal(id,''); });
   v2setChecks('v2-inst', []); window._v2BomNote = '';
+  v2FillIntelSel(); setVal('v2-intel-sel',''); v2IntelShowOther(false); v2AwsNameState();
   // A new deal starts with only the person signed in on the team.
   teamMembers.slice(1).forEach(function(t){ removeTeamMember(t.id); });
   if(teamMembers.length && currentUser){ setVal('tm'+teamMembers[0].id+'-email',''); }
@@ -10063,10 +10106,10 @@ function v2Init(){
   });
   const iv = v2el('intel-seller-view'); if(iv) iv.style.display='none';
   const av = v2el('aws-specialist-view'); if(av) av.style.display='none';
-  // Proof of performance belongs after approval, to TCC and admin.
-  const pop = v2el('pop-card');
-  const canPop = currentUser && (currentUser.tier==='admin' || currentUser.tier==='tcc' || currentUser.approver);
-  if(pop) pop.style.display = canPop ? '' : 'none';
+  // Proof of performance is tracked on the approved deal, not on a new one.
+  // The card's fields stay in the page so saved deals and the Smartsheet row
+  // keep their POP values.
+  const pop = v2el('pop-card'); if(pop) pop.style.display = 'none';
   const ss = v2el('side-smartsheet'); if(ss) ss.style.display = (currentUser && (currentUser.tier==='admin' || currentUser.tier==='tcc')) ? '' : 'none';
   const hdr = step1.querySelector('.step-title'); if(hdr) hdr.textContent = 'New deal';
   const hb = step1.querySelector('.step-badge'); if(hb) hb.textContent = 'Intel Acceleration Program';
@@ -10079,7 +10122,7 @@ function v2Init(){
   const pc = v2el('v2-pc-file'); if(pc && !pc.dataset.v2){ pc.dataset.v2=1; pc.addEventListener('change', function(){ v2ReadBom(pc.files && pc.files[0]); }); }
   // Keep the card and Opportunity section current when the calculator writes a figure.
   const elig = v2el('intel-eligible-arr'); if(elig && !elig.dataset.v2){ elig.dataset.v2=1; elig.addEventListener('input', v2Sync); }
-  v2FillDatalists(); v2FillCountries();
+  v2FillDatalists(); v2FillCountries(); v2FillIntelSel();
   if(currentUser && teamMembers.length){
     const id = teamMembers[0].id;
     if(!v2val('tm'+id+'-company')) setVal('tm'+id+'-company', v2CompanyFromEmail(currentUser.email));
